@@ -3,7 +3,7 @@ import { Assignment } from '../utils/task-manager';
 import { ClassPeriod, TranscriptEntry, AttendanceRecord } from '../utils/schedule-data';
 import { logError, logWarning } from '../utils/error-logger';
 
-const BASE_URL = 'https://homeaccesscenterapi.vercel.app/api';
+const BASE_URL = 'https://gradient-hac-api.vercel.app/api';
 
 // defensive validation helpers to prevent crashes from malformed API responses
 function isObject(val: unknown): val is Record<string, unknown> {
@@ -48,13 +48,12 @@ function parseAPIError(status: number, endpoint: string): string {
 }
 
 async function apiFetch(endpoint: string, hacUrl: string, username: string, password: string) {
-  const url = new URL(`${BASE_URL}/${endpoint}`);
-  url.searchParams.append('link', hacUrl);
-  url.searchParams.append('user', username);
-  url.searchParams.append('pass', password);
-  
   try {
-    const res = await fetch(url.toString());
+    const res = await fetch(`${BASE_URL}/${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
+    });
     if (!res.ok) {
       throw new HACError(parseAPIError(res.status, endpoint), res.status);
     }

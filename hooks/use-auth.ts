@@ -59,9 +59,11 @@ export function useAuth() {
 
   const login = useCallback(
     async (username: string, password: string, hacUrl: string) => {
-      const response = await fetch(
-        `https://homeaccesscenterapi.vercel.app/api/name?link=${encodeURIComponent(hacUrl)}&user=${encodeURIComponent(username)}&pass=${encodeURIComponent(password)}`
-      );
+      const response = await fetch('https://gradient-hac-api.vercel.app/api/name', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
+      });
       if (!response.ok) throw new Error('Invalid credentials');
       const data = await response.json();
 
