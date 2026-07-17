@@ -1,5 +1,4 @@
 /* eslint-disable react-native/no-color-literals, react-native/no-unused-styles, @typescript-eslint/no-unused-vars */
-// logout button red, shadows, borders intentionally hardcoded
 import React, { useContext } from 'react';
 import {
   StyleSheet,
@@ -14,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
 import { THEMES } from '../context/theme-context';
+import { UI_COLORS } from '../utils/colors';
 
 export default function SettingsScreen() {
   const authContext = useContext(AuthContext);
@@ -36,7 +36,7 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[styles.header, { backgroundColor: currentTheme.surface }]}>
+        <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
           <Text style={[styles.title, { color: currentTheme.text }]}>Settings</Text>
         </View>
 
@@ -111,7 +111,7 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <TouchableOpacity
-            style={[styles.logoutButton, { backgroundColor: '#EF4444' }]}
+            style={[styles.logoutButton, { backgroundColor: UI_COLORS.danger }]}
             onPress={handleLogout}
           >
             <Ionicons name="log-out" size={20} color="#fff" />
@@ -179,9 +179,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   header: {
-    borderBottomColor: '#f0f0f0',
     borderBottomWidth: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 20,
   },
   infoItem: {

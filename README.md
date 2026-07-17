@@ -36,8 +36,6 @@ sign in with your district's HAC url, username, and password. four districts are
 
 react native 0.76 · expo sdk 52 · react navigation 6 · ts · expo-secure-store
 
-see [claude.md](./CLAUDE.md) for arch and [deployment.md](./DEPLOYMENT.md) for shipping.
-
 ## security
 
 passwords live only in the ios keychain (`expo-secure-store`), read on demand via `usecreds()`, never persisted in user json.

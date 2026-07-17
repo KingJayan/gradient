@@ -1,5 +1,4 @@
 /* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
-// priority colors, shadows, modal overlays intentionally hardcoded for data visualization
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
@@ -16,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { Assignment, PersonalTask, mergeTasks, groupByDate, getOverdueTasks } from '../utils/task-manager';
+import { UI_COLORS } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -131,7 +131,7 @@ export default function PlannerScreen() {
       {overdueTasks.length > 0 && (
         <View style={styles.overdueSection}>
           <View style={styles.overdueHeader}>
-            <Ionicons name="alert-circle" size={20} color="#ff4444" />
+            <Ionicons name="alert-circle" size={20} color={UI_COLORS.danger} />
             <Text style={styles.overdueTitle}>Overdue ({overdueTasks.length})</Text>
           </View>
           {overdueTasks.slice(0, 2).map((task) => (
@@ -144,10 +144,10 @@ export default function PlannerScreen() {
         {(['all', 'hac', 'personal'] as const).map((src) => (
           <TouchableOpacity
             key={src}
-            style={[styles.filterButton, filterSource === src && [styles.filterButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
+            style={[styles.filterButton, { borderColor: currentTheme.border }, filterSource === src && [styles.filterButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
             onPress={() => setFilterSource(src)}
           >
-            <Text style={[styles.filterButtonText, filterSource === src && styles.filterButtonTextActive]}>
+            <Text style={[styles.filterButtonText, { color: currentTheme.textSecondary }, filterSource === src && styles.filterButtonTextActive]}>
               {src.charAt(0).toUpperCase() + src.slice(1)}
             </Text>
           </TouchableOpacity>
@@ -198,10 +198,10 @@ export default function PlannerScreen() {
               {(['low', 'medium', 'high'] as const).map((p) => (
                 <TouchableOpacity
                   key={p}
-                  style={[styles.priorityButton, newTaskPriority === p && [styles.priorityButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
+                  style={[styles.priorityButton, { borderColor: currentTheme.border }, newTaskPriority === p && [styles.priorityButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
                   onPress={() => setNewTaskPriority(p)}
                 >
-                  <Text style={[styles.priorityButtonText, newTaskPriority === p && styles.priorityButtonTextActive]}>
+                  <Text style={[styles.priorityButtonText, { color: currentTheme.textSecondary }, newTaskPriority === p && styles.priorityButtonTextActive]}>
                     {p.charAt(0).toUpperCase() + p.slice(1)}
                   </Text>
                 </TouchableOpacity>
@@ -220,7 +220,7 @@ export default function PlannerScreen() {
 function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignment; onToggle: () => void; isOverdue?: boolean; currentTheme: any }) {
   const priorityColor =
     task.source === 'personal'
-      ? task.priority === 'high' ? '#ff4444' : task.priority === 'medium' ? '#FFDD00' : currentTheme.textSecondary
+      ? task.priority === 'high' ? UI_COLORS.danger : task.priority === 'medium' ? UI_COLORS.warning : currentTheme.textSecondary
       : currentTheme.primary;
 
   return (
@@ -229,7 +229,7 @@ function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignmen
         <Ionicons
           name={task.completed ? 'checkmark-circle' : 'ellipse-outline'}
           size={24}
-          color={task.completed ? currentTheme.primary : isOverdue ? '#ff4444' : priorityColor}
+          color={task.completed ? currentTheme.primary : isOverdue ? UI_COLORS.danger : priorityColor}
         />
       </TouchableOpacity>
       <View style={styles.taskContent}>
@@ -265,9 +265,9 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', marginTop: 60 },
   emptyStateText: { fontSize: 16, marginTop: 12 },
   filterBar: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', gap: 8, paddingHorizontal: 12, paddingVertical: 12 },
-  filterButton: { alignItems: 'center', borderColor: '#ccc', borderRadius: 6, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6 },
+  filterButton: { alignItems: 'center', borderRadius: 6, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6 },
   filterButtonActive: { borderColor: 'transparent' },
-  filterButtonText: { color: '#666', fontSize: 12, fontWeight: '500' },
+  filterButtonText: { fontSize: 12, fontWeight: '500' },
   filterButtonTextActive: { color: '#fff' },
   greeting: { fontSize: 14 },
   header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 16 },
@@ -280,11 +280,11 @@ const styles = StyleSheet.create({
   modalOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', flex: 1, justifyContent: 'flex-end' },
   modalTitle: { fontSize: 18, fontWeight: '700' },
   overdueHeader: { alignItems: 'center', flexDirection: 'row', marginBottom: 8 },
-  overdueSection: { backgroundColor: '#fff3f3', borderLeftColor: '#ff4444', borderLeftWidth: 4, borderRadius: 8, marginHorizontal: 16, marginVertical: 12, paddingHorizontal: 12, paddingVertical: 12 },
-  overdueTitle: { color: '#ff4444', fontSize: 14, fontWeight: '700', marginLeft: 8 },
-  priorityButton: { alignItems: 'center', borderColor: '#ccc', borderRadius: 6, borderWidth: 1, flex: 1, paddingVertical: 10 },
+  overdueSection: { backgroundColor: 'rgba(239,68,68,0.12)', borderLeftColor: UI_COLORS.danger, borderLeftWidth: 4, borderRadius: 8, marginHorizontal: 16, marginVertical: 12, paddingHorizontal: 12, paddingVertical: 12 },
+  overdueTitle: { color: UI_COLORS.danger, fontSize: 14, fontWeight: '700', marginLeft: 8 },
+  priorityButton: { alignItems: 'center', borderRadius: 6, borderWidth: 1, flex: 1, paddingVertical: 10 },
   priorityButtonActive: { borderColor: 'transparent' },
-  priorityButtonText: { color: '#666', fontSize: 12, fontWeight: '600' },
+  priorityButtonText: { fontSize: 12, fontWeight: '600' },
   priorityButtonTextActive: { color: '#fff' },
   priorityRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   sourceBadge: { borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   taskDate: { fontSize: 12, marginLeft: 12 },
   taskItem: { alignItems: 'center', borderRadius: 8, flexDirection: 'row', marginBottom: 8, paddingHorizontal: 12, paddingVertical: 12 },
   taskItemCompleted: { opacity: 0.6 },
-  taskItemOverdue: { borderLeftColor: '#ff4444', borderLeftWidth: 3 },
+  taskItemOverdue: { borderLeftColor: UI_COLORS.danger, borderLeftWidth: 3 },
   taskList: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
   taskMeta: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 4 },
   taskPoints: { borderRadius: 3, fontSize: 11, fontWeight: '600', paddingHorizontal: 6, paddingVertical: 2 },

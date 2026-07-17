@@ -1,5 +1,4 @@
 /* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
-// grade letter colors, shadows intentionally hardcoded for data visualization
 import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
@@ -16,6 +15,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/hac-api';
+import { UI_COLORS } from '../utils/colors';
 
 export default function GradesScreen() {
   const { currentTheme } = useTheme();
@@ -69,9 +69,9 @@ export default function GradesScreen() {
 
   const gradeColor = (avg: number) => {
     if (avg >= 90) return currentTheme.primary;
-    if (avg >= 80) return '#3B82F6';
-    if (avg >= 70) return '#F59E0B';
-    return '#EF4444';
+    if (avg >= 80) return UI_COLORS.info;
+    if (avg >= 70) return UI_COLORS.warning;
+    return UI_COLORS.danger;
   };
 
   if (cache.loading) {
@@ -85,7 +85,7 @@ export default function GradesScreen() {
   if (cache.error) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: currentTheme.background }]}>
-        <Ionicons name="alert-circle" size={48} color="#EF4444" />
+        <Ionicons name="alert-circle" size={48} color={UI_COLORS.danger} />
         <Text style={[styles.errorText, { color: currentTheme.text }]}>{cache.error}</Text>
         <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={onRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
@@ -103,7 +103,7 @@ export default function GradesScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
         }
       >
-        <View style={[styles.header, { backgroundColor: currentTheme.surface }]}>
+        <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
           <Text style={[styles.title, { color: currentTheme.text }]}>Your Grades</Text>
           <Text style={[styles.subtitle, { color: currentTheme.textSecondary }]}>
             Current marking period overview
@@ -175,9 +175,9 @@ export default function GradesScreen() {
           <View style={styles.legendGrid}>
             {[
               { label: 'A (90-100)', color: currentTheme.primary },
-              { label: 'B (80-89)', color: '#3B82F6' },
-              { label: 'C (70-79)', color: '#F59E0B' },
-              { label: 'F (<70)', color: '#EF4444' },
+              { label: 'B (80-89)', color: UI_COLORS.info },
+              { label: 'C (70-79)', color: UI_COLORS.warning },
+              { label: 'F (<70)', color: UI_COLORS.danger },
             ].map((item) => (
               <View key={item.label} style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: item.color }]} />
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   gradeSubtext: { fontSize: 12, marginTop: 4 },
   gradeValue: { fontSize: 22, fontWeight: '800' },
   gradeValueContainer: { alignItems: 'flex-end', gap: 4 },
-  header: { borderBottomWidth: 1, marginBottom: 16, paddingHorizontal: 20, paddingVertical: 24 },
+  header: { borderBottomWidth: 1, marginBottom: 16, paddingHorizontal: 16, paddingVertical: 24 },
   legend: { borderBottomWidth: 1, borderRadius: 14, borderTopWidth: 1, marginBottom: 24, marginHorizontal: 16, paddingHorizontal: 16, paddingVertical: 18 },
   legendDot: { borderRadius: 6, height: 12, marginRight: 10, width: 12 },
   legendGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
