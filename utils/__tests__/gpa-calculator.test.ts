@@ -1,6 +1,6 @@
 import { calculateGPA, predictedGradeNeeded, whatIfScenario, Course } from '../gpa-calculator';
 
-const course = (id: string, grade: number, credits = 4, weight = 1, excluded = false): Course => ({
+const course = (id: string, grade: number, credits = 4, weight = 0, excluded = false): Course => ({
   id, name: id, credits, weight, grade, excluded,
 });
 
@@ -38,7 +38,7 @@ describe('predictedGradeNeeded', () => {
 
   it('returns 0 if completed already meets target', () => {
     const completed = [course('a', 95), course('b', 95)];
-    expect(predictedGradeNeeded(3.5, [course('c', 0)], completed)).toBe(0);
+    expect(predictedGradeNeeded(2.0, [course('c', 0)], completed)).toBe(0);
   });
 
   it('returns 101 when target is unreachable', () => {

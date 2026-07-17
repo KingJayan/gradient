@@ -10,6 +10,7 @@ pnpm run ios                  # iOS simulator
 pnpm run android              # Android simulator
 pnpm run lint                 # ESLint
 pnpm run type-check           # tsc --noEmit
+pnpm test                     # Jest unit tests
 pnpm run prebuild             # Expo prebuild (native code)
 pnpm run build:ios            # EAS build for App Store
 pnpm run build:ios-simulator  # EAS build for simulator
@@ -61,11 +62,10 @@ Exports 7 fetchers — all take `(hacUrl, username, password, ...optional)`:
 
 Implementation details:
 - `apiFetch()` wraps `fetch`, maps HTTP status → user-friendly `HACError`.
-- `toArray()` normalises HAC's wrapped/bare array responses.
-- `WithRawClassName` + `rawClassName()` normalise `className` vs `class` keys.
 - `parseGrade`, `parseScore` handle `"87.50"`, `"--"`, `"95 / 100"`.
-- `BELL_TIMES` is a hardcoded fallback — HAC exposes period numbers, not clock times.
-- `fetchAttendance` is **graceful**: returns `[]` if the `report-card` endpoint isn't exposed by the district (rather than throwing).
+- `inferWeight(name)` returns 1.0 for AP, 0.5 for Honors, 0.0 otherwise — used by `fetchCourses`; users can override per-course in the GPA screen.
+- Period numbers come from HAC; bell times are not exposed by the API.
+- `fetchAttendance` always returns `[]` — the district endpoint is unavailable.
 
 ### Themes (context/theme-context.ts)
 - 6 themes: emerald (default), ocean, violet, rose, amber, slate.
@@ -84,7 +84,7 @@ useFocusEffect(React.useCallback(() => { load(); }, [creds]));
 const load = async () => {
   if (!creds) { setLoading(false); return; }
   try { setLoading(true); setError(null); /* fetch */ }
-  catch (e: any) { setError(e.message ?? 'Failed to load'); }
+  catch (error) { setError(error instanceof Error ? error.message : 'Failed to load'); }
   finally { setLoading(false); }
 };
 ```
@@ -123,7 +123,7 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 ### New fetcher
 1. Add to `services/hac-api.ts`.
 2. Signature `async fetchXxx(hacUrl, username, password, ...optional)` returning a typed array.
-3. Use `apiFetch()` + `toArray()` + validation helpers (`isObject`, `safeString`, `safeNumber`).
+3. Use `apiFetch()` + validation helpers (`isObject`, `safeString`, `safeNumber`).
 
 ### Styling
 - `StyleSheet.create` at the bottom of each file.
@@ -145,10 +145,23 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md). Typical flow: `pnpm run prebuild && pnpm r
 - Password never enters the persisted user JSON; fetched on demand by `useCreds()`.
 - `.env*.local` ignored by git.
 
+## Testing
+
+Tests live in `__tests__/` subdirectories next to the modules they cover. Run with `pnpm test`.
+
+| Test file | Covers |
+|-----------|--------|
+| `utils/__tests__/gpa-calculator.test.ts` | `calculateGPA`, `predictedGradeNeeded`, `whatIfScenario` |
+| `utils/__tests__/task-manager.test.ts` | `mergeTasks`, `getOverdueTasks`, `getUpcomingTasks`, `groupByDate`, `generateTaskSummary` |
+| `utils/__tests__/schedule-data.test.ts` | `calculateAttendancePercentage` |
+| `services/__tests__/hac-api.test.ts` | `fetchGrades`, `fetchCourses`, `fetchAssignments`, `fetchTranscript` — fetch is mocked |
+
+CI (`.github/workflows/ci.yml`) runs type-check → lint → test on every push and PR to `main`.
+
 ## Known Limitations
 
-- iOS-only target; light mode only (`userInterfaceStyle: "light"` in `app.json`).
+- iOS-only target; dark UI only (6 themes, all dark-background).
 - HAC responses are inconsistent — adapters in `hac-api.ts` normalise field names.
-- Bell times hardcoded; attendance/teacher emails may be unavailable per district.
-- No tests.
+- Bell times not exposed by HAC API; `fetchAttendance` always returns `[]`.
+- Teacher emails not available via HAC API.
 - No OTA updates (`updates.enabled: false`).
