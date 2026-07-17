@@ -3,6 +3,8 @@
 <p>minimalist ios app for viewing home access center (HAC) grades. react native + expo.</p>
 </div>
 
+> [!IMPORTANT]
+> project & api still in early development, not expected to work
 
 ## features
 
@@ -40,6 +42,10 @@ see [claude.md](./CLAUDE.md) for arch and [deployment.md](./DEPLOYMENT.md) for s
 
 passwords live only in the ios keychain (`expo-secure-store`), read on demand via `usecreds()`, never persisted in user json.
 
+uses an [api](https://github.com/KingJayan/gradient-hac-api) written in Go; specialized clone of [nitheesh-cpu/HomeAccessCenterApiv2](https://github.com/nitheesh-cpu/HomeAccessCenterAPIv2) (MIT)
+> deployments for both apis available on their github pages
+
+---
 
 <div align="center">
 <p>made with :) by jayan</p>
