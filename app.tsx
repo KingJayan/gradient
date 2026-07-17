@@ -59,7 +59,7 @@ function AppTabs() {
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
           } else if (route.name === 'Teachers') {
-            iconName = focused ? 'mail' : 'mail-outline';
+            iconName = focused ? 'people' : 'people-outline';
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -112,12 +112,9 @@ function RootNavigatorContent() {
     bootstrapAsync().then(() => setIsBootstrapped(true));
   }, [bootstrapAsync]);
 
-  // show loading screen until both auth and theme are ready
   if (!isBootstrapped || !currentTheme) return <LoadingScreen />;
 
   return (
-    // single auth instance distributed to all children via context
-    // DataProvider must be inside AuthContext so useCreds() resolves to the live user
     <AuthContext.Provider value={{ state, bootstrapAsync, login, logout }}>
       <DataProvider>
         <NavigationContainer>

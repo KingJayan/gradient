@@ -5,14 +5,14 @@ Guidance for Claude Code when working in this repo.
 ## Development Commands
 
 ```bash
-npm start                    # Expo dev server
-npm run ios                  # iOS simulator
-npm run android              # Android simulator
-npm run lint                 # ESLint
-npm run type-check           # tsc --noEmit
-npm run prebuild             # Expo prebuild (native code)
-npm run build:ios            # EAS build for App Store
-npm run build:ios-simulator  # EAS build for simulator
+pnpm start                    # Expo dev server
+pnpm run ios                  # iOS simulator
+pnpm run android              # Android simulator
+pnpm run lint                 # ESLint
+pnpm run type-check           # tsc --noEmit
+pnpm run prebuild             # Expo prebuild (native code)
+pnpm run build:ios            # EAS build for App Store
+pnpm run build:ios-simulator  # EAS build for simulator
 ```
 
 ## Tech Stack
@@ -137,7 +137,7 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 
 ## Deployment
 
-See [DEPLOYMENT.md](./DEPLOYMENT.md). Typical flow: `npm run prebuild && npm run build:ios && eas submit --platform ios`. Update `app.json` `extra.eas.projectId` before first build.
+See [DEPLOYMENT.md](./DEPLOYMENT.md). Typical flow: `pnpm run prebuild && pnpm run build:ios && eas submit --platform ios`. Update `app.json` `extra.eas.projectId` before first build.
 
 ## Security
 

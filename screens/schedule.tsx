@@ -1,5 +1,4 @@
 /* eslint-disable react-native/no-color-literals */
-// white text on colored badges + border colors intentionally hardcoded for consistency
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -10,7 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ClassPeriod, getScheduleForDay } from '../utils/schedule-data';
+import { ClassPeriod } from '../utils/schedule-data';
 import { useCreds } from '../hooks/use-creds';
 import { useTheme } from '../hooks/use-theme';
 import { fetchSchedule } from '../services/hac-api';
@@ -44,7 +43,7 @@ export default function ScheduleScreen() {
     setRefreshing(false);
   };
 
-  const schedule = getScheduleForDay(fullSchedule, 'A');
+  const schedule = fullSchedule;
 
   if (loading) {
     return (
@@ -62,11 +61,11 @@ export default function ScheduleScreen() {
       }
     >
       <View style={styles.scheduleContainer}>
-        <Text style={[styles.scheduleTitle, { color: currentTheme.text }]}>Day Schedule</Text>
+        <Text style={[styles.scheduleTitle, { color: currentTheme.text }]}>Your Schedule</Text>
         {schedule.length === 0 && (
           <Text style={[styles.emptyText, { color: currentTheme.textSecondary }]}>No schedule data available.</Text>
         )}
-        {schedule.map((period) => (
+        {schedule.map((period: ClassPeriod) => (
           <View key={period.id} style={[styles.periodCard, { backgroundColor: currentTheme.surface, borderRightColor: currentTheme.border }]}>
             <View style={styles.periodTime}>
               <Text style={[styles.periodTimeText, { color: currentTheme.text }]}>P{period.id}</Text>

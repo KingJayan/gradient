@@ -20,7 +20,6 @@ interface DataContextType {
 
 export const DataContext = createContext<DataContextType | null>(null);
 
-// shared cache prevents duplicate HAC API calls across screens
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const creds = useCreds();
   const [cache, setCache] = useState<DataCache>({
@@ -38,6 +37,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (!creds) return;
     const c = cacheRef.current;
     if (c.grades && c.courses && c.assignments) return;
+    if (c.loading) return;
 
     try {
       setCache((prev) => ({ ...prev, loading: true, error: null }));

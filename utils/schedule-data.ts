@@ -24,46 +24,6 @@ export interface AttendanceRecord {
   reason?: string;
 }
 
-export function getScheduleForDay(
-  schedule: ClassPeriod[],
-  dayType: 'A' | 'B'
-): ClassPeriod[] {
-  return schedule.filter((period) => period.dayType === dayType || period.dayType === 'all');
-}
-
-export function getCurrentPeriod(
-  schedule: ClassPeriod[],
-  currentTime: Date
-): ClassPeriod | null {
-  const timeStr = currentTime.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-
-  return (
-    schedule.find(
-      (period) =>
-        timeStr >= period.startTime && timeStr <= period.endTime
-    ) || null
-  );
-}
-
-export function getNextPeriod(
-  schedule: ClassPeriod[],
-  currentTime: Date
-): ClassPeriod | null {
-  const timeStr = currentTime.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-
-  return (
-    schedule.find((period) => period.startTime > timeStr) || null
-  );
-}
-
 export function calculateAttendancePercentage(
   records: AttendanceRecord[]
 ): number {

@@ -16,8 +16,8 @@
 ## quick start
 
 ```bash
-npm install
-npm start         # press `i` for ios simulator
+pnpm install
+pnpm start         # press `i` for ios simulator
 ```
 
 sign in with your district's HAC url, username, and password. four districts are preset; add more in [screens/login.tsx](screens/login.tsx).
@@ -26,11 +26,11 @@ sign in with your district's HAC url, username, and password. four districts are
 
 | command | what it does |
 |---|---|
-| `npm start` | expo dev server |
-| `npm run ios` | ios simulator |
-| `npm run lint` | eslint |
-| `npm run type-check` | typescript check |
-| `npm run build:ios` | eas production build |
+| `pnpm start` | expo dev server |
+| `pnpm run ios` | ios simulator |
+| `pnpm run lint` | eslint |
+| `pnpm run type-check` | typescript check |
+| `pnpm run build:ios` | eas production build |
 
 ## stack
 

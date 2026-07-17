@@ -1,5 +1,4 @@
 /* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
-// grade cards with shadow colors, white text on colored backgrounds intentionally hardcoded
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
   StyleSheet,
@@ -62,7 +61,6 @@ export default function HomeScreen({ navigation }: any) {
     }).start();
   }, [slideAnim]);
 
-  // update GPA when cache loads
   useEffect(() => {
     if (cache.courses && cache.courses.length > 0) {
       const result = calculateGPA(cache.courses);
@@ -77,7 +75,6 @@ export default function HomeScreen({ navigation }: any) {
     { id: 'gpa', title: 'GPA Calculator', icon: 'calculator', color: '#8B5CF6', description: 'Calculate and predict GPA', route: 'GPA' },
     { id: 'planner', title: 'Planner', icon: 'checkbox', color: '#F59E0B', description: 'Manage tasks and assignments', route: 'Planner' },
     { id: 'transcript', title: 'Transcript', icon: 'document', color: '#EC4899', description: 'View your transcript', route: 'Transcript' },
-    { id: 'attendance', title: 'Attendance', icon: 'checkmark-circle', color: '#14B8A6', description: 'Track attendance record', route: 'Attendance' },
   ];
 
   const renderNavCard = ({ item }: { item: NavCard }) => {
