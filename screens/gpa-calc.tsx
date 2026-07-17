@@ -1,5 +1,3 @@
-/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles */
-// grade letter colors (#3B82F6 for B, etc.) + modal overlays intentionally hardcoded for data visualization
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -13,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { calculateGPA, Course, DEFAULT_GRADE_SCALE, GPAResult, whatIfScenario } from '../utils/gpa-calculator';
+import { UI_COLORS } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -53,6 +52,14 @@ export default function GPACalculatorScreen() {
 
   const handleToggleCourseExclusion = (courseId: string) => {
     setCourses(courses.map((c) => (c.id === courseId ? { ...c, excluded: !c.excluded } : c)));
+  };
+
+  const handleToggleWeight = (courseId: string) => {
+    setCourses(courses.map((c) => {
+      if (c.id !== courseId) return c;
+      const next = c.weight === 0 ? 0.5 : c.weight === 0.5 ? 1.0 : 0;
+      return { ...c, weight: next };
+    }));
   };
 
   const handleAddMockGrade = () => {
@@ -109,9 +116,19 @@ export default function GPACalculatorScreen() {
                   <Text style={[styles.courseName, { color: currentTheme.text }]}>{course.name}</Text>
                   <Text style={[styles.courseCredits, { color: currentTheme.textSecondary }]}>{course.credits} credits</Text>
                 </View>
-                <TouchableOpacity onPress={() => handleToggleCourseExclusion(course.id)}>
-                  <Ionicons name={course.excluded ? 'eye-off' : 'eye'} size={20} color={course.excluded ? currentTheme.textSecondary : currentTheme.primary} />
-                </TouchableOpacity>
+                <View style={styles.courseActions}>
+                  <TouchableOpacity
+                    style={[styles.weightBadge, { backgroundColor: course.weight === 1.0 ? UI_COLORS.info : course.weight === 0.5 ? UI_COLORS.warning : currentTheme.border }]}
+                    onPress={() => handleToggleWeight(course.id)}
+                  >
+                    <Text style={[styles.weightBadgeText, { color: course.weight > 0 ? '#fff' : currentTheme.textSecondary }]}>
+                      {course.weight === 1.0 ? 'AP' : course.weight === 0.5 ? 'HON' : 'REG'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleToggleCourseExclusion(course.id)}>
+                    <Ionicons name={course.excluded ? 'eye-off' : 'eye'} size={20} color={course.excluded ? currentTheme.textSecondary : currentTheme.primary} />
+                  </TouchableOpacity>
+                </View>
               </View>
               <View style={styles.gradeRow}>
                 <Text style={[styles.gradeLabel, { color: currentTheme.primary }]}>Current: {course.grade.toFixed(1)}%</Text>
@@ -193,7 +210,10 @@ export default function GPACalculatorScreen() {
 
 const styles = StyleSheet.create({
   centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
-  clearButton: { color: '#ff4444', fontSize: 12, fontWeight: '600' },
+  clearButton: { color: UI_COLORS.danger, fontSize: 12, fontWeight: '600' },
+  courseActions: { alignItems: 'center', flexDirection: 'row', gap: 12 },
+  weightBadge: { borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4 },
+  weightBadgeText: { fontSize: 11, fontWeight: '700' },
   container: { flex: 1 },
   courseCard: { borderRadius: 8, marginBottom: 8, paddingHorizontal: 16, paddingVertical: 12 },
   courseCount: { fontSize: 12, textAlign: 'center' },
@@ -207,7 +227,7 @@ const styles = StyleSheet.create({
   gpaValue: { color: '#fff', fontSize: 32, fontWeight: '700', marginTop: 8 },
   gradeLabel: { fontSize: 14, fontWeight: '600' },
   gradeRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  mockLabel: { color: '#DD00FF', fontSize: 14, fontWeight: '600' },
+  mockLabel: { color: UI_COLORS.info, fontSize: 14, fontWeight: '600' },
   modalButton: { alignItems: 'center', borderRadius: 8, paddingVertical: 14 },
   modalButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   modalContent: { borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 16, paddingVertical: 20 },

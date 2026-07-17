@@ -1,5 +1,3 @@
-/* eslint-disable react-native/no-color-literals */
-// white text on colored badges intentionally hardcoded for contrast
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,

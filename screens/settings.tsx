@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-color-literals, react-native/no-unused-styles, @typescript-eslint/no-unused-vars */
 import React, { useContext } from 'react';
 import {
   StyleSheet,

@@ -1,5 +1,3 @@
-/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles */
-// semantic colors (status badges, shadows, overlays) intentionally hardcoded for contrast/consistency
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,

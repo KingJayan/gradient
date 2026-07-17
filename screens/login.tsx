@@ -1,5 +1,3 @@
-/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
-// input underlines, shadows, focus states intentionally hardcoded
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import {
   StyleSheet,
@@ -51,8 +49,8 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await authContext!.login(username, password, selectedDistrict);
-    } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Invalid credentials');
+    } catch (error) {
+      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
     } finally {
       setLoading(false);
     }

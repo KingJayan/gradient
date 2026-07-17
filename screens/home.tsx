@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useContext, useRef } from 'react';
 import {
   StyleSheet,
@@ -15,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
 import { useFocusEffect } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { calculateGPA } from '../utils/gpa-calculator';
@@ -22,13 +22,13 @@ import { calculateGPA } from '../utils/gpa-calculator';
 interface NavCard {
   id: string;
   title: string;
-  icon: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
   color: string;
   description: string;
   route?: string;
 }
 
-export default function HomeScreen({ navigation }: any) {
+export default function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<Record<string, undefined>> }) {
   const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
   const { cache, loadGradesAndCourses } = useDataCache();
@@ -87,7 +87,7 @@ export default function HomeScreen({ navigation }: any) {
           activeOpacity={0.8}
         >
           <View style={styles.cardIconContainer}>
-            <Ionicons name={item.icon as any} size={32} color="#fff" />
+            <Ionicons name={item.icon} size={32} color="#fff" />
           </View>
           <Text style={styles.navCardTitle}>{item.title}</Text>
           <Text style={styles.navCardDescription}>{item.description}</Text>

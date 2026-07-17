@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,

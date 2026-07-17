@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-color-literals */
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,

@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
@@ -17,6 +16,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Assignment, PersonalTask, mergeTasks, groupByDate, getOverdueTasks } from '../utils/task-manager';
 import { UI_COLORS } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
+import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -217,7 +217,7 @@ export default function PlannerScreen() {
   );
 }
 
-function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignment; onToggle: () => void; isOverdue?: boolean; currentTheme: any }) {
+function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignment; onToggle: () => void; isOverdue?: boolean; currentTheme: Theme }) {
   const priorityColor =
     task.source === 'personal'
       ? task.priority === 'high' ? UI_COLORS.danger : task.priority === 'medium' ? UI_COLORS.warning : currentTheme.textSecondary

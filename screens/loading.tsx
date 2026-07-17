@@ -1,11 +1,8 @@
-/* eslint-disable react-native/no-color-literals, @typescript-eslint/no-unused-vars */
-// loading screen appears before theme context loads - must use hardcoded colors
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LoadingScreen() {
-  // useRef keeps the same Animated.Values across renders
   const spinAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -68,18 +65,18 @@ export default function LoadingScreen() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#060F0B',
     flex: 1,
     justifyContent: 'center',
   },
   gradientCircle: {
     alignItems: 'center',
-    backgroundColor: '#10B981',
+    backgroundColor: '#00F5A0',
     borderRadius: 40,
     elevation: 8,
     height: 80,
     justifyContent: 'center',
-    shadowColor: '#10B981',
+    shadowColor: '#00F5A0',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -89,11 +86,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   subtitle: {
-    color: '#666',
+    color: '#6B9E85',
     fontSize: 14,
   },
   title: {
-    color: '#10B981',
+    color: '#00F5A0',
     fontSize: 32,
     fontWeight: '700',
     marginBottom: 8,
