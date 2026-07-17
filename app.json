@@ -20,12 +20,6 @@
       "buildNumber": "1",
       "deploymentTarget": "14.0",
       "infoPlist": {
-        "NSCameraUsageDescription": "Camera access is required for profile photos",
-        "NSPhotoLibraryUsageDescription": "Photo library access is required for profile pictures",
-        "NSLocationWhenInUseUsageDescription": "Location access is optional for school location display",
-        "NSBonjourServiceTypes": ["_http._tcp"],
-        "NSLocalNetworkUsageDescription": "Local network usage for app functionality",
-        "UIBackgroundModes": ["fetch"],
         "ITSAppUsesNonExemptEncryption": false
       },
       "userInterfaceStyle": "light"

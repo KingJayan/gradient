@@ -12,24 +12,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { calculateGPA, Course, GPAResult, GradeScale, whatIfScenario } from '../utils/gpa-calculator';
+import { calculateGPA, Course, DEFAULT_GRADE_SCALE, GPAResult, whatIfScenario } from '../utils/gpa-calculator';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { useFocusEffect } from '@react-navigation/native';
 
-const DEFAULT_GRADE_SCALE: GradeScale[] = [
-  { label: 'A+', minGrade: 97, maxGrade: 100, points: 4.0 },
-  { label: 'A',  minGrade: 93, maxGrade: 96,  points: 4.0 },
-  { label: 'A-', minGrade: 90, maxGrade: 92,  points: 3.7 },
-  { label: 'B+', minGrade: 87, maxGrade: 89,  points: 3.3 },
-  { label: 'B',  minGrade: 83, maxGrade: 86,  points: 3.0 },
-  { label: 'B-', minGrade: 80, maxGrade: 82,  points: 2.7 },
-  { label: 'C+', minGrade: 77, maxGrade: 79,  points: 2.3 },
-  { label: 'C',  minGrade: 73, maxGrade: 76,  points: 2.0 },
-  { label: 'C-', minGrade: 70, maxGrade: 72,  points: 1.7 },
-  { label: 'D',  minGrade: 60, maxGrade: 69,  points: 1.0 },
-  { label: 'F',  minGrade: 0,  maxGrade: 59,  points: 0.0 },
-];
 
 export default function GPACalculatorScreen() {
   const { currentTheme } = useTheme();

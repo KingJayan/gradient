@@ -21,7 +21,7 @@ export interface GradeScale {
   points: number;
 }
 
-const DEFAULT_GRADE_SCALE: GradeScale[] = [
+export const DEFAULT_GRADE_SCALE: GradeScale[] = [
   { label: 'A+', minGrade: 97, maxGrade: 100, points: 4.0 },
   { label: 'A', minGrade: 93, maxGrade: 96, points: 4.0 },
   { label: 'A-', minGrade: 90, maxGrade: 92, points: 3.7 },
