@@ -30,23 +30,6 @@
       },
       "userInterfaceStyle": "light"
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#10B981"
-      },
-      "package": "com.kingjayan.gradient",
-      "minSdkVersion": 24,
-      "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.ACCESS_FINE_LOCATION"
-      ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
       [
         "expo-build-properties",
@@ -54,10 +37,6 @@
           "ios": {
             "useFrameworks": "static",
             "newArchEnabled": false
-          },
-          "android": {
-            "minSdkVersion": 24,
-            "targetSdkVersion": 34
           }
         }
       ],

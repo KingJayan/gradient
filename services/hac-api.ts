@@ -78,57 +78,19 @@ async function apiFetch(endpoint: string, hacUrl: string, username: string, pass
   }
 }
 
-// shared base keeps className() type-safe without any casts
-interface WithRawClassName {
-  class?: string;
-  className?: string;
+// /assignments returns { "Class Name": { average, assignments: [][]string, categories: [][]string } }
+interface RawClassAssignments {
+  average?: string;
+  assignments?: string[][];  // rows: [dateDue, dateAssigned, name, category, score, totalPoints, ...]
+  categories?: string[][];
 }
 
-interface RawAverage extends WithRawClassName {
-  grade?: string;  // "87.50" or "--" when ungraded
-  teacher?: string;
-  room?: string;
-  period?: string | number;
-}
-
-interface RawAssignment {
-  name?: string;
-  category?: string;
-  dateDue?: string;
-  date?: string;
-  score?: string | number;  // "95 / 100", "95", or 95
-  totalPoints?: string | number;
-}
-
-interface RawClassAssignments extends WithRawClassName {
-  grades?: RawAssignment[];
-  assignments?: RawAssignment[];
-}
-
-interface RawScheduleClass extends WithRawClassName {
-  teacher?: string;
-  room?: string;
-  period?: string | number;
-  daysOfWeek?: string;
-  days?: string;
-}
-
-interface RawTranscriptCourse {
-  name?: string;
-  courseName?: string;
-  grade?: string;
-  credits?: string | number;
-  earnedCredits?: string | number;
-  semester?: string;
-}
-
-interface RawTranscriptYear {
-  year?: string;
-  courses?: RawTranscriptCourse[];
-}
-
-function rawClassName(raw: WithRawClassName): string {
-  return safeString(raw.className || raw.class, 'Unknown');
+// row parsed out of /reportcard's { headers, data } table
+interface ReportCardClass {
+  className: string;
+  teacher: string;
+  room: string;
+  period: string;
 }
 
 // parse "87.50", "--", or a number → float; NaN when ungraded
@@ -142,18 +104,6 @@ function parseScore(val: string | number | undefined): number {
   if (val === undefined) return NaN;
   if (typeof val === 'number') return val;
   return parseFloat(String(val).split('/')[0].trim());
-}
-
-// normalize array-or-wrapped API response with validation
-function toArray(raw: unknown): unknown[] {
-  if (Array.isArray(raw)) return raw;
-  if (isObject(raw)) {
-    for (const key of ['classes', 'grades', 'assignments', 'transcript', 'data']) {
-      const v = raw[key];
-      if (Array.isArray(v)) return v;
-    }
-  }
-  return [];
 }
 
 function gradeColor(avg: number): string {
@@ -183,9 +133,29 @@ const BELL_TIMES: Record<number, { startTime: string; endTime: string }> = {
   8: { startTime: '15:30', endTime: '16:20' },
 };
 
-// shared fetch so fetchSchedule + fetchTeachers don't make two identical calls
-async function fetchRawClasses(hacUrl: string, username: string, password: string) {
-  return toArray(await apiFetch('classes', hacUrl, username, password));
+async function fetchRawClasses(
+  hacUrl: string, username: string, password: string
+): Promise<ReportCardClass[]> {
+  const raw = await apiFetch('reportcard', hacUrl, username, password);
+  if (!isObject(raw) || !Array.isArray(raw.data)) return [];
+  const headers: string[] = Array.isArray(raw.headers) ? raw.headers.map((h) => safeString(h)) : [];
+  const col = (name: string, fallback: number) => {
+    const i = headers.indexOf(name);
+    return i >= 0 ? i : fallback;
+  };
+  const nameIdx = col('Description', 1);
+  const periodIdx = col('Period', 2);
+  const teacherIdx = col('Teacher', 3);
+  const roomIdx = col('Room', 4);
+  return raw.data
+    .filter((row): row is string[] => Array.isArray(row) && row.length > roomIdx)
+    .map((row) => ({
+      className: safeString(row[nameIdx], 'Unknown').trim(),
+      teacher: safeString(row[teacherIdx]).trim(),
+      room: safeString(row[roomIdx]).trim(),
+      period: safeString(row[periodIdx]).trim(),
+    }))
+    .filter((c) => c.className !== '');
 }
 
 function gradeLetterToPoints(grade: string): number {
@@ -197,14 +167,6 @@ function gradeLetterToPoints(grade: string): number {
     'F': 0.0,
   };
   return map[grade.trim()] ?? 0;
-}
-
-function normalizeAttendanceStatus(raw: string): AttendanceRecord['status'] {
-  const s = raw.toLowerCase();
-  if (s.includes('absent') || s === 'a') return 'absent';
-  if (s.includes('tardy') || s === 't') return 'tardy';
-  if (s.includes('excused') || s === 'e') return 'excused';
-  return 'present';
 }
 
 export interface GradeEntry {
@@ -220,18 +182,19 @@ export interface GradeEntry {
 export async function fetchGrades(
   hacUrl: string, username: string, password: string
 ): Promise<GradeEntry[]> {
+  // /averages returns a plain map: { "Class Name": "87.50" | "", ... }
   const raw = await apiFetch('averages', hacUrl, username, password);
-  return toArray(raw)
-    .filter((item): item is RawAverage => isObject(item))
-    .map((item) => {
-      const avg = parseGrade(item.grade);
+  if (!isObject(raw)) return [];
+  return Object.entries(raw)
+    .map(([className, grade]) => {
+      const avg = parseGrade(typeof grade === 'string' || typeof grade === 'number' ? grade : undefined);
       return {
-        className: rawClassName(item),
+        className,
         average: avg,
         color: gradeColor(avg),
-        teacher: safeString(item.teacher),
-        room: safeString(item.room),
-        period: String(item.period ?? ''),
+        teacher: '',  // not exposed by /averages; schedule/teachers use /reportcard
+        room: '',
+        period: '',
         categories: [],
       };
     })
@@ -241,29 +204,33 @@ export async function fetchGrades(
 export async function fetchAssignments(
   hacUrl: string, username: string, password: string
 ): Promise<Assignment[]> {
+  // /assignments returns { "Class Name": { average, assignments: [][]string, categories } }
+  // where each assignment row is [dateDue, dateAssigned, name, category, score, totalPoints, ...]
   const raw = await apiFetch('assignments', hacUrl, username, password);
+  if (!isObject(raw)) return [];
   const results: Assignment[] = [];
 
-  toArray(raw)
-    .filter((cls): cls is RawClassAssignments => isObject(cls))
-    .forEach((cls) => {
-      const name = rawClassName(cls);
-      const list: RawAssignment[] = cls.grades ?? cls.assignments ?? [];
-      list.filter((a): a is RawAssignment => isObject(a)).forEach((a, i) => {
-        const score = parseScore(a.score);
-        const total = parseScore(a.totalPoints);
-        results.push({
-          id: `hac-${name}-${i}`,
-          title: safeString(a.name, 'Assignment'),
-          dueDate: safeString(a.dateDue || a.date, new Date().toISOString().slice(0, 10)),
-          class: name,
-          description: safeString(a.category),
-          points: isNaN(total) ? undefined : total,
-          category: safeString(a.category),
-          completed: !isNaN(score),
-          source: 'hac',
+  Object.entries(raw)
+    .filter((entry): entry is [string, RawClassAssignments] => isObject(entry[1]))
+    .forEach(([name, cls]) => {
+      const rows = Array.isArray(cls.assignments) ? cls.assignments : [];
+      rows
+        .filter((row): row is string[] => Array.isArray(row) && row.length >= 6)
+        .forEach((row, i) => {
+          const score = parseScore(row[4]);
+          const total = parseScore(row[5]);
+          results.push({
+            id: `hac-${name}-${i}`,
+            title: safeString(row[2], 'Assignment'),
+            dueDate: safeString(row[0], new Date().toISOString().slice(0, 10)),
+            class: name,
+            description: safeString(row[3]),
+            points: isNaN(total) ? undefined : total,
+            category: safeString(row[3]),
+            completed: !isNaN(score),
+            source: 'hac',
+          });
         });
-      });
     });
 
   return results;
@@ -285,22 +252,21 @@ export async function fetchCourses(
   }));
 }
 
-// accepts pre-fetched raw classes to avoid a second /classes call
+// accepts pre-fetched raw classes to avoid a second /reportcard call
 export async function fetchSchedule(
   hacUrl: string, username: string, password: string,
-  rawClasses?: unknown[]
+  rawClasses?: ReportCardClass[]
 ): Promise<ClassPeriod[]> {
   const classes = rawClasses ?? await fetchRawClasses(hacUrl, username, password);
   return classes
-    .filter((cls): cls is RawScheduleClass => isObject(cls))
     .map((cls, i) => {
-      const periodNum = parseInt(String(cls.period ?? i + 1), 10) || i + 1;
+      const periodNum = parseInt(cls.period, 10) || i + 1;
       const times = BELL_TIMES[periodNum] ?? BELL_TIMES[1];
       return {
         id: String(periodNum),
-        name: rawClassName(cls),
-        teacher: safeString(cls.teacher),
-        room: safeString(cls.room),
+        name: cls.className,
+        teacher: cls.teacher,
+        room: cls.room,
         startTime: times.startTime,
         endTime: times.endTime,
         credits: 1,
@@ -313,20 +279,32 @@ export async function fetchTranscript(
   hacUrl: string, username: string, password: string
 ): Promise<TranscriptEntry[]> {
   const raw = await apiFetch('transcript', hacUrl, username, password);
+  if (!isObject(raw)) return [];
   const entries: TranscriptEntry[] = [];
 
-  toArray(raw)
-    .filter((yearBlock): yearBlock is RawTranscriptYear => isObject(yearBlock))
-    .forEach((yearBlock) => {
-      const year = safeString(yearBlock.year, 'Unknown');
-      const courses = Array.isArray(yearBlock.courses) ? yearBlock.courses : [];
-      courses.filter((c): c is RawTranscriptCourse => isObject(c)).forEach((c) => {
-        const grade = safeString(c.grade);
+  Object.values(raw)
+    .filter((block): block is Record<string, unknown> => isObject(block) && Array.isArray(block.data))
+    .forEach((block) => {
+      const year = safeString(block.year, 'Unknown');
+      const semester = safeString(block.semester, 'Full Year');
+      const rows = (block.data as unknown[]).filter((r): r is string[] => Array.isArray(r));
+      if (rows.length === 0) return;
+      const header = rows[0].map((h) => safeString(h).trim().toLowerCase());
+      const col = (name: string, fallback: number) => {
+        const i = header.indexOf(name);
+        return i >= 0 ? i : fallback;
+      };
+      const descIdx = col('description', 1);
+      const gradeIdx = col('grade', 2);
+      const creditIdx = col('credit', 3);
+      rows.slice(1).forEach((row) => {
+        if (row.length <= Math.max(descIdx, gradeIdx)) return;
+        const grade = safeString(row[gradeIdx]).trim();
         entries.push({
-          course: safeString(c.courseName || c.name, 'Unknown'),
+          course: safeString(row[descIdx], 'Unknown').trim(),
           year,
-          semester: safeString(c.semester, 'Full Year'),
-          credits: safeNumber(c.earnedCredits ?? c.credits, 4),
+          semester,
+          credits: safeNumber(row[creditIdx], 0),
           grade,
           gradePoints: gradeLetterToPoints(grade),
         });
@@ -339,40 +317,24 @@ export async function fetchTranscript(
 export async function fetchAttendance(
   hacUrl: string, username: string, password: string
 ): Promise<AttendanceRecord[]> {
-  let raw: unknown;
-  try {
-    raw = await apiFetch('report-card', hacUrl, username, password);
-  } catch (e) {
-    logWarning('attendance unavailable', { error: (e as Error).message });
-    return [];
-  }
-  const list: unknown[] = (isObject(raw) && Array.isArray(raw.attendance)) ? raw.attendance : toArray(raw);
-
-  return list
-    .filter((r): r is { date: unknown; status: unknown; reason?: unknown } => 
-      isObject(r) && !!r.date && !!r.status
-    )
-    .map((r) => ({
-      date: safeString(r.date),
-      status: normalizeAttendanceStatus(safeString(r.status)),
-      reason: safeString(r.reason),
-    }));
+  void username; void password; // kept for signature parity with other fetchers
+  logWarning('attendance unavailable', { hacUrl });
+  return [];
 }
 
-// accepts pre-fetched raw classes to avoid a second /classes call
+// accepts pre-fetched raw classes to avoid a second /reportcard call
 export async function fetchTeachers(
   hacUrl: string, username: string, password: string,
-  rawClasses?: unknown[]
+  rawClasses?: ReportCardClass[]
 ): Promise<{ id: string; name: string; email: string; class: string; room: string }[]> {
   const classes = rawClasses ?? await fetchRawClasses(hacUrl, username, password);
   return classes
-    .filter((cls): cls is RawScheduleClass => isObject(cls))
     .map((cls, i) => ({
       id: String(i + 1),
-      name: safeString(cls.teacher),
+      name: cls.teacher,
       email: '',
-      class: rawClassName(cls),
-      room: safeString(cls.room),
+      class: cls.className,
+      room: cls.room,
     }))
     .filter((t) => t.name !== '');
 }
