@@ -121,17 +121,6 @@ function inferWeight(name: string): number {
   return 0.0;
 }
 
-// default bell schedule; HAC provides period numbers but not clock times
-const BELL_TIMES: Record<number, { startTime: string; endTime: string }> = {
-  1: { startTime: '08:00', endTime: '08:50' },
-  2: { startTime: '09:00', endTime: '09:50' },
-  3: { startTime: '10:00', endTime: '10:50' },
-  4: { startTime: '11:00', endTime: '11:50' },
-  5: { startTime: '12:30', endTime: '13:20' },
-  6: { startTime: '13:30', endTime: '14:20' },
-  7: { startTime: '14:30', endTime: '15:20' },
-  8: { startTime: '15:30', endTime: '16:20' },
-};
 
 async function fetchRawClasses(
   hacUrl: string, username: string, password: string
@@ -262,14 +251,13 @@ export async function fetchSchedule(
   return classes
     .map((cls, i) => {
       const periodNum = parseInt(cls.period, 10) || i + 1;
-      const times = BELL_TIMES[periodNum] ?? BELL_TIMES[1];
       return {
         id: String(periodNum),
         name: cls.className,
         teacher: cls.teacher,
         room: cls.room,
-        startTime: times.startTime,
-        endTime: times.endTime,
+        startTime: '',
+        endTime: '',
         credits: 1,
         dayType: 'all' as const,
       };

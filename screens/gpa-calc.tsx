@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { calculateGPA, Course, GPAResult, GradeScale, whatIfScenario } from '../utils/gpa-calculator';
-import { useCreds } from '../hooks/use-creds';
 import { useTheme } from '../hooks/use-theme';
-import { fetchCourses, fetchGrades } from '../services/hac-api';
+import { useDataCache } from '../context/data-context';
+import { useFocusEffect } from '@react-navigation/native';
 
 const DEFAULT_GRADE_SCALE: GradeScale[] = [
   { label: 'A+', minGrade: 97, maxGrade: 100, points: 4.0 },
@@ -32,9 +32,8 @@ const DEFAULT_GRADE_SCALE: GradeScale[] = [
 ];
 
 export default function GPACalculatorScreen() {
-  const creds = useCreds();
   const { currentTheme } = useTheme();
-  const [loading, setLoading] = useState(true);
+  const { cache, loadGradesAndCourses } = useDataCache();
   const [courses, setCourses] = useState<Course[]>([]);
   const [gpaResult, setGPAResult] = useState<GPAResult | null>(null);
   const [mockScenario, setMockScenario] = useState<{ courseId: string; mockGrade: number }[]>([]);
@@ -43,9 +42,15 @@ export default function GPACalculatorScreen() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [mockGradeInput, setMockGradeInput] = useState('');
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadGradesAndCourses();
+    }, [loadGradesAndCourses])
+  );
+
   useEffect(() => {
-    loadCourses();
-  }, [creds]);
+    if (cache.courses) setCourses(cache.courses);
+  }, [cache.courses]);
 
   useEffect(() => {
     if (courses.length > 0) {
@@ -58,20 +63,6 @@ export default function GPACalculatorScreen() {
       mockScenario.length > 0 ? whatIfScenario(courses, mockScenario, DEFAULT_GRADE_SCALE) : null
     );
   }, [mockScenario, courses]);
-
-  const loadCourses = async () => {
-    if (!creds) return;
-    try {
-      setLoading(true);
-      // fetch grades once, pass to fetchCourses to avoid a second /averages call
-      const grades = await fetchGrades(creds.hacUrl, creds.username, creds.password);
-      setCourses(await fetchCourses(creds.hacUrl, creds.username, creds.password, grades));
-    } catch (e) {
-      console.error('gpa load error:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleToggleCourseExclusion = (courseId: string) => {
     setCourses(courses.map((c) => (c.id === courseId ? { ...c, excluded: !c.excluded } : c)));
@@ -93,7 +84,7 @@ export default function GPACalculatorScreen() {
     setShowWhatIf(false);
   };
 
-  if (loading || !gpaResult) {
+  if (cache.loading || !gpaResult) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={currentTheme.primary} />

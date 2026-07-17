@@ -33,9 +33,6 @@ export default function HomeScreen({ navigation }: any) {
   const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
   const { cache, loadGradesAndCourses } = useDataCache();
-  if (!authContext) return null;
-
-  const { state } = authContext;
   const [gpa, setGpa] = useState('—');
   const [classes, setClasses] = useState(0);
   const [currentDate, setCurrentDate] = useState('');
@@ -101,6 +98,9 @@ export default function HomeScreen({ navigation }: any) {
       </Animated.View>
     );
   };
+
+  if (!authContext) return null;
+  const { state } = authContext;
 
   if (cache.loading) {
     return (

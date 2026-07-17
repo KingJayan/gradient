@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
 // priority colors, shadows, modal overlays intentionally hardcoded for data visualization
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,24 +10,22 @@ import {
   TextInput,
   Modal,
   Switch,
+  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import { Assignment, PersonalTask, mergeTasks, groupByDate, getOverdueTasks } from '../utils/task-manager';
-import { useCreds } from '../hooks/use-creds';
 import { useTheme } from '../hooks/use-theme';
-import { fetchAssignments } from '../services/hac-api';
+import { useDataCache } from '../context/data-context';
+import { useFocusEffect } from '@react-navigation/native';
 
 const PERSONAL_TASKS_KEY = 'personalTasks';
 
 export default function PlannerScreen() {
-  const creds = useCreds();
   const { currentTheme } = useTheme();
-  const [allTasks, setAllTasks] = useState<Assignment[]>([]);
-  const [hacTasks, setHacTasks] = useState<Assignment[]>([]);
+  const { cache, loadGradesAndCourses } = useDataCache();
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDate, setNewTaskDate] = useState('');
@@ -35,18 +33,20 @@ export default function PlannerScreen() {
   const [filterSource, setFilterSource] = useState<'all' | 'hac' | 'personal'>('all');
   const [showCompleted, setShowCompleted] = useState(false);
 
-  // load personal tasks from storage on mount
   useEffect(() => {
     loadPersonalTasks();
   }, []);
 
-  useEffect(() => {
-    loadAssignments();
-  }, [creds]);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadGradesAndCourses();
+    }, [loadGradesAndCourses])
+  );
 
-  useEffect(() => {
-    setAllTasks(mergeTasks(hacTasks, personalTasks));
-  }, [hacTasks, personalTasks]);
+  const allTasks = useMemo(
+    () => mergeTasks(cache.assignments ?? [], personalTasks),
+    [cache.assignments, personalTasks]
+  );
 
   const loadPersonalTasks = async () => {
     try {
@@ -67,21 +67,9 @@ export default function PlannerScreen() {
     }
   };
 
-  const loadAssignments = async () => {
-    if (!creds) { setLoading(false); return; }
-    try {
-      setLoading(true);
-      setHacTasks(await fetchAssignments(creds.hacUrl, creds.username, creds.password));
-    } catch (e) {
-      console.error('planner load error:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleAddTask = () => {
     if (!newTaskTitle || !newTaskDate) {
-      alert('Please fill in all fields');
+      Alert.alert('Missing Fields', 'Please fill in all fields');
       return;
     }
     const newTask: PersonalTask = {
@@ -102,15 +90,10 @@ export default function PlannerScreen() {
   };
 
   const handleToggleTask = (taskId: string) => {
-    if (hacTasks.some((t) => t.id === taskId)) {
-      setHacTasks((prev) =>
-        prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t))
-      );
-    } else {
-      const updated = personalTasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
-      setPersonalTasks(updated);
-      savePersonalTasks(updated);
-    }
+    if (!personalTasks.some((t) => t.id === taskId)) return;
+    const updated = personalTasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
+    setPersonalTasks(updated);
+    savePersonalTasks(updated);
   };
 
   const filteredTasks = allTasks.filter((task) => {
@@ -123,7 +106,7 @@ export default function PlannerScreen() {
     filteredTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
   );
 
-  if (loading) {
+  if (cache.loading) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={currentTheme.primary} />

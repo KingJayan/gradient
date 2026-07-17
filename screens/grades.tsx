@@ -1,6 +1,6 @@
 /* eslint-disable react-native/no-color-literals, react-native/no-inline-styles, @typescript-eslint/no-explicit-any */
 // grade letter colors, shadows intentionally hardcoded for data visualization
-import React, { useState, useContext } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,85 +13,59 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
-import { useCreds } from '../hooks/use-creds';
-import { fetchGrades, fetchAssignments, GradeEntry } from '../services/hac-api';
+import { useDataCache } from '../context/data-context';
+import { GradeEntry } from '../services/hac-api';
 
 export default function GradesScreen() {
-  const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
-  const creds = useCreds();
-  if (!authContext) return null;
-
-  const [loading, setLoading] = useState(true);
+  const { cache, loadGradesAndCourses, clearCache } = useDataCache();
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [grades, setGrades] = useState<GradeEntry[]>([]);
   const [expandedClass, setExpandedClass] = useState<string | null>(null);
 
   useFocusEffect(
     React.useCallback(() => {
-      loadData();
-    }, [creds])
+      loadGradesAndCourses();
+    }, [loadGradesAndCourses])
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    clearCache();
+    await loadGradesAndCourses();
     setRefreshing(false);
   };
 
-  const loadData = async () => {
-    if (!creds) return;
-    try {
-      setLoading(true);
-      setError(null);
-      // fetch grades and assignments in parallel
-      const [gradeList, assignments] = await Promise.all([
-        fetchGrades(creds.hacUrl, creds.username, creds.password),
-        fetchAssignments(creds.hacUrl, creds.username, creds.password),
-      ]);
-
-      // pre-group assignments by class (avoid O(n*m) filtering)
-      const assignmentsByClass = new Map<string, typeof assignments>();
-      assignments.forEach((a) => {
-        if (!assignmentsByClass.has(a.class)) {
-          assignmentsByClass.set(a.class, []);
+  const grades = useMemo<GradeEntry[]>(() => {
+    const gradeList = cache.grades ?? [];
+    const assignments = cache.assignments ?? [];
+    const assignmentsByClass = new Map<string, typeof assignments>();
+    assignments.forEach((a) => {
+      if (!assignmentsByClass.has(a.class)) assignmentsByClass.set(a.class, []);
+      assignmentsByClass.get(a.class)!.push(a);
+    });
+    return gradeList.map((g) => {
+      const classAssignments = assignmentsByClass.get(g.className) ?? [];
+      const categoryMap = new Map<string, { earned: number; possible: number }>();
+      classAssignments.forEach((a) => {
+        const cat = a.category ?? 'Other';
+        if (!categoryMap.has(cat)) categoryMap.set(cat, { earned: 0, possible: 0 });
+        if (a.score !== undefined && a.points !== undefined) {
+          const entry = categoryMap.get(cat)!;
+          entry.earned += a.score;
+          entry.possible += a.points;
         }
-        assignmentsByClass.get(a.class)!.push(a);
       });
-
-      // attach category breakdown per class using pre-grouped data
-      const withCategories = gradeList.map((g) => {
-        const classAssignments = assignmentsByClass.get(g.className) ?? [];
-        const categoryMap = new Map<string, { earned: number; possible: number }>();
-        classAssignments.forEach((a) => {
-          const cat = a.category ?? 'Other';
-          if (!categoryMap.has(cat)) categoryMap.set(cat, { earned: 0, possible: 0 });
-          if (a.score !== undefined && a.points !== undefined) {
-            const entry = categoryMap.get(cat)!;
-            entry.earned += a.score;
-            entry.possible += a.points;
-          }
-        });
-        const categories = Array.from(categoryMap.entries())
-          .filter(([, { possible }]) => possible > 0)
-          .map(([name, { earned, possible }]) => ({
-            name,
-            grade: ((earned / possible) * 100).toFixed(1),
-            color: g.color,
-          }));
-        return { ...g, categories };
-      });
-
-      setGrades(withCategories);
-    } catch (e: any) {
-      setError(e.message ?? 'Failed to load grades');
-    } finally {
-      setLoading(false);
-    }
-  };
+      const categories = Array.from(categoryMap.entries())
+        .filter(([, { possible }]) => possible > 0)
+        .map(([name, { earned, possible }]) => ({
+          name,
+          grade: ((earned / possible) * 100).toFixed(1),
+          color: g.color,
+        }));
+      return { ...g, categories };
+    });
+  }, [cache.grades, cache.assignments]);
 
   const gradeColor = (avg: number) => {
     if (avg >= 90) return currentTheme.primary;
@@ -100,7 +74,7 @@ export default function GradesScreen() {
     return '#EF4444';
   };
 
-  if (loading) {
+  if (cache.loading) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: currentTheme.background }]}>
         <ActivityIndicator size="large" color={currentTheme.primary} />
@@ -108,12 +82,12 @@ export default function GradesScreen() {
     );
   }
 
-  if (error) {
+  if (cache.error) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: currentTheme.background }]}>
         <Ionicons name="alert-circle" size={48} color="#EF4444" />
-        <Text style={[styles.errorText, { color: currentTheme.text }]}>{error}</Text>
-        <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={loadData}>
+        <Text style={[styles.errorText, { color: currentTheme.text }]}>{cache.error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={onRefresh}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>

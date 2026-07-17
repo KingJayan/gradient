@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ClassPeriod, getScheduleForDay, getCurrentPeriod, getNextPeriod } from '../utils/schedule-data';
+import { ClassPeriod, getScheduleForDay } from '../utils/schedule-data';
 import { useCreds } from '../hooks/use-creds';
 import { useTheme } from '../hooks/use-theme';
 import { fetchSchedule } from '../services/hac-api';
@@ -21,17 +21,10 @@ export default function ScheduleScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [fullSchedule, setFullSchedule] = useState<ClassPeriod[]>([]);
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     loadSchedule();
   }, [creds]);
-
-  // tick every minute for current-period tracking
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   const loadSchedule = async () => {
     if (!creds) { setLoading(false); return; }
@@ -52,8 +45,6 @@ export default function ScheduleScreen() {
   };
 
   const schedule = getScheduleForDay(fullSchedule, 'A');
-  const currentPeriod = getCurrentPeriod(schedule, currentTime);
-  const nextPeriod = getNextPeriod(schedule, currentTime);
 
   if (loading) {
     return (
@@ -70,29 +61,6 @@ export default function ScheduleScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
       }
     >
-      {currentPeriod && (
-        <View style={[styles.currentPeriodCard, { backgroundColor: currentTheme.primary }]}>
-          <View style={styles.currentPeriodHeader}>
-            <Ionicons name="time" size={20} color="#fff" />
-            <Text style={styles.currentPeriodTitle}>Now</Text>
-          </View>
-          <Text style={styles.currentPeriodClass}>{currentPeriod.name}</Text>
-          <Text style={styles.currentPeriodRoom}>Room {currentPeriod.room}</Text>
-          <Text style={styles.currentPeriodTime}>{currentPeriod.startTime} - {currentPeriod.endTime}</Text>
-        </View>
-      )}
-
-      {nextPeriod && (
-        <View style={[styles.nextPeriodCard, { backgroundColor: currentTheme.surface, borderLeftColor: currentTheme.primary }]}>
-          <View style={styles.nextPeriodHeader}>
-            <Ionicons name="arrow-forward" size={16} color={currentTheme.textSecondary} />
-            <Text style={[styles.nextPeriodTitle, { color: currentTheme.textSecondary }]}>Next</Text>
-          </View>
-          <Text style={[styles.nextPeriodClass, { color: currentTheme.text }]}>{nextPeriod.name}</Text>
-          <Text style={[styles.nextPeriodTime, { color: currentTheme.textSecondary }]}>{nextPeriod.startTime} - {nextPeriod.endTime}</Text>
-        </View>
-      )}
-
       <View style={styles.scheduleContainer}>
         <Text style={[styles.scheduleTitle, { color: currentTheme.text }]}>Day Schedule</Text>
         {schedule.length === 0 && (
@@ -101,8 +69,7 @@ export default function ScheduleScreen() {
         {schedule.map((period) => (
           <View key={period.id} style={[styles.periodCard, { backgroundColor: currentTheme.surface, borderRightColor: currentTheme.border }]}>
             <View style={styles.periodTime}>
-              <Text style={[styles.periodTimeText, { color: currentTheme.text }]}>{period.startTime}</Text>
-              <Text style={[styles.periodDurationText, { color: currentTheme.textSecondary }]}>{period.endTime}</Text>
+              <Text style={[styles.periodTimeText, { color: currentTheme.text }]}>P{period.id}</Text>
             </View>
             <View style={styles.periodInfo}>
               <Text style={[styles.periodName, { color: currentTheme.text }]}>{period.name}</Text>
@@ -131,25 +98,8 @@ export default function ScheduleScreen() {
 const styles = StyleSheet.create({
   centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   container: { flex: 1 },
-  currentPeriodCard: { borderRadius: 12, marginHorizontal: 16, marginVertical: 12, paddingHorizontal: 16, paddingVertical: 16 },
-  currentPeriodClass: { color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 4 },
-  currentPeriodHeader: { alignItems: 'center', flexDirection: 'row', marginBottom: 8 },
-  currentPeriodRoom: { color: '#fff', fontSize: 14, marginBottom: 8, opacity: 0.9 },
-  currentPeriodTime: { color: '#fff', fontSize: 12, opacity: 0.8 },
-  currentPeriodTitle: { color: '#fff', fontSize: 12, fontWeight: '600', marginLeft: 6 },
-  dayButton: { alignItems: 'center', borderColor: '#ccc', borderRadius: 6, borderWidth: 1, flex: 1, paddingVertical: 8 },
-  dayButtonActive: { borderColor: 'transparent' },
-  dayButtonText: { color: '#666', fontSize: 14, fontWeight: '600' },
-  dayButtonTextActive: { color: '#fff' },
-  dayToggle: { borderBottomWidth: 1, flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingVertical: 12 },
   emptyText: { marginTop: 20, textAlign: 'center' },
-  nextPeriodCard: { borderLeftWidth: 3, borderRadius: 8, marginBottom: 16, marginHorizontal: 16, paddingHorizontal: 16, paddingVertical: 12 },
-  nextPeriodClass: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
-  nextPeriodHeader: { alignItems: 'center', flexDirection: 'row', marginBottom: 6 },
-  nextPeriodTime: { fontSize: 12 },
-  nextPeriodTitle: { fontSize: 12, fontWeight: '600', marginLeft: 6 },
   periodCard: { borderRadius: 8, flexDirection: 'row', marginBottom: 8, paddingHorizontal: 12, paddingVertical: 12 },
-  periodDurationText: { fontSize: 10, marginTop: 2 },
   periodInfo: { flex: 1, marginLeft: 12 },
   periodMeta: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   periodName: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
