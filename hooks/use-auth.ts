@@ -3,6 +3,8 @@ import * as SecureStore from 'expo-secure-store';
 import { AuthState, Student } from '../context/auth-context';
 import { logError } from '../utils/error-logger';
 
+const CREDENTIAL_PRESENCE_MARKER = 'authenticated';
+
 type AuthAction =
   | { type: 'RESTORE_TOKEN'; payload: { token: string; user: Student } }
   | { type: 'SIGN_IN'; payload: { token: string; user: Student } }
@@ -67,7 +69,7 @@ export function useAuth() {
       if (!response.ok) throw new Error('Invalid credentials');
       const data = await response.json();
 
-      const token = '1';
+      const token = CREDENTIAL_PRESENCE_MARKER;
       const user: Student = { id: username, username, hacUrl, name: data.name };
 
       await SecureStore.setItemAsync('userToken', token);

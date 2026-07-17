@@ -152,7 +152,7 @@ export default function LoginScreen() {
 
         <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
           <Text style={[styles.footerText, { color: currentTheme.textSecondary }]}>
-            Your credentials are secure and never stored on servers.
+            Your HAC credentials are stored on-device in iOS Keychain and sent over HTTPS to the Gradient API proxy to fetch your grades. They are not stored by the proxy.
           </Text>
         </Animated.View>
       </ScrollView>

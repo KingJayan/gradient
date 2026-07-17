@@ -42,8 +42,10 @@ see [claude.md](./CLAUDE.md) for arch and [deployment.md](./DEPLOYMENT.md) for s
 
 passwords live only in the ios keychain (`expo-secure-store`), read on demand via `usecreds()`, never persisted in user json.
 
-uses an [api](https://github.com/KingJayan/gradient-hac-api) written in Go; specialized clone of [nitheesh-cpu/HomeAccessCenterApiv2](https://github.com/nitheesh-cpu/HomeAccessCenterAPIv2) (MIT)
-> deployments for both apis available on their github pages
+uses our own [api](https://github.com/KingJayan/gradient-hac-api) written in Go; specialized clone of [nitheesh-cpu/HomeAccessCenterApiv2](https://github.com/nitheesh-cpu/HomeAccessCenterAPIv2) (MIT)
+> deployment links for both apis available on their github pages
+
+[Astro docs for our api](https://gradient-hac-api-docs.vercel.app)
 
 ---
 
