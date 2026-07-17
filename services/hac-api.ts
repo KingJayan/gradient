@@ -305,8 +305,8 @@ export async function fetchTranscript(
 export async function fetchAttendance(
   hacUrl: string, username: string, password: string
 ): Promise<AttendanceRecord[]> {
-  void username; void password; // kept for signature parity with other fetchers
-  logWarning('attendance unavailable', { hacUrl });
+  void hacUrl; void username; void password;
+  logWarning('attendance unavailable');
   return [];
 }
 
