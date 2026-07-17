@@ -109,6 +109,7 @@ export default function EmailTeachersScreen() {
               style={[styles.teacherCard, { backgroundColor: currentTheme.surface }]}
               onPress={() => { setSelectedTeacher(teacher); setShowComposeModal(true); }}
               activeOpacity={0.7}
+              disabled={!teacher.email}
             >
               <View style={styles.teacherHeader}>
                 <View style={[styles.teacherAvatar, { backgroundColor: currentTheme.primary }]}>

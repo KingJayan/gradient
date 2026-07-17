@@ -65,17 +65,23 @@ export default function GradesScreen() {
       // attach category breakdown per class using pre-grouped data
       const withCategories = gradeList.map((g) => {
         const classAssignments = assignmentsByClass.get(g.className) ?? [];
-        // group by category, average scores within each
-        const categoryMap = new Map<string, number[]>();
+        const categoryMap = new Map<string, { earned: number; possible: number }>();
         classAssignments.forEach((a) => {
           const cat = a.category ?? 'Other';
-          if (!categoryMap.has(cat)) categoryMap.set(cat, []);
-          if (a.points !== undefined) categoryMap.get(cat)!.push(a.points);
+          if (!categoryMap.has(cat)) categoryMap.set(cat, { earned: 0, possible: 0 });
+          if (a.score !== undefined && a.points !== undefined) {
+            const entry = categoryMap.get(cat)!;
+            entry.earned += a.score;
+            entry.possible += a.points;
+          }
         });
-        const categories = Array.from(categoryMap.entries()).map(([name, points]) => {
-          const avg = points.length > 0 ? points.reduce((s, n) => s + n, 0) / points.length : 0;
-          return { name, grade: avg.toFixed(1), color: g.color };
-        });
+        const categories = Array.from(categoryMap.entries())
+          .filter(([, { possible }]) => possible > 0)
+          .map(([name, { earned, possible }]) => ({
+            name,
+            grade: ((earned / possible) * 100).toFixed(1),
+            color: g.color,
+          }));
         return { ...g, categories };
       });
 

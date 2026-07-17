@@ -116,9 +116,9 @@ function gradeColor(avg: number): string {
 // AP/Honors prefix → weighted GPA multiplier
 function inferWeight(name: string): number {
   const u = name.toUpperCase();
-  if (u.startsWith('AP ') || u.includes(' AP ')) return 1.1;
-  if (u.includes('HONORS') || u.includes('HON ')) return 1.05;
-  return 1.0;
+  if (u.startsWith('AP ') || u.includes(' AP ')) return 1.0;
+  if (u.includes('HONORS') || u.includes('HON ')) return 0.5;
+  return 0.0;
 }
 
 // default bell schedule; HAC provides period numbers but not clock times
@@ -225,6 +225,7 @@ export async function fetchAssignments(
             dueDate: safeString(row[0], new Date().toISOString().slice(0, 10)),
             class: name,
             description: safeString(row[3]),
+            score: isNaN(score) ? undefined : score,
             points: isNaN(total) ? undefined : total,
             category: safeString(row[3]),
             completed: !isNaN(score),

@@ -7,7 +7,6 @@ import {
   ScrollView,
   Text,
   ActivityIndicator,
-  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AttendanceRecord, calculateAttendancePercentage } from '../utils/schedule-data';
@@ -93,9 +92,6 @@ export default function AttendanceScreen() {
         <Text style={[styles.unavailableText, { color: currentTheme.textSecondary }]}>
           Your district's HAC portal does not expose attendance data through the API.
         </Text>
-        <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={loadAttendance}>
-          <Text style={styles.retryButtonText}>Try Again</Text>
-        </TouchableOpacity>
       </View>
     );
   }

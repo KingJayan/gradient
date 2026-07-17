@@ -6,7 +6,6 @@ import {
   View,
   ScrollView,
   Text,
-  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
@@ -22,7 +21,6 @@ export default function ScheduleScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [fullSchedule, setFullSchedule] = useState<ClassPeriod[]>([]);
-  const [dayType, setDayType] = useState<'A' | 'B'>('A');
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -53,7 +51,7 @@ export default function ScheduleScreen() {
     setRefreshing(false);
   };
 
-  const schedule = getScheduleForDay(fullSchedule, dayType);
+  const schedule = getScheduleForDay(fullSchedule, 'A');
   const currentPeriod = getCurrentPeriod(schedule, currentTime);
   const nextPeriod = getNextPeriod(schedule, currentTime);
 
@@ -72,20 +70,6 @@ export default function ScheduleScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
       }
     >
-      <View style={[styles.dayToggle, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
-        {(['A', 'B'] as const).map((day) => (
-          <TouchableOpacity
-            key={day}
-            style={[styles.dayButton, dayType === day && [styles.dayButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
-            onPress={() => setDayType(day)}
-          >
-            <Text style={[styles.dayButtonText, dayType === day && styles.dayButtonTextActive]}>
-              {day}-Day Schedule
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       {currentPeriod && (
         <View style={[styles.currentPeriodCard, { backgroundColor: currentTheme.primary }]}>
           <View style={styles.currentPeriodHeader}>

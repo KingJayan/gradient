@@ -4,6 +4,7 @@ export interface Assignment {
   dueDate: string;
   class: string;
   description?: string;
+  score?: number;
   points?: number;
   category?: string;
   // carried through from PersonalTask so priority survives the merge

@@ -52,20 +52,17 @@ export function calculateGPA(
 ): GPAResult {
   const activeCourses = courses.filter((c) => !c.excluded);
 
-  //weighted gpa calculation
   let totalWeightedPoints = 0;
-  let totalWeight = 0;
+  let totalCredits = 0;
 
   activeCourses.forEach((course) => {
     const gradePoints = getGradePoints(course.grade, gradeScale);
-    const courseWeight = (course.credits / 4) * course.weight; //norm credits to 0-1 range
-    totalWeightedPoints += gradePoints * courseWeight;
-    totalWeight += courseWeight;
+    totalWeightedPoints += (gradePoints + course.weight) * course.credits;
+    totalCredits += course.credits;
   });
 
-  const weightedGPA = totalWeight > 0 ? totalWeightedPoints / totalWeight : 0;
+  const weightedGPA = totalCredits > 0 ? totalWeightedPoints / totalCredits : 0;
 
-  //unweighted gpa calculation (4.0 scale)
   let totalUnweightedPoints = 0;
   activeCourses.forEach((course) => {
     totalUnweightedPoints += getGradePoints(course.grade, gradeScale);
@@ -96,23 +93,24 @@ export function predictedGradeNeeded(
   const remainingActive = remainingCourses.filter((c) => !c.excluded);
 
   let completedPoints = 0;
-  let completedWeight = 0;
+  let completedCredits = 0;
   completedActive.forEach((c) => {
-    const w = (c.credits / 4) * c.weight;
-    completedPoints += getGradePoints(c.grade, gradeScale) * w;
-    completedWeight += w;
+    completedPoints += (getGradePoints(c.grade, gradeScale) + c.weight) * c.credits;
+    completedCredits += c.credits;
   });
 
-  let remainingWeight = 0;
+  let remainingCredits = 0;
+  let remainingBonusPoints = 0;
   remainingActive.forEach((c) => {
-    remainingWeight += (c.credits / 4) * c.weight;
+    remainingCredits += c.credits;
+    remainingBonusPoints += c.weight * c.credits;
   });
 
-  if (remainingWeight === 0) return 0;
+  if (remainingCredits === 0) return 0;
 
-  const totalWeight = completedWeight + remainingWeight;
-  const requiredAvgPoints =
-    (targetGPA * totalWeight - completedPoints) / remainingWeight;
+  const totalCredits = completedCredits + remainingCredits;
+  const needed = targetGPA * totalCredits - completedPoints;
+  const requiredAvgPoints = (needed - remainingBonusPoints) / remainingCredits;
 
   if (requiredAvgPoints <= 0) return 0;
   if (requiredAvgPoints > 4.0) return 101;
