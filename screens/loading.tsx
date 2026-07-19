@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BRAND, UI_COLORS } from '../utils/colors';
 
 export default function LoadingScreen() {
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -49,7 +50,7 @@ export default function LoadingScreen() {
         ]}
       >
         <View style={styles.gradientCircle}>
-          <Ionicons name="checkmark-done" size={32} color="#fff" />
+          <Ionicons name="checkmark-done" size={32} color={UI_COLORS.white} />
         </View>
       </Animated.View>
       <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>
@@ -65,18 +66,18 @@ export default function LoadingScreen() {
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: '#060F0B',
+    backgroundColor: BRAND.background,
     flex: 1,
     justifyContent: 'center',
   },
   gradientCircle: {
     alignItems: 'center',
-    backgroundColor: '#00F5A0',
+    backgroundColor: BRAND.primary,
     borderRadius: 40,
     elevation: 8,
     height: 80,
     justifyContent: 'center',
-    shadowColor: '#00F5A0',
+    shadowColor: BRAND.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -86,11 +87,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   subtitle: {
-    color: '#6B9E85',
+    color: BRAND.textSecondary,
     fontSize: 14,
   },
   title: {
-    color: '#00F5A0',
+    color: BRAND.primary,
     fontSize: 32,
     fontWeight: '700',
     marginBottom: 8,

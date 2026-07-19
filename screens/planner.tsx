@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
-  SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -10,7 +9,6 @@ import {
   Modal,
   Switch,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,6 +17,8 @@ import { UI_COLORS, onPrimary } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
+import { logWarning } from '../utils/error-logger';
+import { Screen, AsyncContent } from '../components/screen';
 
 const PERSONAL_TASKS_KEY = 'personalTasks';
 
@@ -135,7 +135,7 @@ export default function PlannerScreen() {
       const stored = await AsyncStorage.getItem(PERSONAL_TASKS_KEY);
       if (stored) setPersonalTasks(JSON.parse(stored));
     } catch (e) {
-      console.warn('failed to load personal tasks:', e instanceof Error ? e.message : String(e));
+      logWarning('failed to load personal tasks', { error: e instanceof Error ? e.message : String(e) });
     }
   };
 
@@ -143,7 +143,7 @@ export default function PlannerScreen() {
     try {
       await AsyncStorage.setItem(PERSONAL_TASKS_KEY, JSON.stringify(tasks));
     } catch (e) {
-      console.warn('failed to save personal tasks:', e instanceof Error ? e.message : String(e));
+      logWarning('failed to save personal tasks', { error: e instanceof Error ? e.message : String(e) });
     }
   };
 
@@ -185,16 +185,9 @@ export default function PlannerScreen() {
     filteredTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
   );
 
-  if (cache.loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={currentTheme.primary} />
-      </View>
-    );
-  }
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+    <Screen>
+      <AsyncContent loading={cache.loading}>
       <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
         <View>
           <Text style={[styles.greeting, { color: currentTheme.textSecondary }]}>Planner</Text>
@@ -242,7 +235,7 @@ export default function PlannerScreen() {
             value={showCompleted}
             onValueChange={setShowCompleted}
             trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
-            thumbColor={showCompleted ? '#fff' : currentTheme.textSecondary}
+            thumbColor={showCompleted ? UI_COLORS.white : currentTheme.textSecondary}
           />
         </View>
       </View>
@@ -335,7 +328,8 @@ export default function PlannerScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+      </AsyncContent>
+    </Screen>
   );
 }
 
@@ -389,11 +383,9 @@ const styles = StyleSheet.create({
   calHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingHorizontal: 4 },
   calMonthLabel: { fontSize: 16, fontWeight: '600' },
   calWeekRow: { flexDirection: 'row', marginBottom: 2 },
-  centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   checkbox: { marginRight: 12 },
   completedToggle: { alignItems: 'center', flexDirection: 'row', gap: 8, marginLeft: 'auto' },
   completedToggleText: { fontSize: 12, fontWeight: '500' },
-  container: { flex: 1 },
   dateGroup: { marginBottom: 20 },
   dateHeader: { fontSize: 14, fontWeight: '700', marginBottom: 8 },
   datePickerButton: { alignItems: 'center', flexDirection: 'row', gap: 10 },
@@ -422,7 +414,7 @@ const styles = StyleSheet.create({
   priorityButtonText: { fontSize: 12, fontWeight: '600' },
   priorityRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   sourceBadge: { borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
-  sourceBadgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+  sourceBadgeText: { color: UI_COLORS.white, fontSize: 11, fontWeight: '600' },
   taskClass: { fontSize: 12, fontWeight: '500' },
   taskContent: { flex: 1 },
   taskCount: { fontSize: 18, fontWeight: '700', marginTop: 4 },

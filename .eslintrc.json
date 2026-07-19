@@ -18,12 +18,52 @@
   },
   "plugins": [
     "@typescript-eslint",
-    "react-native"
+    "react-native",
+    "react-hooks"
   ],
   "rules": {
     "@typescript-eslint/no-explicit-any": "warn",
     "react-native/no-unused-styles": "warn",
     "react-native/no-inline-styles": "off",
-    "react-native/no-color-literals": "off"
-  }
+    "react-native/no-color-literals": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "MemberExpression[object.name='console']",
+        "message": "Use logError/logWarning/logInfo from utils/error-logger instead of console.*"
+      },
+      {
+        "selector": "Literal[value=/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
+        "message": "Do not hardcode hex color literals. Reference a token from utils/colors.ts or the theme."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["utils/colors.ts", "context/theme-context.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "MemberExpression[object.name='console']",
+            "message": "Use logError/logWarning/logInfo from utils/error-logger instead of console.*"
+          }
+        ]
+      }
+    },
+    {
+      "files": ["utils/error-logger.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "Literal[value=/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
+            "message": "Do not hardcode hex color literals. Reference a token from utils/colors.ts or the theme."
+          }
+        ]
+      }
+    }
+  ]
 }

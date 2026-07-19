@@ -7,9 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  ActivityIndicator,
   RefreshControl,
-  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +15,7 @@ import { ClassPeriod } from '../services/api/schedule';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { onPrimary } from '../utils/colors';
+import { Screen, ScreenHeader, AsyncContent, RetryButton } from '../components/screen';
 
 const BELL_SCHEDULE_KEY = 'bellSchedule';
 
@@ -73,94 +72,78 @@ export default function ScheduleScreen() {
 
   const schedule = cache.schedule ?? [];
 
-  if (cache.loading) {
-    return (
-      <View style={[styles.centerContainer, { backgroundColor: currentTheme.background }]}>
-        <ActivityIndicator size="large" color={currentTheme.primary} />
-      </View>
-    );
-  }
-
-  if (cache.error) {
-    return (
-      <View style={[styles.centerContainer, { backgroundColor: currentTheme.background }]}>
-        <Ionicons name="alert-circle" size={48} color="#EF4444" />
-        <Text style={[styles.errorText, { color: currentTheme.text }]}>{cache.error}</Text>
-        <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={onRefresh}>
-          <Text style={[styles.retryButtonText, { color: onPrimary(currentTheme.primary) }]}>Retry</Text>
+  const header = (
+    <ScreenHeader
+      title="Your Schedule"
+      right={
+        <TouchableOpacity
+          onPress={openBellEditor}
+          style={[styles.bellButton, { backgroundColor: currentTheme.background }]}
+          accessibilityRole="button"
+          accessibilityLabel="Edit bell times"
+        >
+          <Ionicons name="time-outline" size={18} color={currentTheme.primary} />
+          <Text style={[styles.bellButtonText, { color: currentTheme.primary }]}>Bell Times</Text>
         </TouchableOpacity>
-      </View>
-    );
-  }
+      }
+    />
+  );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
-        }
-      >
-        <View style={[styles.scheduleHeader, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
-          <Text style={[styles.scheduleTitle, { color: currentTheme.text }]}>Your Schedule</Text>
-          <TouchableOpacity
-            onPress={openBellEditor}
-            style={[styles.bellButton, { backgroundColor: currentTheme.background }]}
-            accessibilityRole="button"
-            accessibilityLabel="Edit bell times"
-          >
-            <Ionicons name="time-outline" size={18} color={currentTheme.primary} />
-            <Text style={[styles.bellButtonText, { color: currentTheme.primary }]}>Bell Times</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.periodList}>
-          {schedule.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="calendar-outline" size={48} color={currentTheme.textSecondary} />
-              <Text style={[styles.emptyText, { color: currentTheme.text }]}>No schedule data available</Text>
-              <Text style={[styles.emptySubtext, { color: currentTheme.textSecondary }]}>
-                Pull down to refresh or check your HAC portal.
-              </Text>
-              <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary, marginTop: 16 }]} onPress={onRefresh}>
-                <Text style={[styles.retryButtonText, { color: onPrimary(currentTheme.primary) }]}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            schedule.map((period: ClassPeriod) => {
-              const bt = bellTimes[period.id];
-              return (
-                <View key={period.id} style={[styles.periodCard, { backgroundColor: currentTheme.surface }]}>
-                  <View style={[styles.periodBadge, { backgroundColor: currentTheme.primary + '22' }]}>
-                    <Text style={[styles.periodBadgeText, { color: currentTheme.primary }]}>P{period.id}</Text>
-                  </View>
-                  <View style={styles.periodInfo}>
-                    <Text style={[styles.periodName, { color: currentTheme.text }]}>{period.name}</Text>
-                    {bt && (
-                      <Text style={[styles.periodTime, { color: currentTheme.primary }]}>
-                        {formatBellTime(bt.start)} – {formatBellTime(bt.end)}
-                      </Text>
-                    )}
-                    <View style={styles.periodMeta}>
-                      {period.teacher ? (
-                        <>
-                          <Ionicons name="person" size={13} color={currentTheme.textSecondary} />
-                          <Text style={[styles.periodMetaText, { color: currentTheme.textSecondary }]}>{period.teacher}</Text>
-                        </>
-                      ) : null}
-                      {period.room ? (
-                        <>
-                          <Ionicons name="location" size={13} color={currentTheme.textSecondary} />
-                          <Text style={[styles.periodMetaText, { color: currentTheme.textSecondary }]}>Room {period.room}</Text>
-                        </>
-                      ) : null}
+    <Screen header={header}>
+      <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh}>
+        <ScrollView
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
+          }
+        >
+          <View style={styles.periodList}>
+            {schedule.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="calendar-outline" size={48} color={currentTheme.textSecondary} />
+                <Text style={[styles.emptyText, { color: currentTheme.text }]}>No schedule data available</Text>
+                <Text style={[styles.emptySubtext, { color: currentTheme.textSecondary }]}>
+                  Pull down to refresh or check your HAC portal.
+                </Text>
+                <RetryButton onPress={onRefresh} style={styles.emptyRetry} />
+              </View>
+            ) : (
+              schedule.map((period: ClassPeriod) => {
+                const bt = bellTimes[period.id];
+                return (
+                  <View key={period.id} style={[styles.periodCard, { backgroundColor: currentTheme.surface }]}>
+                    <View style={[styles.periodBadge, { backgroundColor: currentTheme.primary + '22' }]}>
+                      <Text style={[styles.periodBadgeText, { color: currentTheme.primary }]}>P{period.id}</Text>
+                    </View>
+                    <View style={styles.periodInfo}>
+                      <Text style={[styles.periodName, { color: currentTheme.text }]}>{period.name}</Text>
+                      {bt && (
+                        <Text style={[styles.periodTime, { color: currentTheme.primary }]}>
+                          {formatBellTime(bt.start)} – {formatBellTime(bt.end)}
+                        </Text>
+                      )}
+                      <View style={styles.periodMeta}>
+                        {period.teacher ? (
+                          <>
+                            <Ionicons name="person" size={13} color={currentTheme.textSecondary} />
+                            <Text style={[styles.periodMetaText, { color: currentTheme.textSecondary }]}>{period.teacher}</Text>
+                          </>
+                        ) : null}
+                        {period.room ? (
+                          <>
+                            <Ionicons name="location" size={13} color={currentTheme.textSecondary} />
+                            <Text style={[styles.periodMetaText, { color: currentTheme.textSecondary }]}>Room {period.room}</Text>
+                          </>
+                        ) : null}
+                      </View>
                     </View>
                   </View>
-                </View>
-              );
-            })
-          )}
-        </View>
-      </ScrollView>
+                );
+              })
+            )}
+          </View>
+        </ScrollView>
+      </AsyncContent>
 
       <Modal visible={showBellEditor} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -212,7 +195,7 @@ export default function ScheduleScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -224,12 +207,10 @@ const styles = StyleSheet.create({
   bellInput: { borderRadius: 8, flex: 1, fontSize: 14, paddingHorizontal: 10, paddingVertical: 8, textAlign: 'center' },
   bellPeriodLabel: { fontSize: 14, fontWeight: '700', marginRight: 8, width: 28 },
   bellRow: { alignItems: 'center', flexDirection: 'row', marginBottom: 10 },
-  centerContainer: { alignItems: 'center', flex: 1, gap: 16, justifyContent: 'center' },
-  container: { flex: 1 },
+  emptyRetry: { marginTop: 16 },
   emptyState: { alignItems: 'center', paddingTop: 60 },
   emptySubtext: { fontSize: 13, marginTop: 6, paddingHorizontal: 32, textAlign: 'center' },
   emptyText: { fontSize: 16, fontWeight: '600', marginTop: 12 },
-  errorText: { fontSize: 14, paddingHorizontal: 32, textAlign: 'center' },
   modalContent: { borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 16, paddingVertical: 20 },
   modalHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   modalOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', flex: 1, justifyContent: 'flex-end' },
@@ -239,15 +220,11 @@ const styles = StyleSheet.create({
   periodBadgeText: { fontSize: 14, fontWeight: '700' },
   periodCard: { borderRadius: 12, flexDirection: 'row', gap: 12, marginBottom: 8, paddingHorizontal: 14, paddingVertical: 12 },
   periodInfo: { flex: 1 },
-  periodList: { paddingBottom: 24, paddingHorizontal: 16 },
+  periodList: { paddingBottom: 24, paddingHorizontal: 16, paddingTop: 16 },
   periodMeta: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
   periodMetaText: { fontSize: 12, marginRight: 8 },
   periodName: { fontSize: 15, fontWeight: '600' },
   periodTime: { fontSize: 12, fontWeight: '600', marginTop: 2 },
-  retryButton: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
-  retryButtonText: { fontSize: 12, fontWeight: '600' },
   saveButton: { alignItems: 'center', borderRadius: 8, marginTop: 16, paddingVertical: 14 },
   saveButtonText: { fontSize: 16, fontWeight: '600' },
-  scheduleHeader: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 24 },
-  scheduleTitle: { fontSize: 28, fontWeight: '700' },
 });

@@ -2,6 +2,22 @@ export const UI_COLORS = {
   info: '#3B82F6',
   warning: '#F59E0B',
   danger: '#EF4444',
+  dangerMuted: '#F87171',
+  white: '#FFFFFF',
+  black: '#000000',
+} as const;
+
+export const BRAND = {
+  primary: '#00F5A0',
+  background: '#060F0B',
+  textSecondary: '#6B9E85',
+} as const;
+
+export const FALLBACK = {
+  primary: '#00F5A0',
+  background: '#0A0A0A',
+  text: '#FFFFFF',
+  textSecondary: '#999999',
 } as const;
 
 export function gradeLetter(avg: number): string {

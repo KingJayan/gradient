@@ -15,6 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
+import { UI_COLORS } from '../utils/colors';
 
 const DISTRICTS = [
   { id: 'frisco', name: 'Frisco ISD', url: 'https://homeaccess.friscoisd.org/' },
@@ -101,12 +102,12 @@ export default function LoginScreen() {
                 <Ionicons
                   name={selectedDistrictId === district.id ? 'checkmark-circle' : 'ellipse-outline'}
                   size={20}
-                  color={selectedDistrictId === district.id ? '#fff' : currentTheme.textSecondary}
+                  color={selectedDistrictId === district.id ? UI_COLORS.white : currentTheme.textSecondary}
                 />
                 <Text
                   style={[
                     styles.districtButtonText,
-                    { color: selectedDistrictId === district.id ? '#fff' : currentTheme.text }
+                    { color: selectedDistrictId === district.id ? UI_COLORS.white : currentTheme.text }
                   ]}
                 >
                   {district.name}
@@ -163,10 +164,10 @@ export default function LoginScreen() {
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={UI_COLORS.white} />
             ) : (
               <>
-                <Ionicons name="log-in" size={20} color="#fff" />
+                <Ionicons name="log-in" size={20} color={UI_COLORS.white} />
                 <Text style={styles.loginButtonText}>Sign In</Text>
               </>
             )}
@@ -251,7 +252,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   loginButtonText: {
-    color: '#fff',
+    color: UI_COLORS.white,
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,

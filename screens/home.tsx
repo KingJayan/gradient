@@ -5,10 +5,8 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
   Animated,
   Easing,
-  SafeAreaView,
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +15,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { calculateGPA } from '../utils/gpa-calculator';
+import { UI_COLORS } from '../utils/colors';
+import { Screen, AsyncContent } from '../components/screen';
 
 export default function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<Record<string, undefined>> }) {
   const authContext = useContext(AuthContext);
@@ -64,16 +64,9 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
   if (!authContext) return null;
   const { state } = authContext;
 
-  if (cache.loading) {
-    return (
-      <View style={[styles.centerContainer, { backgroundColor: currentTheme.background }]}>
-        <ActivityIndicator size="large" color={currentTheme.primary} />
-      </View>
-    );
-  }
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+    <Screen>
+      <AsyncContent loading={cache.loading}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -134,13 +127,12 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 
         <View style={styles.spacer} />
       </ScrollView>
-    </SafeAreaView>
+      </AsyncContent>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
-  container: { flex: 1 },
   dateText: { fontSize: 13, letterSpacing: 0.5, marginBottom: 2, textTransform: 'uppercase' },
   header: {
     alignItems: 'flex-start',
@@ -161,7 +153,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 20,
-    shadowColor: '#000',
+    shadowColor: UI_COLORS.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,

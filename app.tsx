@@ -11,6 +11,7 @@ import { ErrorBoundary } from './components/error-boundary';
 import { useAuth } from './hooks/use-auth';
 import { useTheme } from './hooks/use-theme';
 import { useNetworkStatus } from './hooks/use-network';
+import { UI_COLORS } from './utils/colors';
 
 import LoadingScreen from './screens/loading';
 import LoginScreen from './screens/login';
@@ -120,7 +121,7 @@ function RootNavigatorContent() {
           </NavigationContainer>
           {isOffline && (
             <View style={styles.offlineBanner} pointerEvents="none">
-              <Ionicons name="cloud-offline-outline" size={12} color="#F87171" />
+              <Ionicons name="cloud-offline-outline" size={12} color={UI_COLORS.dangerMuted} />
               <Text style={styles.offlineText}>No internet connection</Text>
             </View>
           )}
@@ -156,6 +157,6 @@ const styles = StyleSheet.create({
     right: 24,
     zIndex: 9999,
   },
-  offlineText: { color: '#F87171', fontSize: 12, fontWeight: '500' },
+  offlineText: { color: UI_COLORS.dangerMuted, fontSize: 12, fontWeight: '500' },
   root: { flex: 1 },
 });

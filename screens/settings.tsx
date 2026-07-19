@@ -6,13 +6,13 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
 import { THEMES } from '../context/theme-context';
 import { UI_COLORS, onPrimary } from '../utils/colors';
+import { Screen, ScreenHeader } from '../components/screen';
 
 export default function SettingsScreen() {
   const authContext = useContext(AuthContext);
@@ -33,12 +33,8 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+    <Screen header={<ScreenHeader title="Settings" />}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
-          <Text style={[styles.title, { color: currentTheme.text }]}>Settings</Text>
-        </View>
-
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]}>
             Appearance
@@ -117,7 +113,7 @@ export default function SettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel="Sign out"
           >
-            <Ionicons name="log-out" size={20} color="#fff" />
+            <Ionicons name="log-out" size={20} color={UI_COLORS.white} />
             <Text style={styles.logoutText}>Sign Out</Text>
           </TouchableOpacity>
         </View>
@@ -129,7 +125,7 @@ export default function SettingsScreen() {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -165,9 +161,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  container: {
-    flex: 1,
-  },
   footer: {
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -180,11 +173,6 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 18,
     fontWeight: '700',
-  },
-  header: {
-    borderBottomWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 20,
   },
   infoItem: {
     alignItems: 'center',
@@ -212,7 +200,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   logoutText: {
-    color: '#fff',
+    color: UI_COLORS.white,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -244,9 +232,5 @@ const styles = StyleSheet.create({
   themeOptionText: {
     fontSize: 11,
     fontWeight: '600',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
   },
 });

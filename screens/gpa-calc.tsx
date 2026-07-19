@@ -3,12 +3,10 @@ import {
   StyleSheet,
   View,
   ScrollView,
-  SafeAreaView,
   Text,
   TouchableOpacity,
   TextInput,
   Modal,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +14,7 @@ import { calculateGPA, Course, DEFAULT_GRADE_SCALE, GPAResult, whatIfScenario } 
 import { UI_COLORS, onPrimary } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
+import { Screen, ScreenHeader, AsyncContent } from '../components/screen';
 export default function GPACalculatorScreen() {
   const { currentTheme } = useTheme();
   const { cache, clearCache, loadGradesAndCourses } = useDataCache();
@@ -79,19 +78,10 @@ export default function GPACalculatorScreen() {
     setShowWhatIf(false);
   };
 
-  if (cache.loading || !gpaResult) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={currentTheme.primary} />
-      </View>
-    );
-  }
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
-        <Text style={[styles.title, { color: currentTheme.text }]}>GPA Calculator</Text>
-      </View>
+    <Screen header={<ScreenHeader title="GPA Calculator" />}>
+      <AsyncContent loading={cache.loading || !gpaResult} error={cache.error} onRetry={onRefresh}>
+    {gpaResult && (
     <ScrollView
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
@@ -130,7 +120,7 @@ export default function GPACalculatorScreen() {
                     style={[styles.weightBadge, { backgroundColor: course.weight === 1.0 ? UI_COLORS.info : course.weight === 0.5 ? UI_COLORS.warning : currentTheme.border }]}
                     onPress={() => handleToggleWeight(course.id)}
                   >
-                    <Text style={[styles.weightBadgeText, { color: course.weight > 0 ? '#fff' : currentTheme.textSecondary }]}>
+                    <Text style={[styles.weightBadgeText, { color: course.weight > 0 ? UI_COLORS.white : currentTheme.textSecondary }]}>
                       {course.weight === 1.0 ? 'AP' : course.weight === 0.5 ? 'HON' : 'REG'}
                     </Text>
                   </TouchableOpacity>
@@ -221,14 +211,14 @@ export default function GPACalculatorScreen() {
         </View>
       </Modal>
     </ScrollView>
-    </SafeAreaView>
+    )}
+      </AsyncContent>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   clearButton: { color: UI_COLORS.danger, fontSize: 12, fontWeight: '600' },
-  container: { flex: 1 },
   courseActions: { alignItems: 'center', flexDirection: 'row', gap: 12 },
   courseCard: { borderRadius: 12, marginBottom: 8, paddingHorizontal: 16, paddingVertical: 12 },
   courseCount: { fontSize: 12, textAlign: 'center' },
@@ -242,7 +232,6 @@ const styles = StyleSheet.create({
   gpaValue: { fontSize: 32, fontWeight: '700', marginTop: 8 },
   gradeLabel: { fontSize: 14, fontWeight: '600' },
   gradeRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  header: { borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 24 },
   mockLabel: { color: UI_COLORS.info, fontSize: 14, fontWeight: '600' },
   modalButton: { alignItems: 'center', borderRadius: 8, paddingVertical: 14 },
   modalButtonText: { fontSize: 16, fontWeight: '600' },
@@ -260,7 +249,6 @@ const styles = StyleSheet.create({
   scenarioValue: { fontSize: 28, fontWeight: '700', marginTop: 8 },
   section: { paddingHorizontal: 16, paddingVertical: 16 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: '700' },
   weightBadge: { borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4 },
   weightBadgeText: { fontSize: 11, fontWeight: '700' },
   whatIfButton: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', paddingVertical: 8 },
