@@ -1,11 +1,11 @@
-import { mergeTasks, getOverdueTasks, getUpcomingTasks, groupByDate, generateTaskSummary, Assignment, PersonalTask } from '../task-manager';
+import { mergeTasks, getOverdueTasks, groupByDate, Assignment, PersonalTask } from '../task-manager';
 
 const hacTask = (id: string, dueDate: string, completed = false): Assignment => ({
   id, title: id, dueDate, class: 'Math', completed, source: 'hac',
 });
 
 const personalTask = (id: string, dueDate: string, completed = false): PersonalTask => ({
-  id, title: id, dueDate, completed, priority: 'medium', reminders: [],
+  id, title: id, dueDate, completed, priority: 'medium',
 });
 
 describe('mergeTasks', () => {
@@ -46,29 +46,6 @@ describe('getOverdueTasks', () => {
   });
 });
 
-describe('getUpcomingTasks', () => {
-  it('includes incomplete tasks within the default 7-day window', () => {
-    const now = new Date();
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const far = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const result = getUpcomingTasks([hacTask('near', tomorrow), hacTask('far', far)]);
-    expect(result.map((t) => t.id)).toContain('near');
-    expect(result.map((t) => t.id)).not.toContain('far');
-  });
-
-  it('excludes completed tasks', () => {
-    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const result = getUpcomingTasks([{ ...hacTask('done', tomorrow), completed: true }]);
-    expect(result).toHaveLength(0);
-  });
-
-  it('respects custom day window', () => {
-    const in10Days = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    expect(getUpcomingTasks([hacTask('t', in10Days)], 5)).toHaveLength(0);
-    expect(getUpcomingTasks([hacTask('t', in10Days)], 15)).toHaveLength(1);
-  });
-});
-
 describe('groupByDate', () => {
   it('groups tasks sharing a date under the same key', () => {
     const tasks = [
@@ -81,18 +58,5 @@ describe('groupByDate', () => {
     const values = Array.from(grouped.values());
     expect(values[0]).toHaveLength(2);
     expect(values[1]).toHaveLength(1);
-  });
-});
-
-describe('generateTaskSummary', () => {
-  it('tallies total, completed, overdue, and upcoming correctly', () => {
-    const tasks = [
-      hacTask('past', '2024-01-01'),
-      { ...hacTask('done', '2024-01-01'), completed: true },
-    ];
-    const s = generateTaskSummary(tasks);
-    expect(s.total).toBe(2);
-    expect(s.completed).toBe(1);
-    expect(s.overdue).toBe(1);
   });
 });

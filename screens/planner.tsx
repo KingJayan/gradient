@@ -158,7 +158,6 @@ export default function PlannerScreen() {
       dueDate: formatDate(newTaskDate),
       priority: newTaskPriority,
       completed: false,
-      reminders: [],
     };
     const updated = [...personalTasks, newTask];
     setPersonalTasks(updated);

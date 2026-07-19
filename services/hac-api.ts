@@ -246,10 +246,6 @@ export async function fetchSchedule(
         name: cls.className,
         teacher: cls.teacher,
         room: cls.room,
-        startTime: '',
-        endTime: '',
-        credits: 1,
-        dayType: 'all' as const,
       };
     });
 }

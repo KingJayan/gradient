@@ -4,11 +4,12 @@ export const UI_COLORS = {
   danger: '#EF4444',
 } as const;
 
-export function gradeColor(avg: number): string {
-  if (avg >= 90) return '#22C55E';
-  if (avg >= 80) return '#3B82F6';
-  if (avg >= 70) return '#F59E0B';
-  return '#EF4444';
+export function gradeLetter(avg: number): string {
+  if (avg >= 90) return 'A';
+  if (avg >= 80) return 'B';
+  if (avg >= 70) return 'C';
+  if (avg >= 60) return 'D';
+  return 'F';
 }
 
 export function gradeColorFromLetter(grade: string): string {
@@ -17,6 +18,10 @@ export function gradeColorFromLetter(grade: string): string {
   if (grade.startsWith('C')) return '#F59E0B';
   if (grade.startsWith('D')) return '#FF8844';
   return '#EF4444';
+}
+
+export function gradeColor(avg: number): string {
+  return gradeColorFromLetter(gradeLetter(avg));
 }
 
 export function onPrimary(hex: string): string {

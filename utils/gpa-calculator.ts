@@ -79,46 +79,6 @@ export function calculateGPA(
   };
 }
 
-export function predictedGradeNeeded(
-  targetGPA: number,
-  remainingCourses: Course[],
-  completedCourses: Course[] = [],
-  gradeScale: GradeScale[] = DEFAULT_GRADE_SCALE
-): number {
-  if (remainingCourses.length === 0) return 0;
-
-  const completedActive = completedCourses.filter((c) => !c.excluded);
-  const remainingActive = remainingCourses.filter((c) => !c.excluded);
-
-  let completedPoints = 0;
-  let completedCredits = 0;
-  completedActive.forEach((c) => {
-    completedPoints += (getGradePoints(c.grade, gradeScale) + c.weight) * c.credits;
-    completedCredits += c.credits;
-  });
-
-  let remainingCredits = 0;
-  let remainingBonusPoints = 0;
-  remainingActive.forEach((c) => {
-    remainingCredits += c.credits;
-    remainingBonusPoints += c.weight * c.credits;
-  });
-
-  if (remainingCredits === 0) return 0;
-
-  const totalCredits = completedCredits + remainingCredits;
-  const needed = targetGPA * totalCredits - completedPoints;
-  const requiredAvgPoints = (needed - remainingBonusPoints) / remainingCredits;
-
-  if (requiredAvgPoints <= 0) return 0;
-  if (requiredAvgPoints > 4.0) return 101;
-
-  for (let grade = 0; grade <= 100; grade++) {
-    if (getGradePoints(grade, gradeScale) >= requiredAvgPoints) return grade;
-  }
-  return 101;
-}
-
 export function whatIfScenario(
   courses: Course[],
   mockGrades: { courseId: string; mockGrade: number }[],

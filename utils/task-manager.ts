@@ -20,7 +20,6 @@ export interface PersonalTask {
   description?: string;
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
-  reminders: string[]; // notification times (ISO strings)
 }
 
 export function mergeTasks(
@@ -53,18 +52,6 @@ export function getOverdueTasks(tasks: Assignment[]): Assignment[] {
   );
 }
 
-export function getUpcomingTasks(tasks: Assignment[], days = 7): Assignment[] {
-  const now = new Date();
-  const future = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
-
-  return tasks.filter(
-    (task) =>
-      !task.completed &&
-      new Date(task.dueDate) >= now &&
-      new Date(task.dueDate) <= future
-  );
-}
-
 export function groupByDate(tasks: Assignment[]): Map<string, Assignment[]> {
   const grouped = new Map<string, Assignment[]>();
 
@@ -84,21 +71,3 @@ export function groupByDate(tasks: Assignment[]): Map<string, Assignment[]> {
   return grouped;
 }
 
-export function generateTaskSummary(
-  tasks: Assignment[]
-): {
-  total: number;
-  completed: number;
-  overdue: number;
-  upcoming: number;
-} {
-  const overdue = getOverdueTasks(tasks);
-  const upcoming = getUpcomingTasks(tasks);
-
-  return {
-    total: tasks.length,
-    completed: tasks.filter((t) => t.completed).length,
-    overdue: overdue.length,
-    upcoming: upcoming.length,
-  };
-}

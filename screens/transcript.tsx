@@ -121,7 +121,7 @@ export default function TranscriptScreen() {
                         <Text style={[styles.courseSemester, { color: currentTheme.textSecondary }]}>{entry.semester} · {entry.credits} credits</Text>
                       </View>
                       <View style={[styles.gradeBadge, { backgroundColor: gradeColorFromLetter(entry.grade) }]}>
-                        <Text style={styles.gradeBadgeText}>{entry.grade}</Text>
+                        <Text style={[styles.gradeBadgeText, { color: onPrimary(gradeColorFromLetter(entry.grade)) }]}>{entry.grade}</Text>
                       </View>
                     </View>
                   ))}
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   gpaLabel: { fontSize: 12, fontWeight: '600' },
   gpaValue: { fontSize: 32, fontWeight: '700', marginTop: 8 },
   gradeBadge: { borderRadius: 4, marginLeft: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  gradeBadgeText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  gradeBadgeText: { fontSize: 14, fontWeight: '700' },
   header: { borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 16 },
   retryButton: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
   retryButtonText: { color: '#fff', fontSize: 12, fontWeight: '600' },

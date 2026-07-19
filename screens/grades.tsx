@@ -13,11 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/hac-api';
-import { UI_COLORS, gradeColor, onPrimary } from '../utils/colors';
-
-function gradeLetter(avg: number) {
-  return avg >= 90 ? 'A' : avg >= 80 ? 'B' : avg >= 70 ? 'C' : avg >= 60 ? 'D' : 'F';
-}
+import { UI_COLORS, gradeLetter, gradeColor, onPrimary } from '../utils/colors';
 
 export default function GradesScreen() {
   const { currentTheme } = useTheme();
