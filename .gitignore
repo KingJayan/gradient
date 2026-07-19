@@ -37,3 +37,6 @@ dist
 
 ios
 todo.txt
+
+.pnpm-store/
+.npm-cache/

@@ -7,7 +7,7 @@ const TIMEOUT_MS = 5_000;
 
 export function useNetworkStatus(): boolean {
   const [isOffline, setIsOffline] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const probe = async () => {
     const ctrl = new AbortController();
@@ -25,7 +25,11 @@ export function useNetworkStatus(): boolean {
   useEffect(() => {
     probe();
     timerRef.current = setInterval(probe, INTERVAL_MS);
-    return () => clearInterval(timerRef.current);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
   }, []);
 
   return isOffline;

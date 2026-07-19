@@ -13,12 +13,13 @@
       "resizeMode": "contain",
       "backgroundColor": "#060F0B"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTabletMode": true,
+      "supportsTablet": true,
       "bundleIdentifier": "com.kingjayan.gradient",
       "buildNumber": "1",
-      "deploymentTarget": "14.0",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSFaceIDUsageDescription": "Gradient uses Face ID to lock the app so only you can view your grades."
@@ -30,13 +31,16 @@
         "expo-build-properties",
         {
           "ios": {
+            "deploymentTarget": "15.1",
             "useFrameworks": "static",
             "newArchEnabled": false
           }
         }
       ],
       "expo-secure-store",
-      "expo-local-authentication"
+      "expo-local-authentication",
+      "expo-asset",
+      "expo-font"
     ],
     "scheme": "gradient",
     "extra": {
