@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   ScrollView,
+  SafeAreaView,
   Text,
   TouchableOpacity,
   TextInput,
@@ -87,8 +88,8 @@ export default function GPACalculatorScreen() {
   }
 
   return (
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
     <ScrollView
-      style={[styles.container, { backgroundColor: currentTheme.background }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
       }
@@ -210,6 +211,7 @@ export default function GPACalculatorScreen() {
         </View>
       </Modal>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 

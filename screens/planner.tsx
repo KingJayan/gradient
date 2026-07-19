@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
+  SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -194,7 +195,7 @@ export default function PlannerScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: currentTheme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <View style={[styles.header, { backgroundColor: currentTheme.surface }]}>
         <View>
           <Text style={[styles.greeting, { color: currentTheme.textSecondary }]}>Planner</Text>
@@ -325,7 +326,7 @@ export default function PlannerScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 

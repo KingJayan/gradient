@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   ScrollView,
+  SafeAreaView,
   Text,
   TouchableOpacity,
   ActivityIndicator,
@@ -12,6 +13,7 @@ import { TranscriptEntry } from '../utils/schedule-data';
 import { useCreds } from '../hooks/use-creds';
 import { useTheme } from '../hooks/use-theme';
 import { fetchTranscript } from '../services/hac-api';
+import { gradeColorFromLetter } from '../utils/colors';
 
 export default function TranscriptScreen() {
   const creds = useCreds();
@@ -59,13 +61,6 @@ export default function TranscriptScreen() {
 
   const totalCredits = transcript.reduce((s, e) => s + e.credits, 0);
 
-  const gradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return '#00DD88';
-    if (grade.startsWith('B')) return '#00DDFF';
-    if (grade.startsWith('C')) return '#FFDD00';
-    if (grade.startsWith('D')) return '#FF8844';
-    return '#ff4444';
-  };
 
   if (loading) {
     return (
@@ -88,7 +83,8 @@ export default function TranscriptScreen() {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+    <ScrollView>
       <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
         <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
           <Text style={styles.gpaLabel}>Cumulative GPA</Text>
@@ -124,7 +120,7 @@ export default function TranscriptScreen() {
                         <Text style={[styles.courseName, { color: currentTheme.text }]}>{entry.course}</Text>
                         <Text style={[styles.courseSemester, { color: currentTheme.textSecondary }]}>{entry.semester} · {entry.credits} credits</Text>
                       </View>
-                      <View style={[styles.gradeBadge, { backgroundColor: gradeColor(entry.grade) }]}>
+                      <View style={[styles.gradeBadge, { backgroundColor: gradeColorFromLetter(entry.grade) }]}>
                         <Text style={styles.gradeBadgeText}>{entry.grade}</Text>
                       </View>
                     </View>
@@ -136,6 +132,7 @@ export default function TranscriptScreen() {
         })}
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 

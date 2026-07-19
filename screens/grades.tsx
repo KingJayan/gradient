@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/hac-api';
-import { UI_COLORS } from '../utils/colors';
+import { UI_COLORS, gradeColor } from '../utils/colors';
 
 export default function GradesScreen() {
   const { currentTheme } = useTheme();
@@ -58,12 +58,6 @@ export default function GradesScreen() {
     });
   }, [cache.grades, cache.assignments]);
 
-  const gradeColor = (avg: number) => {
-    if (avg >= 90) return currentTheme.primary;
-    if (avg >= 80) return UI_COLORS.info;
-    if (avg >= 70) return UI_COLORS.warning;
-    return UI_COLORS.danger;
-  };
 
   if (cache.loading) {
     return (
