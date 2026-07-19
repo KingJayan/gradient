@@ -21,6 +21,7 @@ const DISTRICTS = [
   { id: 'cfisd', name: 'Cypress ISD', url: 'https://homeaccess.cfisd.net/' },
   { id: 'rrisd', name: 'Round Rock ISD', url: 'https://homeaccess.rrisd.org/' },
   { id: 'austin', name: 'Austin ISD', url: 'https://homeaccess.austinisd.org/' },
+  { id: 'other', name: 'Other District', url: '' },
 ];
 
 export default function LoginScreen() {
@@ -28,8 +29,13 @@ export default function LoginScreen() {
   const { currentTheme } = useTheme();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedDistrict, setSelectedDistrict] = useState(DISTRICTS[0].url);
+  const [selectedDistrictId, setSelectedDistrictId] = useState(DISTRICTS[0].id);
+  const [customUrl, setCustomUrl] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const hacUrl = selectedDistrictId === 'other'
+    ? customUrl.trim()
+    : DISTRICTS.find((d) => d.id === selectedDistrictId)!.url;
   // useRef keeps the same Animated.Value across renders
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -46,9 +52,13 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Please enter username and password');
       return;
     }
+    if (!hacUrl) {
+      Alert.alert('Error', 'Please enter your district URL');
+      return;
+    }
     setLoading(true);
     try {
-      await authContext!.login(username, password, selectedDistrict);
+      await authContext!.login(username, password, hacUrl);
     } catch (error) {
       Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
     } finally {
@@ -83,26 +93,41 @@ export default function LoginScreen() {
                   styles.districtButton,
                   {
                     borderColor: currentTheme.border,
-                    backgroundColor: selectedDistrict === district.url ? currentTheme.primary : currentTheme.surface,
+                    backgroundColor: selectedDistrictId === district.id ? currentTheme.primary : currentTheme.surface,
                   }
                 ]}
-                onPress={() => setSelectedDistrict(district.url)}
+                onPress={() => setSelectedDistrictId(district.id)}
               >
                 <Ionicons
-                  name={selectedDistrict === district.url ? 'checkmark-circle' : 'ellipse-outline'}
+                  name={selectedDistrictId === district.id ? 'checkmark-circle' : 'ellipse-outline'}
                   size={20}
-                  color={selectedDistrict === district.url ? '#fff' : currentTheme.textSecondary}
+                  color={selectedDistrictId === district.id ? '#fff' : currentTheme.textSecondary}
                 />
                 <Text
                   style={[
                     styles.districtButtonText,
-                    { color: selectedDistrict === district.url ? '#fff' : currentTheme.text }
+                    { color: selectedDistrictId === district.id ? '#fff' : currentTheme.text }
                   ]}
                 >
                   {district.name}
                 </Text>
               </TouchableOpacity>
             ))}
+            {selectedDistrictId === 'other' && (
+              <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: currentTheme.border, marginTop: 8 }]}>
+                <Ionicons name="globe" size={20} color={currentTheme.textSecondary} />
+                <TextInput
+                  style={[styles.input, { color: currentTheme.text }]}
+                  placeholder="https://homeaccess.yourisd.org/"
+                  placeholderTextColor={currentTheme.textSecondary}
+                  value={customUrl}
+                  onChangeText={setCustomUrl}
+                  autoCapitalize="none"
+                  keyboardType="url"
+                  editable={!loading}
+                />
+              </View>
+            )}
           </View>
 
           <Text style={[styles.label, { color: currentTheme.text }]}>Username</Text>

@@ -8,6 +8,7 @@ import {
   TextInput,
   Modal,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { calculateGPA, Course, DEFAULT_GRADE_SCALE, GPAResult, whatIfScenario } from '../utils/gpa-calculator';
@@ -16,7 +17,8 @@ import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 export default function GPACalculatorScreen() {
   const { currentTheme } = useTheme();
-  const { cache } = useDataCache();
+  const { cache, clearCache, loadGradesAndCourses } = useDataCache();
+  const [refreshing, setRefreshing] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [gpaResult, setGPAResult] = useState<GPAResult | null>(null);
   const [mockScenario, setMockScenario] = useState<{ courseId: string; mockGrade: number }[]>([]);
@@ -43,6 +45,13 @@ export default function GPACalculatorScreen() {
 
   const handleToggleCourseExclusion = (courseId: string) => {
     setCourses(courses.map((c) => (c.id === courseId ? { ...c, excluded: !c.excluded } : c)));
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    clearCache();
+    await loadGradesAndCourses();
+    setRefreshing(false);
   };
 
   const handleToggleWeight = (courseId: string) => {
@@ -78,7 +87,12 @@ export default function GPACalculatorScreen() {
   }
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: currentTheme.background }]}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
+      }
+    >
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Current GPA</Text>
         <View style={styles.gpaGrid}>

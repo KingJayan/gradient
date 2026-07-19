@@ -6,10 +6,10 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  FlatList,
   Animated,
   Easing,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
@@ -18,21 +18,13 @@ import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { calculateGPA } from '../utils/gpa-calculator';
 
-interface NavCard {
-  id: string;
-  title: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  color: string;
-  description: string;
-  route?: string;
-}
-
 export default function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<Record<string, undefined>> }) {
   const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
-  const { cache } = useDataCache();
+  const { cache, clearCache, loadGradesAndCourses } = useDataCache();
   const [gpa, setGpa] = useState('—');
   const [classes, setClasses] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState('');
   const slideAnim = useRef(new Animated.Value(0)).current;
 
@@ -62,31 +54,11 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
     }
   }, [cache.courses]);
 
-  const navCards: NavCard[] = [
-    { id: 'schedule', title: 'Schedule', icon: 'calendar', color: '#3B82F6', description: 'View your class schedule', route: 'Schedule' },
-    { id: 'grades', title: 'Grades', icon: 'document-text', color: currentTheme.primary, description: 'View all your grades', route: 'Grades' },
-    { id: 'gpa', title: 'GPA Calculator', icon: 'calculator', color: '#8B5CF6', description: 'Calculate and predict GPA', route: 'GPA' },
-    { id: 'planner', title: 'Planner', icon: 'checkbox', color: '#F59E0B', description: 'Manage tasks and assignments', route: 'Planner' },
-    { id: 'transcript', title: 'Transcript', icon: 'document', color: '#EC4899', description: 'View your transcript', route: 'Transcript' },
-  ];
-
-  const renderNavCard = ({ item }: { item: NavCard }) => {
-    const translateX = slideAnim.interpolate({ inputRange: [0, 1], outputRange: [100, 0] });
-    return (
-      <Animated.View style={[styles.cardWrapper, { transform: [{ translateX }], opacity: slideAnim }]}>
-        <TouchableOpacity
-          style={[styles.navCard, { backgroundColor: item.color }]}
-          onPress={() => item.route && navigation.navigate(item.route)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.cardIconContainer}>
-            <Ionicons name={item.icon} size={32} color="#fff" />
-          </View>
-          <Text style={styles.navCardTitle}>{item.title}</Text>
-          <Text style={styles.navCardDescription}>{item.description}</Text>
-        </TouchableOpacity>
-      </Animated.View>
-    );
+  const onRefresh = async () => {
+    setRefreshing(true);
+    clearCache();
+    await loadGradesAndCourses();
+    setRefreshing(false);
   };
 
   if (!authContext) return null;
@@ -102,7 +74,13 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
+        }
+      >
         <View style={[styles.header, { backgroundColor: currentTheme.surface }]}>
           <View>
             <Text style={[styles.dateText, { color: currentTheme.textSecondary }]}>{currentDate}</Text>
@@ -134,20 +112,20 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Quick Access</Text>
-          <Text style={[styles.sectionSubtitle, { color: currentTheme.textSecondary }]}>Navigate to key features</Text>
-        </View>
-
-        <View style={styles.cardsGrid}>
-          <FlatList
-            data={navCards}
-            renderItem={renderNavCard}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            numColumns={2}
-            columnWrapperStyle={styles.columnWrapper}
-            contentContainerStyle={styles.gridContent}
-          />
+          <TouchableOpacity
+            style={[styles.transcriptCard, { backgroundColor: currentTheme.surface }]}
+            onPress={() => navigation.navigate('Transcript')}
+            activeOpacity={0.8}
+          >
+            <View style={[styles.transcriptIcon, { backgroundColor: '#EC4899' + '22' }]}>
+              <Ionicons name="document" size={24} color="#EC4899" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.transcriptTitle, { color: currentTheme.text }]}>Transcript</Text>
+              <Text style={[styles.transcriptSubtitle, { color: currentTheme.textSecondary }]}>View your full academic record</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.spacer} />
@@ -157,22 +135,9 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 }
 
 const styles = StyleSheet.create({
-  cardIconContainer: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 26,
-    height: 52,
-    justifyContent: 'center',
-    marginBottom: 12,
-    width: 52,
-  },
-  cardWrapper: { flex: 1, maxWidth: '48%' },
-  cardsGrid: { marginBottom: 24, paddingHorizontal: 20 },
   centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
-  columnWrapper: { gap: 12, justifyContent: 'space-between', marginBottom: 12 },
   container: { flex: 1 },
   dateText: { fontSize: 13, letterSpacing: 0.5, marginBottom: 2, textTransform: 'uppercase' },
-  gridContent: { paddingHorizontal: 0 },
   header: {
     alignItems: 'flex-start',
     flexDirection: 'row',
@@ -182,26 +147,9 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   name: { fontSize: 28, fontWeight: '700', marginTop: 4 },
-  navCard: {
-    alignItems: 'center',
-    borderRadius: 16,
-    elevation: 3,
-    justifyContent: 'center',
-    minHeight: 160,
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-  },
-  navCardDescription: { color: 'rgba(255,255,255,0.85)', fontSize: 11, textAlign: 'center' },
-  navCardTitle: { color: '#fff', fontSize: 15, fontWeight: '700', marginBottom: 4, textAlign: 'center' },
   profileButton: { borderRadius: 24, padding: 8 },
   scrollView: { flex: 1 },
   section: { marginBottom: 16, paddingHorizontal: 20 },
-  sectionSubtitle: { fontSize: 13 },
-  sectionTitle: { fontSize: 22, fontWeight: '700', marginBottom: 4 },
   spacer: { height: 40 },
   statCard: {
     borderRadius: 16,
@@ -218,4 +166,8 @@ const styles = StyleSheet.create({
   statTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   statValue: { color: '#fff', fontSize: 32, fontWeight: '800' },
   statsContainer: { flexDirection: 'row', gap: 12, marginBottom: 28, paddingHorizontal: 20 },
+  transcriptCard: { alignItems: 'center', borderRadius: 12, flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  transcriptIcon: { alignItems: 'center', borderRadius: 10, height: 44, justifyContent: 'center', width: 44 },
+  transcriptSubtitle: { fontSize: 12, marginTop: 2 },
+  transcriptTitle: { fontSize: 15, fontWeight: '600' },
 });
