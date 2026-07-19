@@ -20,7 +20,8 @@
       "buildNumber": "1",
       "deploymentTarget": "14.0",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSFaceIDUsageDescription": "Gradient uses Face ID to lock the app so only you can view your grades."
       },
       "userInterfaceStyle": "dark"
     },
@@ -34,7 +35,8 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-local-authentication"
     ],
     "scheme": "gradient",
     "extra": {

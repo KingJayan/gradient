@@ -1,5 +1,6 @@
 import { Course } from '../../utils/gpa-calculator';
-import { apiFetch, isObject } from './client';
+import { apiFetch } from './client';
+import { recordResponse } from './schema';
 import { parseGrade, inferWeight } from './parsers';
 
 export interface GradeEntry {
@@ -15,8 +16,7 @@ export async function fetchGrades(
   hacUrl: string, username: string, password: string
 ): Promise<GradeEntry[]> {
   // /averages returns a plain map: { "Class Name": "87.50" | "", ... }
-  const raw = await apiFetch('averages', hacUrl, username, password);
-  if (!isObject(raw)) return [];
+  const raw = await apiFetch('averages', hacUrl, username, password, recordResponse);
   return Object.entries(raw)
     .map(([className, grade]) => {
       const avg = parseGrade(typeof grade === 'string' || typeof grade === 'number' ? grade : undefined);

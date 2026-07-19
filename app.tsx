@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from './context/auth-context';
 import { ThemeProvider } from './context/theme-context';
 import { DataProvider } from './context/data-context';
+import { AppLockProvider, useAppLock } from './context/app-lock-context';
 import { ErrorBoundary } from './components/error-boundary';
 import { useAuth } from './hooks/use-auth';
 import { useTheme } from './hooks/use-theme';
@@ -14,6 +15,7 @@ import { useNetworkStatus } from './hooks/use-network';
 import { UI_COLORS } from './utils/colors';
 
 import LoadingScreen from './screens/loading';
+import LockScreen from './screens/lock';
 import LoginScreen from './screens/login';
 import HomeScreen from './screens/home';
 import GradesScreen from './screens/grades';
@@ -114,20 +116,34 @@ function RootNavigatorContent() {
 
   return (
     <AuthContext.Provider value={{ state, bootstrapAsync, login, logout }}>
-      <DataProvider>
-        <View style={styles.root}>
-          <NavigationContainer>
-            {state.isLoggedOut ? <AuthStack /> : <AppStack />}
-          </NavigationContainer>
-          {isOffline && (
-            <View style={styles.offlineBanner} pointerEvents="none">
-              <Ionicons name="cloud-offline-outline" size={12} color={UI_COLORS.dangerMuted} />
-              <Text style={styles.offlineText}>No internet connection</Text>
-            </View>
-          )}
-        </View>
-      </DataProvider>
+      <AppLockProvider isLoggedIn={!state.isLoggedOut}>
+        <DataProvider>
+          <AppShell isLoggedOut={state.isLoggedOut} isOffline={isOffline} />
+        </DataProvider>
+      </AppLockProvider>
     </AuthContext.Provider>
+  );
+}
+
+function AppShell({ isLoggedOut, isOffline }: { isLoggedOut: boolean; isOffline: boolean }) {
+  const { locked } = useAppLock();
+
+  return (
+    <View style={styles.root}>
+      {locked ? (
+        <LockScreen />
+      ) : (
+        <NavigationContainer>
+          {isLoggedOut ? <AuthStack /> : <AppStack />}
+        </NavigationContainer>
+      )}
+      {isOffline && (
+        <View style={styles.offlineBanner} pointerEvents="none">
+          <Ionicons name="cloud-offline-outline" size={12} color={UI_COLORS.dangerMuted} />
+          <Text style={styles.offlineText}>No internet connection</Text>
+        </View>
+      )}
+    </View>
   );
 }
 

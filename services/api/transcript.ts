@@ -1,4 +1,5 @@
 import { apiFetch, isObject, safeString, safeNumber } from './client';
+import { recordResponse } from './schema';
 import { colIndex, gradeLetterToPoints } from './parsers';
 
 export interface TranscriptEntry {
@@ -13,8 +14,7 @@ export interface TranscriptEntry {
 export async function fetchTranscript(
   hacUrl: string, username: string, password: string
 ): Promise<TranscriptEntry[]> {
-  const raw = await apiFetch('transcript', hacUrl, username, password);
-  if (!isObject(raw)) return [];
+  const raw = await apiFetch('transcript', hacUrl, username, password, recordResponse);
   const entries: TranscriptEntry[] = [];
 
   Object.values(raw)

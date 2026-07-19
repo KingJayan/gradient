@@ -1,5 +1,6 @@
 import { Assignment } from '../../utils/task-manager';
 import { apiFetch, isObject, safeString } from './client';
+import { recordResponse } from './schema';
 import { parseScore } from './parsers';
 
 // /assignments returns { "Class Name": { average, assignments: [][]string, categories: [][]string } }
@@ -12,8 +13,7 @@ interface RawClassAssignments {
 export async function fetchAssignments(
   hacUrl: string, username: string, password: string
 ): Promise<Assignment[]> {
-  const raw = await apiFetch('assignments', hacUrl, username, password);
-  if (!isObject(raw)) return [];
+  const raw = await apiFetch('assignments', hacUrl, username, password, recordResponse);
   const results: Assignment[] = [];
 
   Object.entries(raw)

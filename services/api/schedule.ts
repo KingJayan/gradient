@@ -1,4 +1,5 @@
-import { apiFetch, isObject, safeString } from './client';
+import { apiFetch, safeString } from './client';
+import { tableResponse } from './schema';
 import { colIndex } from './parsers';
 
 export interface ClassPeriod {
@@ -19,15 +20,14 @@ interface ReportCardClass {
 async function fetchRawClasses(
   hacUrl: string, username: string, password: string
 ): Promise<ReportCardClass[]> {
-  const raw = await apiFetch('reportcard', hacUrl, username, password);
-  if (!isObject(raw) || !Array.isArray(raw.data)) return [];
-  const headers: string[] = Array.isArray(raw.headers) ? raw.headers.map((h) => safeString(h)) : [];
+  const table = await apiFetch('reportcard', hacUrl, username, password, tableResponse);
+  const headers = table.headers.map((h) => safeString(h));
   const nameIdx = colIndex(headers, 'Description', 1);
   const periodIdx = colIndex(headers, 'Period', 2);
   const teacherIdx = colIndex(headers, 'Teacher', 3);
   const roomIdx = colIndex(headers, 'Room', 4);
-  return raw.data
-    .filter((row): row is string[] => Array.isArray(row) && row.length > roomIdx)
+  return table.rows
+    .filter((row): row is string[] => row.length > roomIdx)
     .map((row) => ({
       className: safeString(row[nameIdx], 'Unknown').trim(),
       teacher: safeString(row[teacherIdx]).trim(),

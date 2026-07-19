@@ -41,7 +41,13 @@ function parseAPIError(status: number, endpoint: string): string {
   return `Unable to load ${endpoint}. Check your connection.`;
 }
 
-export async function apiFetch(endpoint: string, hacUrl: string, username: string, password: string) {
+export async function apiFetch<T>(
+  endpoint: string,
+  hacUrl: string,
+  username: string,
+  password: string,
+  parse: (data: unknown, endpoint: string) => T
+): Promise<T> {
   try {
     const res = await fetch(`${API_URL}/${endpoint}`, {
       method: 'POST',
@@ -51,11 +57,7 @@ export async function apiFetch(endpoint: string, hacUrl: string, username: strin
     if (!res.ok) {
       throw new HACError(parseAPIError(res.status, endpoint), res.status);
     }
-    const data = await res.json();
-    if (!data || typeof data !== 'object') {
-      throw new HACError(`Invalid response from ${endpoint}`);
-    }
-    return data;
+    return parse(await res.json(), endpoint);
   } catch (e) {
     if (e instanceof HACError) throw e;
     if (e instanceof TypeError && e.message.includes('fetch')) {
