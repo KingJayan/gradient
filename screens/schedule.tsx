@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ClassPeriod } from '../utils/schedule-data';
+import { ClassPeriod } from '../services/api/schedule';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { onPrimary } from '../utils/colors';
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   periodBadgeText: { fontSize: 14, fontWeight: '700' },
   periodCard: { borderRadius: 12, flexDirection: 'row', gap: 12, marginBottom: 8, paddingHorizontal: 14, paddingVertical: 12 },
   periodInfo: { flex: 1 },
-  periodList: { paddingHorizontal: 16, paddingBottom: 24 },
+  periodList: { paddingBottom: 24, paddingHorizontal: 16 },
   periodMeta: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
   periodMetaText: { fontSize: 12, marginRight: 8 },
   periodName: { fontSize: 15, fontWeight: '600' },

@@ -1,4 +1,6 @@
-import { fetchGrades, fetchCourses, fetchAssignments, fetchTranscript, GradeEntry } from '../hac-api';
+import { fetchGrades, fetchCourses, GradeEntry } from '../grades';
+import { fetchAssignments } from '../assignments';
+import { fetchTranscript } from '../transcript';
 
 const mockFetch = (data: unknown, status = 200) =>
   jest.fn().mockResolvedValue({ ok: status < 400, status, json: async () => data });

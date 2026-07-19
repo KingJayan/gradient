@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
+    "@types/node": "^20.19.9",
     "@types/react": "~18.3.12",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
@@ -51,7 +52,10 @@
     "testEnvironment": "node",
     "testMatch": [
       "**/__tests__/**/*.test.ts"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^expo-constants$": "<rootDir>/test/expo-constants-mock.ts"
+    }
   },
   "description": "Gradient - Your grades, visualized.",
   "main": "./index.js",

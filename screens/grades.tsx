@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { GradeEntry } from '../services/hac-api';
+import { GradeEntry } from '../services/api/grades';
 import { UI_COLORS, gradeLetter, gradeColor, onPrimary } from '../utils/colors';
 
 export default function GradesScreen() {

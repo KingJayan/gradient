@@ -227,13 +227,9 @@ export default function GPACalculatorScreen() {
 
 const styles = StyleSheet.create({
   centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
-  header: { borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 24 },
-  title: { fontSize: 28, fontWeight: '700' },
   clearButton: { color: UI_COLORS.danger, fontSize: 12, fontWeight: '600' },
-  courseActions: { alignItems: 'center', flexDirection: 'row', gap: 12 },
-  weightBadge: { borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4 },
-  weightBadgeText: { fontSize: 11, fontWeight: '700' },
   container: { flex: 1 },
+  courseActions: { alignItems: 'center', flexDirection: 'row', gap: 12 },
   courseCard: { borderRadius: 12, marginBottom: 8, paddingHorizontal: 16, paddingVertical: 12 },
   courseCount: { fontSize: 12, textAlign: 'center' },
   courseCredits: { fontSize: 12, marginTop: 4 },
@@ -246,6 +242,7 @@ const styles = StyleSheet.create({
   gpaValue: { fontSize: 32, fontWeight: '700', marginTop: 8 },
   gradeLabel: { fontSize: 14, fontWeight: '600' },
   gradeRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  header: { borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 24 },
   mockLabel: { color: UI_COLORS.info, fontSize: 14, fontWeight: '600' },
   modalButton: { alignItems: 'center', borderRadius: 8, paddingVertical: 14 },
   modalButtonText: { fontSize: 16, fontWeight: '600' },
@@ -263,6 +260,9 @@ const styles = StyleSheet.create({
   scenarioValue: { fontSize: 28, fontWeight: '700', marginTop: 8 },
   section: { paddingHorizontal: 16, paddingVertical: 16 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  title: { fontSize: 28, fontWeight: '700' },
+  weightBadge: { borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4 },
+  weightBadgeText: { fontSize: 11, fontWeight: '700' },
   whatIfButton: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', paddingVertical: 8 },
   whatIfButtonText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
 });

@@ -1,9 +1,20 @@
-import React, { createContext, useState, useCallback, useContext, useRef, useEffect } from 'react';
-import { useCreds } from '../hooks/use-creds';
-import { fetchGrades, fetchCourses, fetchAssignments, fetchSchedule, GradeEntry } from '../services/hac-api';
+import React, { createContext, useCallback, useContext, useEffect } from 'react';
+import { useCreds, Creds } from '../hooks/use-creds';
+import { useHacQuery, invalidateQuery, invalidateAllQueries } from '../hooks/use-hac-query';
+import { fetchGrades, fetchCourses, GradeEntry } from '../services/api/grades';
+import { fetchAssignments } from '../services/api/assignments';
+import { fetchSchedule, ClassPeriod } from '../services/api/schedule';
 import { Course } from '../utils/gpa-calculator';
 import { Assignment } from '../utils/task-manager';
-import { ClassPeriod } from '../utils/schedule-data';
+
+const DASHBOARD_KEY = 'dashboard';
+
+interface Dashboard {
+  grades: GradeEntry[];
+  courses: Course[];
+  assignments: Assignment[];
+  schedule: ClassPeriod[];
+}
 
 interface DataCache {
   grades: GradeEntry[] | null;
@@ -20,55 +31,44 @@ interface DataContextType {
   clearCache: () => void;
 }
 
-const EMPTY_CACHE: DataCache = {
-  grades: null, courses: null, assignments: null, schedule: null, loading: false, error: null,
-};
+async function fetchDashboard(creds: Creds): Promise<Dashboard> {
+  const [grades, assignments, schedule] = await Promise.all([
+    fetchGrades(creds.hacUrl, creds.username, creds.password),
+    fetchAssignments(creds.hacUrl, creds.username, creds.password),
+    fetchSchedule(creds.hacUrl, creds.username, creds.password),
+  ]);
+  const courses = await fetchCourses(creds.hacUrl, creds.username, creds.password, grades);
+  return { grades, courses, assignments, schedule };
+}
 
 export const DataContext = createContext<DataContextType | null>(null);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const creds = useCreds();
-  const [cache, setCache] = useState<DataCache>(EMPTY_CACHE);
-
-  const cacheRef = useRef(cache);
-  cacheRef.current = cache;
-
-  const loadGradesAndCourses = useCallback(async () => {
-    if (!creds) return;
-    const c = cacheRef.current;
-    if (c.grades && c.courses && c.assignments && c.schedule) return;
-    if (c.loading) return;
-
-    try {
-      setCache((prev) => ({ ...prev, loading: true, error: null }));
-      const [grades, assignments, schedule] = await Promise.all([
-        fetchGrades(creds.hacUrl, creds.username, creds.password),
-        fetchAssignments(creds.hacUrl, creds.username, creds.password),
-        fetchSchedule(creds.hacUrl, creds.username, creds.password),
-      ]);
-      const courses = await fetchCourses(creds.hacUrl, creds.username, creds.password, grades);
-      setCache({ grades, courses, assignments, schedule, loading: false, error: null });
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Failed to load data';
-      setCache((prev) => ({ ...prev, loading: false, error: errorMessage }));
-    }
-  }, [creds]);
-
-  const clearCache = useCallback(() => {
-    cacheRef.current = EMPTY_CACHE;
-    setCache(EMPTY_CACHE);
-  }, []);
+  const query = useHacQuery<Dashboard>(
+    creds ? DASHBOARD_KEY : null,
+    () => fetchDashboard(creds!)
+  );
 
   useEffect(() => {
-    if (creds) {
-      loadGradesAndCourses();
-    } else {
-      clearCache();
-    }
+    if (!creds) invalidateAllQueries();
   }, [creds]);
 
+  const cache: DataCache = {
+    grades: query.data?.grades ?? null,
+    courses: query.data?.courses ?? null,
+    assignments: query.data?.assignments ?? null,
+    schedule: query.data?.schedule ?? null,
+    loading: query.loading,
+    error: query.error,
+  };
+
+  const clearCache = useCallback(() => {
+    invalidateQuery(DASHBOARD_KEY);
+  }, []);
+
   return (
-    <DataContext.Provider value={{ cache, loadGradesAndCourses, clearCache }}>
+    <DataContext.Provider value={{ cache, loadGradesAndCourses: query.refetch, clearCache }}>
       {children}
     </DataContext.Provider>
   );

@@ -141,10 +141,10 @@ export default function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
   offlineBanner: {
     alignItems: 'center',
     backgroundColor: 'rgba(15,15,15,0.80)',
+    borderRadius: 20,
     bottom: 100,
     flexDirection: 'row',
     gap: 6,
@@ -152,10 +152,10 @@ const styles = StyleSheet.create({
     left: 24,
     paddingHorizontal: 14,
     paddingVertical: 6,
-    borderRadius: 20,
     position: 'absolute',
     right: 24,
     zIndex: 9999,
   },
   offlineText: { color: '#F87171', fontSize: 12, fontWeight: '500' },
+  root: { flex: 1 },
 });

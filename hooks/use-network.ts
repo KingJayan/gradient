@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
+import { API_BASE_URL } from '../services/api/config';
 
-const PROBE_URL = 'https://gradient-hac-api.vercel.app';
+const PROBE_URL = API_BASE_URL;
 const INTERVAL_MS = 30_000;
 const TIMEOUT_MS = 5_000;
 

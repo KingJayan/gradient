@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,37 +9,22 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TranscriptEntry } from '../utils/schedule-data';
+import { TranscriptEntry, fetchTranscript } from '../services/api/transcript';
 import { useCreds } from '../hooks/use-creds';
 import { useTheme } from '../hooks/use-theme';
-import { fetchTranscript } from '../services/hac-api';
+import { useHacQuery } from '../hooks/use-hac-query';
 import { gradeColorFromLetter, onPrimary } from '../utils/colors';
 
 export default function TranscriptScreen() {
   const creds = useCreds();
   const { currentTheme } = useTheme();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
+  const { data, loading, error, refetch } = useHacQuery<TranscriptEntry[]>(
+    creds ? 'transcript' : null,
+    () => fetchTranscript(creds!.hacUrl, creds!.username, creds!.password)
+  );
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTranscript();
-  }, [creds]);
-
-  const loadTranscript = async () => {
-    if (!creds) { setLoading(false); return; }
-    try {
-      setLoading(true);
-      setError(null);
-      setTranscript(await fetchTranscript(creds.hacUrl, creds.username, creds.password));
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Failed to load transcript';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const transcript = data ?? [];
 
   const groupedByYear = transcript.reduce((acc, entry) => {
     (acc[entry.year] ??= []).push(entry);
@@ -75,7 +60,7 @@ export default function TranscriptScreen() {
       <View style={styles.centerContainer}>
         <Ionicons name="alert-circle" size={48} color="#EF4444" />
         <Text style={[styles.errorText, { color: currentTheme.text }]}>{error}</Text>
-        <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={loadTranscript}>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={refetch}>
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
