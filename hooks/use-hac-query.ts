@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
+import { loadPersistedCache, persistCache, clearPersistedCache } from './query-persist';
 
 interface Entry {
   data: unknown;
@@ -6,6 +7,7 @@ interface Entry {
   updatedAt: number;
   loading: boolean;
   promise: Promise<void> | null;
+  controller: AbortController | null;
 }
 
 const store = new Map<string, Entry>();
@@ -16,7 +18,7 @@ const DEFAULT_TTL = 5 * 60 * 1000;
 function getEntry(key: string): Entry {
   let entry = store.get(key);
   if (!entry) {
-    entry = { data: null, error: null, updatedAt: 0, loading: false, promise: null };
+    entry = { data: null, error: null, updatedAt: 0, loading: false, promise: null, controller: null };
     store.set(key, entry);
   }
   return entry;
@@ -25,6 +27,25 @@ function getEntry(key: string): Entry {
 function notify(key: string) {
   subscribers.get(key)?.forEach((fn) => fn());
 }
+
+function persistStore() {
+  const snapshot: Record<string, { data: unknown; updatedAt: number }> = {};
+  store.forEach((entry, key) => {
+    if (entry.data !== null) snapshot[key] = { data: entry.data, updatedAt: entry.updatedAt };
+  });
+  persistCache(snapshot);
+}
+
+loadPersistedCache().then((persisted) => {
+  for (const [key, { data, updatedAt }] of Object.entries(persisted)) {
+    const entry = getEntry(key);
+    if (entry.data === null) {
+      entry.data = data;
+      entry.updatedAt = updatedAt;
+    }
+  }
+  subscribers.forEach((set) => set.forEach((fn) => fn()));
+});
 
 function subscribe(key: string, fn: () => void): () => void {
   let set = subscribers.get(key);
@@ -37,17 +58,23 @@ function subscribe(key: string, fn: () => void): () => void {
 }
 
 // dedupes concurrent callers, retries on failure, and captures the result in the store
-function revalidate(key: string, fetcher: () => Promise<unknown>, retries: number): Promise<void> {
+function revalidate(
+  key: string,
+  fetcher: (signal: AbortSignal) => Promise<unknown>,
+  retries: number
+): Promise<void> {
   const entry = getEntry(key);
   if (entry.promise) return entry.promise;
+  const controller = new AbortController();
+  entry.controller = controller;
   entry.loading = true;
   notify(key);
 
   const attempt = async (n: number): Promise<unknown> => {
     try {
-      return await fetcher();
+      return await fetcher(controller.signal);
     } catch (e) {
-      if (n < retries) return attempt(n + 1);
+      if (!controller.signal.aborted && n < retries) return attempt(n + 1);
       throw e;
     }
   };
@@ -58,15 +85,18 @@ function revalidate(key: string, fetcher: () => Promise<unknown>, retries: numbe
         entry.data = data;
         entry.error = null;
         entry.updatedAt = Date.now();
+        persistStore();
       },
       (e: unknown) => {
+        if (controller.signal.aborted) return;
         entry.error = e instanceof Error ? e.message : 'Failed to load';
       }
     )
     .finally(() => {
       entry.promise = null;
+      entry.controller = null;
       entry.loading = false;
-      notify(key);
+      if (!controller.signal.aborted) notify(key);
     });
 
   entry.promise = promise;
@@ -74,6 +104,7 @@ function revalidate(key: string, fetcher: () => Promise<unknown>, retries: numbe
 }
 
 export function invalidateQuery(key: string): Promise<void> {
+  store.get(key)?.controller?.abort();
   store.delete(key);
   notify(key);
   return Promise.resolve();
@@ -81,7 +112,9 @@ export function invalidateQuery(key: string): Promise<void> {
 
 export function invalidateAllQueries() {
   const keys = Array.from(store.keys());
+  store.forEach((entry) => entry.controller?.abort());
   store.clear();
+  clearPersistedCache();
   keys.forEach(notify);
 }
 
@@ -100,7 +133,7 @@ interface Options {
 
 export function useHacQuery<T>(
   key: string | null,
-  fetcher: () => Promise<T>,
+  fetcher: (signal: AbortSignal) => Promise<T>,
   options: Options = {}
 ): HacQuery<T> {
   const { enabled = true, ttl = DEFAULT_TTL, retries = 1 } = options;
@@ -117,7 +150,7 @@ export function useHacQuery<T>(
       if (!force && !entry.promise && entry.data !== null && Date.now() - entry.updatedAt < ttl) {
         return Promise.resolve();
       }
-      return revalidate(key, () => fetcherRef.current(), retries);
+      return revalidate(key, (signal) => fetcherRef.current(signal), retries);
     },
     [active, key, ttl, retries]
   );
@@ -126,7 +159,10 @@ export function useHacQuery<T>(
     if (!active || key === null) return;
     const unsub = subscribe(key, forceRender);
     load(false);
-    return unsub;
+    return () => {
+      unsub();
+      if (!subscribers.get(key)?.size) store.get(key)?.controller?.abort();
+    };
   }, [active, key, load]);
 
   const refetch = useCallback(() => load(true), [load]);

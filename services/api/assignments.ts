@@ -11,9 +11,9 @@ interface RawClassAssignments {
 }
 
 export async function fetchAssignments(
-  hacUrl: string, username: string, password: string
+  hacUrl: string, username: string, password: string, signal?: AbortSignal
 ): Promise<Assignment[]> {
-  const raw = await apiFetch('assignments', hacUrl, username, password, recordResponse);
+  const raw = await apiFetch('assignments', hacUrl, username, password, recordResponse, signal);
   const results: Assignment[] = [];
 
   Object.entries(raw)

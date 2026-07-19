@@ -36,25 +36,22 @@ export const DEFAULT_GRADE_SCALE: GradeScale[] = [
   { label: 'F', minGrade: 0, maxGrade: 59, points: 0.0 },
 ];
 
-function getGradePoints(
-  grade: number,
-  scale: GradeScale[] = DEFAULT_GRADE_SCALE
-): number {
-  const sorted = scale.slice().sort((a, b) => b.minGrade - a.minGrade);
-  return sorted.find((g) => grade >= g.minGrade)?.points ?? 0;
+function getGradePoints(grade: number, sortedScale: GradeScale[]): number {
+  return sortedScale.find((g) => grade >= g.minGrade)?.points ?? 0;
 }
 
 export function calculateGPA(
   courses: Course[],
   gradeScale: GradeScale[] = DEFAULT_GRADE_SCALE
 ): GPAResult {
+  const sortedScale = gradeScale.slice().sort((a, b) => b.minGrade - a.minGrade);
   const activeCourses = courses.filter((c) => !c.excluded);
 
   let totalWeightedPoints = 0;
   let totalCredits = 0;
 
   activeCourses.forEach((course) => {
-    const gradePoints = getGradePoints(course.grade, gradeScale);
+    const gradePoints = getGradePoints(course.grade, sortedScale);
     totalWeightedPoints += (gradePoints + course.weight) * course.credits;
     totalCredits += course.credits;
   });
@@ -63,7 +60,7 @@ export function calculateGPA(
 
   let totalUnweightedPoints = 0;
   activeCourses.forEach((course) => {
-    totalUnweightedPoints += getGradePoints(course.grade, gradeScale);
+    totalUnweightedPoints += getGradePoints(course.grade, sortedScale);
   });
 
   const unweightedGPA =

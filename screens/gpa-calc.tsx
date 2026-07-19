@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,7 +10,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { calculateGPA, Course, DEFAULT_GRADE_SCALE, GPAResult, whatIfScenario } from '../utils/gpa-calculator';
+import { calculateGPA, Course, DEFAULT_GRADE_SCALE, whatIfScenario } from '../utils/gpa-calculator';
 import { UI_COLORS, onPrimary } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
@@ -20,9 +20,7 @@ export default function GPACalculatorScreen() {
   const { cache, clearCache, loadGradesAndCourses } = useDataCache();
   const [refreshing, setRefreshing] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [gpaResult, setGPAResult] = useState<GPAResult | null>(null);
   const [mockScenario, setMockScenario] = useState<{ courseId: string; mockGrade: number }[]>([]);
-  const [scenarioGPA, setScenarioGPA] = useState<GPAResult | null>(null);
   const [showWhatIf, setShowWhatIf] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [mockGradeInput, setMockGradeInput] = useState('');
@@ -31,17 +29,15 @@ export default function GPACalculatorScreen() {
     if (cache.courses) setCourses(cache.courses);
   }, [cache.courses]);
 
-  useEffect(() => {
-    if (courses.length > 0) {
-      setGPAResult(calculateGPA(courses, DEFAULT_GRADE_SCALE));
-    }
-  }, [courses]);
+  const gpaResult = useMemo(
+    () => (courses.length > 0 ? calculateGPA(courses, DEFAULT_GRADE_SCALE) : null),
+    [courses]
+  );
 
-  useEffect(() => {
-    setScenarioGPA(
-      mockScenario.length > 0 ? whatIfScenario(courses, mockScenario, DEFAULT_GRADE_SCALE) : null
-    );
-  }, [mockScenario, courses]);
+  const scenarioGPA = useMemo(
+    () => (mockScenario.length > 0 ? whatIfScenario(courses, mockScenario, DEFAULT_GRADE_SCALE) : null),
+    [mockScenario, courses]
+  );
 
   const handleToggleCourseExclusion = (courseId: string) => {
     setCourses(courses.map((c) => (c.id === courseId ? { ...c, excluded: !c.excluded } : c)));

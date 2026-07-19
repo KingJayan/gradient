@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef } from 'react';
+import React, { useEffect, useState, useContext, useRef, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -22,8 +22,12 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
   const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
   const { cache, clearCache, loadGradesAndCourses } = useDataCache();
-  const [gpa, setGpa] = useState('—');
-  const [classes, setClasses] = useState(0);
+  const gpaResult = useMemo(
+    () => (cache.courses && cache.courses.length > 0 ? calculateGPA(cache.courses) : null),
+    [cache.courses]
+  );
+  const gpa = gpaResult ? String(gpaResult.weighted) : '—';
+  const classes = gpaResult?.courseCount ?? 0;
   const [refreshing, setRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState('');
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -45,14 +49,6 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
       useNativeDriver: true,
     }).start();
   }, [slideAnim]);
-
-  useEffect(() => {
-    if (cache.courses && cache.courses.length > 0) {
-      const result = calculateGPA(cache.courses);
-      setGpa(String(result.weighted));
-      setClasses(result.courseCount);
-    }
-  }, [cache.courses]);
 
   const onRefresh = async () => {
     setRefreshing(true);

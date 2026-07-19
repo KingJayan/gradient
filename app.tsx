@@ -13,6 +13,9 @@ import { useAuth } from './hooks/use-auth';
 import { useTheme } from './hooks/use-theme';
 import { useNetworkStatus } from './hooks/use-network';
 import { UI_COLORS } from './utils/colors';
+import { mark, measure } from './utils/perf';
+
+mark('coldStart:start');
 
 import LoadingScreen from './screens/loading';
 import LockScreen from './screens/lock';
@@ -111,6 +114,10 @@ function RootNavigatorContent() {
   useEffect(() => {
     bootstrapAsync().then(() => setIsBootstrapped(true));
   }, [bootstrapAsync]);
+
+  useEffect(() => {
+    if (isBootstrapped) measure('coldStart', 'coldStart:start');
+  }, [isBootstrapped]);
 
   if (!isBootstrapped || !currentTheme) return <LoadingScreen />;
 

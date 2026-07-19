@@ -6,6 +6,7 @@ import { fetchAssignments } from '../services/api/assignments';
 import { fetchSchedule, ClassPeriod } from '../services/api/schedule';
 import { Course } from '../utils/gpa-calculator';
 import { Assignment } from '../utils/task-manager';
+import { mark, measure } from '../utils/perf';
 
 const DASHBOARD_KEY = 'dashboard';
 
@@ -31,13 +32,15 @@ interface DataContextType {
   clearCache: () => void;
 }
 
-async function fetchDashboard(creds: Creds): Promise<Dashboard> {
+async function fetchDashboard(creds: Creds, signal?: AbortSignal): Promise<Dashboard> {
+  mark('dashboard:start');
   const [grades, assignments, schedule] = await Promise.all([
-    fetchGrades(creds.hacUrl, creds.username, creds.password),
-    fetchAssignments(creds.hacUrl, creds.username, creds.password),
-    fetchSchedule(creds.hacUrl, creds.username, creds.password),
+    fetchGrades(creds.hacUrl, creds.username, creds.password, signal),
+    fetchAssignments(creds.hacUrl, creds.username, creds.password, signal),
+    fetchSchedule(creds.hacUrl, creds.username, creds.password, signal),
   ]);
-  const courses = await fetchCourses(creds.hacUrl, creds.username, creds.password, grades);
+  const courses = await fetchCourses(creds.hacUrl, creds.username, creds.password, grades, signal);
+  measure('dashboard', 'dashboard:start');
   return { grades, courses, assignments, schedule };
 }
 
@@ -47,7 +50,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const creds = useCreds();
   const query = useHacQuery<Dashboard>(
     creds ? DASHBOARD_KEY : null,
-    () => fetchDashboard(creds!)
+    (signal) => fetchDashboard(creds!, signal)
   );
 
   useEffect(() => {

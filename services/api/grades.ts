@@ -13,10 +13,10 @@ export interface GradeEntry {
 }
 
 export async function fetchGrades(
-  hacUrl: string, username: string, password: string
+  hacUrl: string, username: string, password: string, signal?: AbortSignal
 ): Promise<GradeEntry[]> {
   // /averages returns a plain map: { "Class Name": "87.50" | "", ... }
-  const raw = await apiFetch('averages', hacUrl, username, password, recordResponse);
+  const raw = await apiFetch('averages', hacUrl, username, password, recordResponse, signal);
   return Object.entries(raw)
     .map(([className, grade]) => {
       const avg = parseGrade(typeof grade === 'string' || typeof grade === 'number' ? grade : undefined);
@@ -35,9 +35,9 @@ export async function fetchGrades(
 // accepts pre-fetched grades to avoid a second /averages call
 export async function fetchCourses(
   hacUrl: string, username: string, password: string,
-  grades?: GradeEntry[]
+  grades?: GradeEntry[], signal?: AbortSignal
 ): Promise<Course[]> {
-  const list = grades ?? await fetchGrades(hacUrl, username, password);
+  const list = grades ?? await fetchGrades(hacUrl, username, password, signal);
   return list.map((g, i) => ({
     id: String(i + 1),
     name: g.className,

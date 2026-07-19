@@ -46,19 +46,22 @@ export async function apiFetch<T>(
   hacUrl: string,
   username: string,
   password: string,
-  parse: (data: unknown, endpoint: string) => T
+  parse: (data: unknown, endpoint: string) => T,
+  signal?: AbortSignal
 ): Promise<T> {
   try {
     const res = await fetch(`${API_URL}/${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
+      signal,
     });
     if (!res.ok) {
       throw new HACError(parseAPIError(res.status, endpoint), res.status);
     }
     return parse(await res.json(), endpoint);
   } catch (e) {
+    if ((e as Error)?.name === 'AbortError') throw e;
     if (e instanceof HACError) throw e;
     if (e instanceof TypeError && e.message.includes('fetch')) {
       const networkError = new HACError('No internet connection. Please check your network.');

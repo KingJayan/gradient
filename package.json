@@ -60,7 +60,7 @@
       "^expo-constants$": "<rootDir>/test/expo-constants-mock.ts"
     }
   },
-  "description": "Gradient - Your grades, visualized.",
+  "description": "Gradient - A feature-packed HAC grade viewer for mobile.",
   "main": "./index.js",
   "engines": {
     "node": ">=18.0.0",
