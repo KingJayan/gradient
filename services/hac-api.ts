@@ -1,6 +1,6 @@
 import { Course } from '../utils/gpa-calculator';
 import { Assignment } from '../utils/task-manager';
-import { ClassPeriod, TranscriptEntry, AttendanceRecord } from '../utils/schedule-data';
+import { ClassPeriod, TranscriptEntry } from '../utils/schedule-data';
 import { logError, logWarning } from '../utils/error-logger';
 
 const BASE_URL = 'https://gradient-hac-api.vercel.app/api';
@@ -293,27 +293,3 @@ export async function fetchTranscript(
   return entries;
 }
 
-export async function fetchAttendance(
-  hacUrl: string, username: string, password: string
-): Promise<AttendanceRecord[]> {
-  void hacUrl; void username; void password;
-  logWarning('attendance unavailable');
-  return [];
-}
-
-// accepts pre-fetched raw classes to avoid a second /reportcard call
-export async function fetchTeachers(
-  hacUrl: string, username: string, password: string,
-  rawClasses?: ReportCardClass[]
-): Promise<{ id: string; name: string; email: string; class: string; room: string }[]> {
-  const classes = rawClasses ?? await fetchRawClasses(hacUrl, username, password);
-  return classes
-    .map((cls, i) => ({
-      id: String(i + 1),
-      name: cls.teacher,
-      email: '',
-      class: cls.className,
-      room: cls.room,
-    }))
-    .filter((t) => t.name !== '');
-}

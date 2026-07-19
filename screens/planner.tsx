@@ -21,13 +21,101 @@ import { useDataCache } from '../context/data-context';
 
 const PERSONAL_TASKS_KEY = 'personalTasks';
 
+function formatDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW_LABELS = ['S','M','T','W','T','F','S'];
+
+function CalendarPicker({ value, onChange, currentTheme }: {
+  value: Date | null;
+  onChange: (d: Date) => void;
+  currentTheme: Theme;
+}) {
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const [viewMonth, setViewMonth] = useState(() => {
+    const base = value ?? today;
+    return new Date(base.getFullYear(), base.getMonth(), 1);
+  });
+
+  const year = viewMonth.getFullYear();
+  const month = viewMonth.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDow = new Date(year, month, 1).getDay();
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < firstDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const weeks: (number | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+  return (
+    <View>
+      <View style={styles.calHeader}>
+        <TouchableOpacity onPress={() => setViewMonth(new Date(year, month - 1, 1))}>
+          <Ionicons name="chevron-back" size={22} color={currentTheme.text} />
+        </TouchableOpacity>
+        <Text style={[styles.calMonthLabel, { color: currentTheme.text }]}>
+          {MONTH_NAMES[month]} {year}
+        </Text>
+        <TouchableOpacity onPress={() => setViewMonth(new Date(year, month + 1, 1))}>
+          <Ionicons name="chevron-forward" size={22} color={currentTheme.text} />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.calDowRow}>
+        {DOW_LABELS.map((d, i) => (
+          <Text key={i} style={[styles.calDowLabel, { color: currentTheme.textSecondary }]}>{d}</Text>
+        ))}
+      </View>
+      {weeks.map((week, wi) => (
+        <View key={wi} style={styles.calWeekRow}>
+          {week.map((day, di) => {
+            if (day === null) return <View key={di} style={styles.calCell} />;
+            const d = new Date(year, month, day);
+            const isSelected = value !== null &&
+              value.getFullYear() === year && value.getMonth() === month && value.getDate() === day;
+            const isToday = d.getTime() === today.getTime();
+            return (
+              <TouchableOpacity
+                key={di}
+                style={[
+                  styles.calCell,
+                  isSelected && { backgroundColor: currentTheme.primary, borderRadius: 20 },
+                  isToday && !isSelected && { borderWidth: 1, borderColor: currentTheme.primary, borderRadius: 20 },
+                ]}
+                onPress={() => onChange(d)}
+              >
+                <Text style={[
+                  styles.calDayText,
+                  { color: isSelected ? '#fff' : isToday ? currentTheme.primary : currentTheme.text },
+                ]}>
+                  {day}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function PlannerScreen() {
   const { currentTheme } = useTheme();
   const { cache } = useDataCache();
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskDate, setNewTaskDate] = useState('');
+  const [newTaskDate, setNewTaskDate] = useState<Date | null>(null);
   const [newTaskPriority, setNewTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [filterSource, setFilterSource] = useState<'all' | 'hac' | 'personal'>('all');
   const [showCompleted, setShowCompleted] = useState(false);
@@ -44,9 +132,7 @@ export default function PlannerScreen() {
   const loadPersonalTasks = async () => {
     try {
       const stored = await AsyncStorage.getItem(PERSONAL_TASKS_KEY);
-      if (stored) {
-        setPersonalTasks(JSON.parse(stored));
-      }
+      if (stored) setPersonalTasks(JSON.parse(stored));
     } catch (e) {
       console.warn('failed to load personal tasks:', e instanceof Error ? e.message : String(e));
     }
@@ -68,7 +154,7 @@ export default function PlannerScreen() {
     const newTask: PersonalTask = {
       id: `task-${Date.now()}`,
       title: newTaskTitle,
-      dueDate: newTaskDate,
+      dueDate: formatDate(newTaskDate),
       priority: newTaskPriority,
       completed: false,
       reminders: [],
@@ -77,7 +163,7 @@ export default function PlannerScreen() {
     setPersonalTasks(updated);
     savePersonalTasks(updated);
     setNewTaskTitle('');
-    setNewTaskDate('');
+    setNewTaskDate(null);
     setNewTaskPriority('medium');
     setShowAddModal(false);
   };
@@ -176,33 +262,66 @@ export default function PlannerScreen() {
       <Modal visible={showAddModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Add Task</Text>
-              <TouchableOpacity onPress={() => setShowAddModal(false)}>
-                <Ionicons name="close" size={24} color={currentTheme.text} />
-              </TouchableOpacity>
-            </View>
-            <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Task Title</Text>
-            <TextInput style={[styles.modalInput, { backgroundColor: currentTheme.background, color: currentTheme.text }]} placeholder="Enter task title" placeholderTextColor={currentTheme.textSecondary} value={newTaskTitle} onChangeText={setNewTaskTitle} />
-            <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Due Date</Text>
-            <TextInput style={[styles.modalInput, { backgroundColor: currentTheme.background, color: currentTheme.text }]} placeholder="YYYY-MM-DD" placeholderTextColor={currentTheme.textSecondary} value={newTaskDate} onChangeText={setNewTaskDate} />
-            <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Priority</Text>
-            <View style={styles.priorityRow}>
-              {(['low', 'medium', 'high'] as const).map((p) => (
+            {showCalendar ? (
+              <>
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity onPress={() => setShowCalendar(false)}>
+                    <Ionicons name="chevron-back" size={24} color={currentTheme.text} />
+                  </TouchableOpacity>
+                  <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Select Date</Text>
+                  <View style={{ width: 24 }} />
+                </View>
+                <CalendarPicker
+                  value={newTaskDate}
+                  onChange={(d) => { setNewTaskDate(d); setShowCalendar(false); }}
+                  currentTheme={currentTheme}
+                />
+              </>
+            ) : (
+              <>
+                <View style={styles.modalHeader}>
+                  <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Add Task</Text>
+                  <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                    <Ionicons name="close" size={24} color={currentTheme.text} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Task Title</Text>
+                <TextInput
+                  style={[styles.modalInput, { backgroundColor: currentTheme.background, color: currentTheme.text }]}
+                  placeholder="Enter task title"
+                  placeholderTextColor={currentTheme.textSecondary}
+                  value={newTaskTitle}
+                  onChangeText={setNewTaskTitle}
+                />
+                <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Due Date</Text>
                 <TouchableOpacity
-                  key={p}
-                  style={[styles.priorityButton, { borderColor: currentTheme.border }, newTaskPriority === p && [styles.priorityButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
-                  onPress={() => setNewTaskPriority(p)}
+                  style={[styles.modalInput, styles.datePickerButton, { backgroundColor: currentTheme.background }]}
+                  onPress={() => setShowCalendar(true)}
                 >
-                  <Text style={[styles.priorityButtonText, { color: currentTheme.textSecondary }, newTaskPriority === p && styles.priorityButtonTextActive]}>
-                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  <Ionicons name="calendar-outline" size={18} color={newTaskDate ? currentTheme.primary : currentTheme.textSecondary} />
+                  <Text style={[styles.datePickerText, { color: newTaskDate ? currentTheme.text : currentTheme.textSecondary }]}>
+                    {newTaskDate ? formatDate(newTaskDate) : 'Select a date'}
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-            <TouchableOpacity style={[styles.modalButton, { backgroundColor: currentTheme.primary }]} onPress={handleAddTask}>
-              <Text style={styles.modalButtonText}>Create Task</Text>
-            </TouchableOpacity>
+                <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Priority</Text>
+                <View style={styles.priorityRow}>
+                  {(['low', 'medium', 'high'] as const).map((p) => (
+                    <TouchableOpacity
+                      key={p}
+                      style={[styles.priorityButton, { borderColor: currentTheme.border }, newTaskPriority === p && [styles.priorityButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
+                      onPress={() => setNewTaskPriority(p)}
+                    >
+                      <Text style={[styles.priorityButtonText, { color: currentTheme.textSecondary }, newTaskPriority === p && styles.priorityButtonTextActive]}>
+                        {p.charAt(0).toUpperCase() + p.slice(1)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <TouchableOpacity style={[styles.modalButton, { backgroundColor: currentTheme.primary }]} onPress={handleAddTask}>
+                  <Text style={styles.modalButtonText}>Create Task</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </Modal>
@@ -248,6 +367,13 @@ function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignmen
 
 const styles = StyleSheet.create({
   addButton: { alignItems: 'center', borderRadius: 24, height: 48, justifyContent: 'center', width: 48 },
+  calCell: { alignItems: 'center', flex: 1, justifyContent: 'center', paddingVertical: 7 },
+  calDayText: { fontSize: 14 },
+  calDowLabel: { flex: 1, fontSize: 12, fontWeight: '600', textAlign: 'center' },
+  calDowRow: { flexDirection: 'row', marginBottom: 4 },
+  calHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingHorizontal: 4 },
+  calMonthLabel: { fontSize: 16, fontWeight: '600' },
+  calWeekRow: { flexDirection: 'row', marginBottom: 2 },
   centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
   checkbox: { marginRight: 12 },
   completedToggle: { alignItems: 'center', flexDirection: 'row', gap: 8, marginLeft: 'auto' },
@@ -255,6 +381,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   dateGroup: { marginBottom: 20 },
   dateHeader: { fontSize: 14, fontWeight: '700', marginBottom: 8 },
+  datePickerButton: { alignItems: 'center', flexDirection: 'row', gap: 10 },
+  datePickerText: { fontSize: 16 },
   emptyState: { alignItems: 'center', marginTop: 60 },
   emptyStateText: { fontSize: 16, marginTop: 12 },
   filterBar: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', gap: 8, paddingHorizontal: 12, paddingVertical: 12 },

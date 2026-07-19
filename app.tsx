@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -9,6 +10,7 @@ import { DataProvider } from './context/data-context';
 import { ErrorBoundary } from './components/error-boundary';
 import { useAuth } from './hooks/use-auth';
 import { useTheme } from './hooks/use-theme';
+import { useNetworkStatus } from './hooks/use-network';
 
 import LoadingScreen from './screens/loading';
 import LoginScreen from './screens/login';
@@ -18,9 +20,7 @@ import PlannerScreen from './screens/planner';
 import SettingsScreen from './screens/settings';
 import GPACalculatorScreen from './screens/gpa-calc';
 import ScheduleScreen from './screens/schedule';
-import EmailTeachersScreen from './screens/email-teachers';
 import TranscriptScreen from './screens/transcript';
-import AttendanceScreen from './screens/attendance';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -58,8 +58,6 @@ function AppTabs() {
             iconName = focused ? 'checkbox' : 'checkbox-outline';
           } else if (route.name === 'Settings') {
             iconName = focused ? 'settings' : 'settings-outline';
-          } else if (route.name === 'Teachers') {
-            iconName = focused ? 'people' : 'people-outline';
           }
           return <Ionicons name={iconName} size={size} color={color} />;
         },
@@ -81,7 +79,6 @@ function AppTabs() {
       <Tab.Screen name="GPA" component={GPACalculatorScreen} options={{ title: 'GPA' }} />
       <Tab.Screen name="Schedule" component={ScheduleScreen} options={{ title: 'Schedule' }} />
       <Tab.Screen name="Planner" component={PlannerScreen} options={{ title: 'Planner' }} />
-      <Tab.Screen name="Teachers" component={EmailTeachersScreen} options={{ title: 'Teachers' }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
     </Tab.Navigator>
   );
@@ -98,7 +95,6 @@ function AppStack() {
     >
       <Stack.Screen name="Tabs" component={AppTabs} />
       <Stack.Screen name="Transcript" component={TranscriptScreen} options={{ presentation: 'modal' }} />
-      <Stack.Screen name="Attendance" component={AttendanceScreen} options={{ presentation: 'modal' }} />
     </Stack.Navigator>
   );
 }
@@ -106,6 +102,7 @@ function AppStack() {
 function RootNavigatorContent() {
   const { state, bootstrapAsync, login, logout } = useAuth();
   const { currentTheme } = useTheme();
+  const isOffline = useNetworkStatus();
   const [isBootstrapped, setIsBootstrapped] = useState(false);
 
   useEffect(() => {
@@ -117,9 +114,17 @@ function RootNavigatorContent() {
   return (
     <AuthContext.Provider value={{ state, bootstrapAsync, login, logout }}>
       <DataProvider>
-        <NavigationContainer>
-          {state.isLoggedOut ? <AuthStack /> : <AppStack />}
-        </NavigationContainer>
+        <View style={styles.root}>
+          <NavigationContainer>
+            {state.isLoggedOut ? <AuthStack /> : <AppStack />}
+          </NavigationContainer>
+          {isOffline && (
+            <View style={styles.offlineBanner} pointerEvents="none">
+              <Ionicons name="cloud-offline-outline" size={12} color="#F87171" />
+              <Text style={styles.offlineText}>No internet connection</Text>
+            </View>
+          )}
+        </View>
       </DataProvider>
     </AuthContext.Provider>
   );
@@ -134,3 +139,23 @@ export default function RootNavigator() {
     </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  offlineBanner: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(15,15,15,0.80)',
+    bottom: 100,
+    flexDirection: 'row',
+    gap: 6,
+    justifyContent: 'center',
+    left: 24,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    position: 'absolute',
+    right: 24,
+    zIndex: 9999,
+  },
+  offlineText: { color: '#F87171', fontSize: 12, fontWeight: '500' },
+});
