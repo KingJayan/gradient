@@ -46,13 +46,16 @@ export default function TranscriptScreen() {
 
   const years = Object.keys(groupedByYear).sort().reverse();
 
-  const yearGPA = (entries: TranscriptEntry[]) =>
-    (entries.reduce((s, e) => s + e.gradePoints, 0) / entries.length).toFixed(2);
+  const yearGPA = (entries: TranscriptEntry[]) => {
+    const credits = entries.reduce((s, e) => s + e.credits, 0);
+    if (credits === 0) return '—';
+    return (entries.reduce((s, e) => s + e.gradePoints * e.credits, 0) / credits).toFixed(2);
+  };
 
-  const cumulativeGPA = () =>
-    transcript.length > 0
-      ? (transcript.reduce((s, e) => s + e.gradePoints, 0) / transcript.length).toFixed(2)
-      : '—';
+  const cumulativeGPA = () => {
+    if (totalCredits === 0) return '—';
+    return (transcript.reduce((s, e) => s + e.gradePoints * e.credits, 0) / totalCredits).toFixed(2);
+  };
 
   const totalCredits = transcript.reduce((s, e) => s + e.credits, 0);
 

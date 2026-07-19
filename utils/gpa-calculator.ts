@@ -40,10 +40,8 @@ function getGradePoints(
   grade: number,
   scale: GradeScale[] = DEFAULT_GRADE_SCALE
 ): number {
-  const gradeEntry = scale.find(
-    (g) => grade >= g.minGrade && grade <= g.maxGrade
-  );
-  return gradeEntry?.points ?? 0;
+  const sorted = scale.slice().sort((a, b) => b.minGrade - a.minGrade);
+  return sorted.find((g) => grade >= g.minGrade)?.points ?? 0;
 }
 
 export function calculateGPA(

@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useMemo } from 'react';
 import { AuthContext } from '../context/auth-context';
 import * as SecureStore from 'expo-secure-store';
 import { logError } from '../utils/error-logger';
@@ -27,6 +27,8 @@ export function useCreds(): Creds | null {
       });
   }, [u]);
 
-  if (!u || !password) return null;
-  return { hacUrl: u.hacUrl, username: u.username, password };
+  return useMemo(
+    () => (!u || !password ? null : { hacUrl: u.hacUrl, username: u.username, password }),
+    [u, password]
+  );
 }

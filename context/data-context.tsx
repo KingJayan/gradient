@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useContext, useRef } from 'react';
+import React, { createContext, useState, useCallback, useContext, useRef, useEffect } from 'react';
 import { useCreds } from '../hooks/use-creds';
 import { fetchGrades, fetchCourses, fetchAssignments, GradeEntry } from '../services/hac-api';
 import { Course } from '../utils/gpa-calculator';
@@ -56,6 +56,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const clearCache = useCallback(() => {
     setCache({ grades: null, courses: null, assignments: null, loading: false, error: null });
   }, []);
+
+  useEffect(() => {
+    if (!creds) clearCache();
+  }, [creds]);
 
   return (
     <DataContext.Provider value={{ cache, loadGradesAndCourses, clearCache }}>
