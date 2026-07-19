@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { calculateGPA, Course, DEFAULT_GRADE_SCALE, GPAResult, whatIfScenario } from '../utils/gpa-calculator';
-import { UI_COLORS } from '../utils/colors';
+import { UI_COLORS, onPrimary } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 export default function GPACalculatorScreen() {
@@ -89,6 +89,9 @@ export default function GPACalculatorScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+      <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
+        <Text style={[styles.title, { color: currentTheme.text }]}>GPA Calculator</Text>
+      </View>
     <ScrollView
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
@@ -98,12 +101,12 @@ export default function GPACalculatorScreen() {
         <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Current GPA</Text>
         <View style={styles.gpaGrid}>
           <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
-            <Text style={styles.gpaLabel}>Weighted</Text>
-            <Text style={styles.gpaValue}>{gpaResult.weighted}</Text>
+            <Text style={[styles.gpaLabel, { color: onPrimary(currentTheme.primary) }]}>Weighted</Text>
+            <Text style={[styles.gpaValue, { color: onPrimary(currentTheme.primary) }]}>{gpaResult.weighted}</Text>
           </View>
           <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
-            <Text style={styles.gpaLabel}>Unweighted</Text>
-            <Text style={styles.gpaValue}>{gpaResult.unweighted}</Text>
+            <Text style={[styles.gpaLabel, { color: onPrimary(currentTheme.primary) }]}>Unweighted</Text>
+            <Text style={[styles.gpaValue, { color: onPrimary(currentTheme.primary) }]}>{gpaResult.unweighted}</Text>
           </View>
         </View>
         <Text style={[styles.courseCount, { color: currentTheme.textSecondary }]}>
@@ -145,6 +148,8 @@ export default function GPACalculatorScreen() {
               <TouchableOpacity
                 style={styles.whatIfButton}
                 onPress={() => { setSelectedCourseId(course.id); setShowWhatIf(true); }}
+                accessibilityRole="button"
+                accessibilityLabel={`Add mock grade for ${course.name}`}
               >
                 <Ionicons name="add-circle" size={16} color={currentTheme.primary} />
                 <Text style={[styles.whatIfButtonText, { color: currentTheme.primary }]}>Add Mock Grade</Text>
@@ -202,8 +207,13 @@ export default function GPACalculatorScreen() {
                   keyboardType="number-pad"
                   maxLength={3}
                 />
-                <TouchableOpacity style={[styles.modalButton, { backgroundColor: currentTheme.primary }]} onPress={handleAddMockGrade}>
-                  <Text style={styles.modalButtonText}>Add to Scenario</Text>
+                <TouchableOpacity
+                  style={[styles.modalButton, { backgroundColor: currentTheme.primary }]}
+                  onPress={handleAddMockGrade}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add to scenario"
+                >
+                  <Text style={[styles.modalButtonText, { color: onPrimary(currentTheme.primary) }]}>Add to Scenario</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -217,33 +227,35 @@ export default function GPACalculatorScreen() {
 
 const styles = StyleSheet.create({
   centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
+  header: { borderBottomWidth: 1, paddingHorizontal: 16, paddingVertical: 24 },
+  title: { fontSize: 28, fontWeight: '700' },
   clearButton: { color: UI_COLORS.danger, fontSize: 12, fontWeight: '600' },
   courseActions: { alignItems: 'center', flexDirection: 'row', gap: 12 },
   weightBadge: { borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4 },
   weightBadgeText: { fontSize: 11, fontWeight: '700' },
   container: { flex: 1 },
-  courseCard: { borderRadius: 8, marginBottom: 8, paddingHorizontal: 16, paddingVertical: 12 },
+  courseCard: { borderRadius: 12, marginBottom: 8, paddingHorizontal: 16, paddingVertical: 12 },
   courseCount: { fontSize: 12, textAlign: 'center' },
   courseCredits: { fontSize: 12, marginTop: 4 },
   courseHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   courseInfo: { flex: 1 },
   courseName: { fontSize: 16, fontWeight: '600' },
-  gpaCard: { alignItems: 'center', borderRadius: 8, flex: 1, paddingHorizontal: 12, paddingVertical: 16 },
+  gpaCard: { alignItems: 'center', borderRadius: 12, flex: 1, paddingHorizontal: 12, paddingVertical: 16 },
   gpaGrid: { flexDirection: 'row', gap: 12, marginBottom: 12 },
-  gpaLabel: { color: '#fff', fontSize: 12, fontWeight: '600' },
-  gpaValue: { color: '#fff', fontSize: 32, fontWeight: '700', marginTop: 8 },
+  gpaLabel: { fontSize: 12, fontWeight: '600' },
+  gpaValue: { fontSize: 32, fontWeight: '700', marginTop: 8 },
   gradeLabel: { fontSize: 14, fontWeight: '600' },
   gradeRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   mockLabel: { color: UI_COLORS.info, fontSize: 14, fontWeight: '600' },
   modalButton: { alignItems: 'center', borderRadius: 8, paddingVertical: 14 },
-  modalButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  modalButtonText: { fontSize: 16, fontWeight: '600' },
   modalContent: { borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 16, paddingVertical: 20 },
   modalHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   modalInput: { borderRadius: 8, fontSize: 16, marginBottom: 16, paddingHorizontal: 16, paddingVertical: 12 },
   modalLabel: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
   modalOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', flex: 1, justifyContent: 'flex-end' },
   modalTitle: { fontSize: 18, fontWeight: '700' },
-  scenarioCard: { alignItems: 'center', borderRadius: 8, borderWidth: 2, flex: 1, paddingHorizontal: 12, paddingVertical: 16 },
+  scenarioCard: { alignItems: 'center', borderRadius: 12, borderWidth: 2, flex: 1, paddingHorizontal: 12, paddingVertical: 16 },
   scenarioDelta: { fontSize: 12, fontWeight: '600', marginTop: 4 },
   scenarioGrid: { flexDirection: 'row', gap: 12 },
   scenarioHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },

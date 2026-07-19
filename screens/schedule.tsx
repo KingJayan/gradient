@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ClassPeriod } from '../utils/schedule-data';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
+import { onPrimary } from '../utils/colors';
 
 const BELL_SCHEDULE_KEY = 'bellSchedule';
 
@@ -86,7 +87,7 @@ export default function ScheduleScreen() {
         <Ionicons name="alert-circle" size={48} color="#EF4444" />
         <Text style={[styles.errorText, { color: currentTheme.text }]}>{cache.error}</Text>
         <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={onRefresh}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+          <Text style={[styles.retryButtonText, { color: onPrimary(currentTheme.primary) }]}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -99,9 +100,14 @@ export default function ScheduleScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
         }
       >
-        <View style={styles.scheduleHeader}>
+        <View style={[styles.scheduleHeader, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
           <Text style={[styles.scheduleTitle, { color: currentTheme.text }]}>Your Schedule</Text>
-          <TouchableOpacity onPress={openBellEditor} style={[styles.bellButton, { backgroundColor: currentTheme.surface }]}>
+          <TouchableOpacity
+            onPress={openBellEditor}
+            style={[styles.bellButton, { backgroundColor: currentTheme.background }]}
+            accessibilityRole="button"
+            accessibilityLabel="Edit bell times"
+          >
             <Ionicons name="time-outline" size={18} color={currentTheme.primary} />
             <Text style={[styles.bellButtonText, { color: currentTheme.primary }]}>Bell Times</Text>
           </TouchableOpacity>
@@ -116,7 +122,7 @@ export default function ScheduleScreen() {
                 Pull down to refresh or check your HAC portal.
               </Text>
               <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary, marginTop: 16 }]} onPress={onRefresh}>
-                <Text style={styles.retryButtonText}>Retry</Text>
+                <Text style={[styles.retryButtonText, { color: onPrimary(currentTheme.primary) }]}>Retry</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -201,7 +207,7 @@ export default function ScheduleScreen() {
               )}
             </ScrollView>
             <TouchableOpacity style={[styles.saveButton, { backgroundColor: currentTheme.primary }]} onPress={saveBellTimes}>
-              <Text style={styles.saveButtonText}>Save</Text>
+              <Text style={[styles.saveButtonText, { color: onPrimary(currentTheme.primary) }]}>Save</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -231,7 +237,7 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 18, fontWeight: '700' },
   periodBadge: { alignItems: 'center', borderRadius: 8, height: 44, justifyContent: 'center', width: 44 },
   periodBadgeText: { fontSize: 14, fontWeight: '700' },
-  periodCard: { borderRadius: 10, flexDirection: 'row', gap: 12, marginBottom: 8, paddingHorizontal: 14, paddingVertical: 12 },
+  periodCard: { borderRadius: 12, flexDirection: 'row', gap: 12, marginBottom: 8, paddingHorizontal: 14, paddingVertical: 12 },
   periodInfo: { flex: 1 },
   periodList: { paddingHorizontal: 16, paddingBottom: 24 },
   periodMeta: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
@@ -239,9 +245,9 @@ const styles = StyleSheet.create({
   periodName: { fontSize: 15, fontWeight: '600' },
   periodTime: { fontSize: 12, fontWeight: '600', marginTop: 2 },
   retryButton: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
-  retryButtonText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  retryButtonText: { fontSize: 12, fontWeight: '600' },
   saveButton: { alignItems: 'center', borderRadius: 8, marginTop: 16, paddingVertical: 14 },
-  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  scheduleHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 16 },
-  scheduleTitle: { fontSize: 18, fontWeight: '700' },
+  saveButtonText: { fontSize: 16, fontWeight: '600' },
+  scheduleHeader: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 24 },
+  scheduleTitle: { fontSize: 28, fontWeight: '700' },
 });

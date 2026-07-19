@@ -13,7 +13,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/hac-api';
-import { UI_COLORS, gradeColor } from '../utils/colors';
+import { UI_COLORS, gradeColor, onPrimary } from '../utils/colors';
+
+function gradeLetter(avg: number) {
+  return avg >= 90 ? 'A' : avg >= 80 ? 'B' : avg >= 70 ? 'C' : avg >= 60 ? 'D' : 'F';
+}
 
 export default function GradesScreen() {
   const { currentTheme } = useTheme();
@@ -73,7 +77,7 @@ export default function GradesScreen() {
         <Ionicons name="alert-circle" size={48} color={UI_COLORS.danger} />
         <Text style={[styles.errorText, { color: currentTheme.text }]}>{cache.error}</Text>
         <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={onRefresh}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+          <Text style={[styles.retryButtonText, { color: onPrimary(currentTheme.primary) }]}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
@@ -102,6 +106,8 @@ export default function GradesScreen() {
               style={[styles.gradeCard, { backgroundColor: currentTheme.surface, borderLeftColor: gradeColor(grade.average), borderLeftWidth: 4 }]}
               onPress={() => setExpandedClass(expandedClass === grade.className ? null : grade.className)}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`${grade.className}, ${grade.average.toFixed(1)}%, grade ${gradeLetter(grade.average)}, ${expandedClass === grade.className ? 'collapse' : 'expand'}`}
             >
               <View style={styles.gradeHeader}>
                 <View style={styles.gradeInfo}>
@@ -114,6 +120,9 @@ export default function GradesScreen() {
                   </View>
                 </View>
                 <View style={styles.gradeValueContainer}>
+                  <Text style={[styles.gradeLetterText, { color: gradeColor(grade.average) }]}>
+                    {gradeLetter(grade.average)}
+                  </Text>
                   <Text style={[styles.gradeValue, { color: gradeColor(grade.average) }]}>
                     {grade.average.toFixed(1)}%
                   </Text>
@@ -159,10 +168,10 @@ export default function GradesScreen() {
           <Text style={[styles.legendTitle, { color: currentTheme.text }]}>Grade Scale</Text>
           <View style={styles.legendGrid}>
             {[
-              { label: 'A (90-100)', color: currentTheme.primary },
-              { label: 'B (80-89)', color: UI_COLORS.info },
-              { label: 'C (70-79)', color: UI_COLORS.warning },
-              { label: 'F (<70)', color: UI_COLORS.danger },
+              { label: 'A (90-100)', color: gradeColor(95) },
+              { label: 'B (80-89)', color: gradeColor(85) },
+              { label: 'C (70-79)', color: gradeColor(75) },
+              { label: 'F (<70)', color: gradeColor(65) },
             ].map((item) => (
               <View key={item.label} style={styles.legendItem}>
                 <View style={[styles.legendDot, { backgroundColor: item.color }]} />
@@ -193,7 +202,7 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 14, paddingHorizontal: 32, textAlign: 'center' },
   expandedContent: { borderTopWidth: 1, marginTop: 14, paddingTop: 14 },
   gradeCard: {
-    borderRadius: 14,
+    borderRadius: 12,
     elevation: 1,
     marginBottom: 12,
     paddingHorizontal: 16,
@@ -205,12 +214,13 @@ const styles = StyleSheet.create({
   },
   gradeHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   gradeInfo: { alignItems: 'center', flexDirection: 'row', flex: 1 },
+  gradeLetterText: { fontSize: 13, fontWeight: '700' },
   gradeName: { fontSize: 16, fontWeight: '700' },
   gradeSubtext: { fontSize: 12, marginTop: 4 },
   gradeValue: { fontSize: 22, fontWeight: '800' },
-  gradeValueContainer: { alignItems: 'flex-end', gap: 4 },
+  gradeValueContainer: { alignItems: 'flex-end', gap: 2 },
   header: { borderBottomWidth: 1, marginBottom: 16, paddingHorizontal: 16, paddingVertical: 24 },
-  legend: { borderBottomWidth: 1, borderRadius: 14, borderTopWidth: 1, marginBottom: 24, marginHorizontal: 16, paddingHorizontal: 16, paddingVertical: 18 },
+  legend: { borderBottomWidth: 1, borderRadius: 12, borderTopWidth: 1, marginBottom: 24, marginHorizontal: 16, paddingHorizontal: 16, paddingVertical: 18 },
   legendDot: { borderRadius: 6, height: 12, marginRight: 10, width: 12 },
   legendGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   legendItem: { alignItems: 'center', flexDirection: 'row', flex: 1, minWidth: '48%' },
@@ -219,7 +229,7 @@ const styles = StyleSheet.create({
   progressBar: { borderRadius: 4, height: 8, marginBottom: 14, overflow: 'hidden' },
   progressFill: { borderRadius: 4, height: '100%' },
   retryButton: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
-  retryButtonText: { color: '#fff', fontWeight: '600' },
+  retryButtonText: { fontWeight: '600' },
   scrollView: { flex: 1 },
   section: { marginBottom: 24, paddingHorizontal: 16 },
   spacer: { height: 40 },

@@ -15,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Assignment, PersonalTask, mergeTasks, groupByDate, getOverdueTasks } from '../utils/task-manager';
-import { UI_COLORS } from '../utils/colors';
+import { UI_COLORS, onPrimary } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
@@ -96,7 +96,7 @@ function CalendarPicker({ value, onChange, currentTheme }: {
               >
                 <Text style={[
                   styles.calDayText,
-                  { color: isSelected ? '#fff' : isToday ? currentTheme.primary : currentTheme.text },
+                  { color: isSelected ? onPrimary(currentTheme.primary) : isToday ? currentTheme.primary : currentTheme.text },
                 ]}>
                   {day}
                 </Text>
@@ -196,15 +196,20 @@ export default function PlannerScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <View style={[styles.header, { backgroundColor: currentTheme.surface }]}>
+      <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
         <View>
           <Text style={[styles.greeting, { color: currentTheme.textSecondary }]}>Planner</Text>
           <Text style={[styles.taskCount, { color: currentTheme.text }]}>
             {allTasks.filter((t) => !t.completed).length} tasks due
           </Text>
         </View>
-        <TouchableOpacity style={[styles.addButton, { backgroundColor: currentTheme.primary }]} onPress={() => setShowAddModal(true)}>
-          <Ionicons name="add" size={24} color="#fff" />
+        <TouchableOpacity
+          style={[styles.addButton, { backgroundColor: currentTheme.primary }]}
+          onPress={() => setShowAddModal(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Add task"
+        >
+          <Ionicons name="add" size={24} color={onPrimary(currentTheme.primary)} />
         </TouchableOpacity>
       </View>
 
@@ -227,7 +232,7 @@ export default function PlannerScreen() {
             style={[styles.filterButton, { borderColor: currentTheme.border }, filterSource === src && [styles.filterButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
             onPress={() => setFilterSource(src)}
           >
-            <Text style={[styles.filterButtonText, { color: currentTheme.textSecondary }, filterSource === src && styles.filterButtonTextActive]}>
+            <Text style={[styles.filterButtonText, { color: filterSource === src ? onPrimary(currentTheme.primary) : currentTheme.textSecondary }]}>
               {src.charAt(0).toUpperCase() + src.slice(1)}
             </Text>
           </TouchableOpacity>
@@ -312,14 +317,19 @@ export default function PlannerScreen() {
                       style={[styles.priorityButton, { borderColor: currentTheme.border }, newTaskPriority === p && [styles.priorityButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
                       onPress={() => setNewTaskPriority(p)}
                     >
-                      <Text style={[styles.priorityButtonText, { color: currentTheme.textSecondary }, newTaskPriority === p && styles.priorityButtonTextActive]}>
+                      <Text style={[styles.priorityButtonText, { color: newTaskPriority === p ? onPrimary(currentTheme.primary) : currentTheme.textSecondary }]}>
                         {p.charAt(0).toUpperCase() + p.slice(1)}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
-                <TouchableOpacity style={[styles.modalButton, { backgroundColor: currentTheme.primary }]} onPress={handleAddTask}>
-                  <Text style={styles.modalButtonText}>Create Task</Text>
+                <TouchableOpacity
+                  style={[styles.modalButton, { backgroundColor: currentTheme.primary }]}
+                  onPress={handleAddTask}
+                  accessibilityRole="button"
+                  accessibilityLabel="Create task"
+                >
+                  <Text style={[styles.modalButtonText, { color: onPrimary(currentTheme.primary) }]}>Create Task</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -338,7 +348,12 @@ function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignmen
 
   return (
     <View style={[styles.taskItem, { backgroundColor: currentTheme.surface }, task.completed && styles.taskItemCompleted, isOverdue && styles.taskItemOverdue]}>
-      <TouchableOpacity onPress={onToggle} style={styles.checkbox}>
+      <TouchableOpacity
+        onPress={onToggle}
+        style={styles.checkbox}
+        accessibilityRole="button"
+        accessibilityLabel={task.completed ? 'Mark incomplete' : 'Mark complete'}
+      >
         <Ionicons
           name={task.completed ? 'checkmark-circle' : 'ellipse-outline'}
           size={24}
@@ -390,11 +405,10 @@ const styles = StyleSheet.create({
   filterButton: { alignItems: 'center', borderRadius: 6, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6 },
   filterButtonActive: { borderColor: 'transparent' },
   filterButtonText: { fontSize: 12, fontWeight: '500' },
-  filterButtonTextActive: { color: '#fff' },
   greeting: { fontSize: 14 },
-  header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 16 },
+  header: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 16 },
   modalButton: { alignItems: 'center', borderRadius: 8, paddingVertical: 14 },
-  modalButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  modalButtonText: { fontSize: 16, fontWeight: '600' },
   modalContent: { borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 16, paddingVertical: 20 },
   modalHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
   modalInput: { borderRadius: 8, fontSize: 16, marginBottom: 16, paddingHorizontal: 12, paddingVertical: 12 },
@@ -407,7 +421,6 @@ const styles = StyleSheet.create({
   priorityButton: { alignItems: 'center', borderRadius: 6, borderWidth: 1, flex: 1, paddingVertical: 10 },
   priorityButtonActive: { borderColor: 'transparent' },
   priorityButtonText: { fontSize: 12, fontWeight: '600' },
-  priorityButtonTextActive: { color: '#fff' },
   priorityRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
   sourceBadge: { borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
   sourceBadgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
@@ -415,7 +428,7 @@ const styles = StyleSheet.create({
   taskContent: { flex: 1 },
   taskCount: { fontSize: 18, fontWeight: '700', marginTop: 4 },
   taskDate: { fontSize: 12, marginLeft: 12 },
-  taskItem: { alignItems: 'center', borderRadius: 8, flexDirection: 'row', marginBottom: 8, paddingHorizontal: 12, paddingVertical: 12 },
+  taskItem: { alignItems: 'center', borderRadius: 12, flexDirection: 'row', marginBottom: 8, paddingHorizontal: 12, paddingVertical: 12 },
   taskItemCompleted: { opacity: 0.6 },
   taskItemOverdue: { borderLeftColor: UI_COLORS.danger, borderLeftWidth: 3 },
   taskList: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },

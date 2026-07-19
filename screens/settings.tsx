@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
 import { THEMES } from '../context/theme-context';
-import { UI_COLORS } from '../utils/colors';
+import { UI_COLORS, onPrimary } from '../utils/colors';
 
 export default function SettingsScreen() {
   const authContext = useContext(AuthContext);
@@ -58,8 +58,10 @@ export default function SettingsScreen() {
                     },
                   ]}
                   onPress={() => handleThemeChange(theme)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme${themeName === theme ? ', selected' : ''}`}
                 >
-                  <Text style={styles.themeOptionText}>
+                  <Text style={[styles.themeOptionText, { color: onPrimary(themeColor) }]}>
                     {theme.charAt(0).toUpperCase() + theme.slice(1)}
                   </Text>
                 </TouchableOpacity>
@@ -74,7 +76,7 @@ export default function SettingsScreen() {
           </Text>
           <View style={[styles.accountCard, { backgroundColor: currentTheme.surface }]}>
             <View style={[styles.accountAvatar, { backgroundColor: currentTheme.primary }]}>
-              <Ionicons name="person" size={32} color="#fff" />
+              <Ionicons name="person" size={32} color={onPrimary(currentTheme.primary)} />
             </View>
             <View style={styles.accountInfo}>
               <Text style={[styles.accountName, { color: currentTheme.text }]}>
@@ -112,6 +114,8 @@ export default function SettingsScreen() {
           <TouchableOpacity
             style={[styles.logoutButton, { backgroundColor: UI_COLORS.danger }]}
             onPress={handleLogout}
+            accessibilityRole="button"
+            accessibilityLabel="Sign out"
           >
             <Ionicons name="log-out" size={20} color="#fff" />
             <Text style={styles.logoutText}>Sign Out</Text>
@@ -140,7 +144,7 @@ const styles = StyleSheet.create({
   },
   accountCard: {
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: 12,
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 16,
@@ -184,7 +188,7 @@ const styles = StyleSheet.create({
   },
   infoItem: {
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
@@ -201,7 +205,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: 12,
     flexDirection: 'row',
     gap: 8,
     justifyContent: 'center',
@@ -231,14 +235,13 @@ const styles = StyleSheet.create({
   },
   themeOption: {
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 12,
     flex: 1,
     justifyContent: 'center',
     minWidth: '30%',
     paddingVertical: 12,
   },
   themeOptionText: {
-    color: '#fff',
     fontSize: 11,
     fontWeight: '600',
   },

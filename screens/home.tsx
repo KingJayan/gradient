@@ -89,25 +89,27 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
           <TouchableOpacity
             style={[styles.profileButton, { backgroundColor: currentTheme.primary + '20' }]}
             onPress={() => navigation.navigate('Settings')}
+            accessibilityRole="button"
+            accessibilityLabel="Open settings"
           >
             <Ionicons name="person-circle" size={48} color={currentTheme.primary} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.statsContainer}>
-          <View style={[styles.statCard, { backgroundColor: currentTheme.primary, shadowColor: currentTheme.primary }]}>
+          <View style={[styles.statCard, { backgroundColor: currentTheme.surface }]}>
             <View style={styles.statTop}>
-              <Text style={[styles.statLabel, { color: 'rgba(255,255,255,0.9)' }]}>Weighted GPA</Text>
-              <Ionicons name="trending-up" size={18} color="#fff" />
+              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>Weighted GPA</Text>
+              <Ionicons name="trending-up" size={18} color={currentTheme.textSecondary} />
             </View>
-            <Text style={styles.statValue}>{gpa}</Text>
+            <Text style={[styles.statValue, { color: currentTheme.text }]}>{gpa}</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: '#3B82F6' }]}>
+          <View style={[styles.statCard, { backgroundColor: currentTheme.surface }]}>
             <View style={styles.statTop}>
-              <Text style={[styles.statLabel, { color: 'rgba(255,255,255,0.9)' }]}>Active Classes</Text>
-              <Ionicons name="school" size={18} color="#fff" />
+              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>Active Classes</Text>
+              <Ionicons name="school" size={18} color={currentTheme.textSecondary} />
             </View>
-            <Text style={styles.statValue}>{classes}</Text>
+            <Text style={[styles.statValue, { color: currentTheme.text }]}>{classes}</Text>
           </View>
         </View>
 
@@ -116,9 +118,11 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
             style={[styles.transcriptCard, { backgroundColor: currentTheme.surface }]}
             onPress={() => navigation.navigate('Transcript')}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="View transcript"
           >
-            <View style={[styles.transcriptIcon, { backgroundColor: '#EC4899' + '22' }]}>
-              <Ionicons name="document" size={24} color="#EC4899" />
+            <View style={[styles.transcriptIcon, { backgroundColor: currentTheme.primary + '22' }]}>
+              <Ionicons name="document" size={24} color={currentTheme.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.transcriptTitle, { color: currentTheme.text }]}>Transcript</Text>
@@ -152,7 +156,7 @@ const styles = StyleSheet.create({
   section: { marginBottom: 16, paddingHorizontal: 20 },
   spacer: { height: 40 },
   statCard: {
-    borderRadius: 16,
+    borderRadius: 12,
     elevation: 3,
     flex: 1,
     paddingHorizontal: 16,
@@ -164,7 +168,7 @@ const styles = StyleSheet.create({
   },
   statLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 0.3 },
   statTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  statValue: { color: '#fff', fontSize: 32, fontWeight: '800' },
+  statValue: { fontSize: 32, fontWeight: '800' },
   statsContainer: { flexDirection: 'row', gap: 12, marginBottom: 28, paddingHorizontal: 20 },
   transcriptCard: { alignItems: 'center', borderRadius: 12, flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
   transcriptIcon: { alignItems: 'center', borderRadius: 10, height: 44, justifyContent: 'center', width: 44 },
