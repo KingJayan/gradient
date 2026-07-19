@@ -1,11 +1,78 @@
-import React, { useState, useMemo } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useState, useMemo, useCallback } from 'react';
+import { StyleSheet, View, FlatList, Text, TouchableOpacity, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
+import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/api/grades';
 import { UI_COLORS, gradeLetter, gradeColor } from '../utils/colors';
 import { Screen, ScreenHeader, AsyncContent } from '../components/screen';
+
+interface GradeRow extends GradeEntry {
+  categories: { name: string; grade: string }[];
+}
+
+const GradeCard = React.memo(function GradeCard({
+  grade,
+  expanded,
+  onToggle,
+  currentTheme,
+}: {
+  grade: GradeRow;
+  expanded: boolean;
+  onToggle: (className: string) => void;
+  currentTheme: Theme;
+}) {
+  const color = gradeColor(grade.average);
+  const letter = gradeLetter(grade.average);
+  return (
+    <TouchableOpacity
+      style={[styles.gradeCard, { backgroundColor: currentTheme.surface, borderLeftColor: color, borderLeftWidth: 4 }]}
+      onPress={() => onToggle(grade.className)}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${grade.className}, ${grade.average.toFixed(1)}%, grade ${letter}, ${expanded ? 'collapse' : 'expand'}`}
+    >
+      <View style={styles.gradeHeader}>
+        <View style={styles.gradeInfo}>
+          <View style={[styles.classIndicator, { backgroundColor: color }]} />
+          <View style={styles.flex1}>
+            <Text style={[styles.gradeName, { color: currentTheme.text }]}>{grade.className}</Text>
+            <Text style={[styles.gradeSubtext, { color: currentTheme.textSecondary }]}>
+              {grade.teacher ? `${grade.teacher} · ` : ''}{grade.categories.length} categories
+            </Text>
+          </View>
+        </View>
+        <View style={styles.gradeValueContainer}>
+          <Text style={[styles.gradeLetterText, { color }]}>{letter}</Text>
+          <Text style={[styles.gradeValue, { color }]}>{grade.average.toFixed(1)}%</Text>
+          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={currentTheme.textSecondary} />
+        </View>
+      </View>
+
+      <View style={[styles.progressBar, { backgroundColor: currentTheme.border }]}>
+        <View style={[styles.progressFill, { width: `${grade.average}%`, backgroundColor: color }]} />
+      </View>
+
+      {expanded && grade.categories.length > 0 && (
+        <View style={[styles.expandedContent, { borderTopColor: currentTheme.border }]}>
+          <Text style={[styles.assignmentTitle, { color: currentTheme.textSecondary }]}>Category Breakdown</Text>
+          {grade.categories.map((cat, idx) => (
+            <View key={idx} style={styles.assignmentItem}>
+              <View style={styles.assignmentDetails}>
+                <View style={styles.assignmentNameRow}>
+                  <View style={[styles.assignmentDot, { backgroundColor: gradeColor(parseFloat(cat.grade)) }]} />
+                  <Text style={[styles.assignmentName, { color: currentTheme.text }]}>{cat.name}</Text>
+                </View>
+              </View>
+              <Text style={[styles.assignmentGrade, { color: gradeColor(parseFloat(cat.grade)) }]}>{cat.grade}%</Text>
+            </View>
+          ))}
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+});
 
 export default function GradesScreen() {
   const { currentTheme } = useTheme();
@@ -20,7 +87,11 @@ export default function GradesScreen() {
     setRefreshing(false);
   };
 
-  const grades = useMemo<GradeEntry[]>(() => {
+  const toggleClass = useCallback((className: string) => {
+    setExpandedClass((prev) => (prev === className ? null : className));
+  }, []);
+
+  const grades = useMemo<GradeRow[]>(() => {
     const gradeList = cache.grades ?? [];
     const assignments = cache.assignments ?? [];
     const assignmentsByClass = new Map<string, typeof assignments>();
@@ -50,100 +121,56 @@ export default function GradesScreen() {
     });
   }, [cache.grades, cache.assignments]);
 
+  const legend = (
+    <View style={[styles.legend, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border, borderBottomColor: currentTheme.border }]}>
+      <Text style={[styles.legendTitle, { color: currentTheme.text }]}>Grade Scale</Text>
+      <View style={styles.legendGrid}>
+        {[
+          { label: 'A (90-100)', color: gradeColor(95) },
+          { label: 'B (80-89)', color: gradeColor(85) },
+          { label: 'C (70-79)', color: gradeColor(75) },
+          { label: 'F (<70)', color: gradeColor(65) },
+        ].map((item) => (
+          <View key={item.label} style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+            <Text style={[styles.legendText, { color: currentTheme.text }]}>{item.label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+
   return (
     <Screen header={<ScreenHeader title="Your Grades" subtitle="Current marking period overview" />}>
-      <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh}>
-        <ScrollView
-          style={styles.scrollView}
+      <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh} hasData={cache.grades != null}>
+        <FlatList
+          style={styles.list}
+          data={grades}
+          keyExtractor={(item) => item.className}
+          extraData={expandedClass}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.section}
+          renderItem={({ item }) => (
+            <GradeCard
+              grade={item}
+              expanded={expandedClass === item.className}
+              onToggle={toggleClass}
+              currentTheme={currentTheme}
+            />
+          )}
+          ListEmptyComponent={
+            <Text style={[styles.emptyText, { color: currentTheme.textSecondary }]}>No grades available yet.</Text>
+          }
+          ListFooterComponent={
+            <>
+              {legend}
+              <View style={styles.spacer} />
+            </>
+          }
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
           }
-        >
-          <View style={styles.section}>
-            {grades.map((grade) => (
-              <TouchableOpacity
-                key={grade.className}
-                style={[styles.gradeCard, { backgroundColor: currentTheme.surface, borderLeftColor: gradeColor(grade.average), borderLeftWidth: 4 }]}
-                onPress={() => setExpandedClass(expandedClass === grade.className ? null : grade.className)}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={`${grade.className}, ${grade.average.toFixed(1)}%, grade ${gradeLetter(grade.average)}, ${expandedClass === grade.className ? 'collapse' : 'expand'}`}
-              >
-                <View style={styles.gradeHeader}>
-                  <View style={styles.gradeInfo}>
-                    <View style={[styles.classIndicator, { backgroundColor: gradeColor(grade.average) }]} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.gradeName, { color: currentTheme.text }]}>{grade.className}</Text>
-                      <Text style={[styles.gradeSubtext, { color: currentTheme.textSecondary }]}>
-                        {grade.teacher ? `${grade.teacher} · ` : ''}{grade.categories.length} categories
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.gradeValueContainer}>
-                    <Text style={[styles.gradeLetterText, { color: gradeColor(grade.average) }]}>
-                      {gradeLetter(grade.average)}
-                    </Text>
-                    <Text style={[styles.gradeValue, { color: gradeColor(grade.average) }]}>
-                      {grade.average.toFixed(1)}%
-                    </Text>
-                    <Ionicons
-                      name={expandedClass === grade.className ? 'chevron-up' : 'chevron-down'}
-                      size={20}
-                      color={currentTheme.textSecondary}
-                    />
-                  </View>
-                </View>
-
-                <View style={[styles.progressBar, { backgroundColor: currentTheme.border }]}>
-                  <View style={[styles.progressFill, { width: `${grade.average}%`, backgroundColor: gradeColor(grade.average) }]} />
-                </View>
-
-                {expandedClass === grade.className && grade.categories.length > 0 && (
-                  <View style={[styles.expandedContent, { borderTopColor: currentTheme.border }]}>
-                    <Text style={[styles.assignmentTitle, { color: currentTheme.textSecondary }]}>
-                      Category Breakdown
-                    </Text>
-                    {grade.categories.map((cat, idx) => (
-                      <View key={idx} style={styles.assignmentItem}>
-                        <View style={styles.assignmentDetails}>
-                          <View style={styles.assignmentNameRow}>
-                            <View style={[styles.assignmentDot, { backgroundColor: gradeColor(parseFloat(cat.grade)) }]} />
-                            <Text style={[styles.assignmentName, { color: currentTheme.text }]}>{cat.name}</Text>
-                          </View>
-                        </View>
-                        <Text style={[styles.assignmentGrade, { color: gradeColor(parseFloat(cat.grade)) }]}>{cat.grade}%</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-
-            {grades.length === 0 && (
-              <Text style={[styles.emptyText, { color: currentTheme.textSecondary }]}>No grades available yet.</Text>
-            )}
-          </View>
-
-          <View style={[styles.legend, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border, borderBottomColor: currentTheme.border }]}>
-            <Text style={[styles.legendTitle, { color: currentTheme.text }]}>Grade Scale</Text>
-            <View style={styles.legendGrid}>
-              {[
-                { label: 'A (90-100)', color: gradeColor(95) },
-                { label: 'B (80-89)', color: gradeColor(85) },
-                { label: 'C (70-79)', color: gradeColor(75) },
-                { label: 'F (<70)', color: gradeColor(65) },
-              ].map((item) => (
-                <View key={item.label} style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={[styles.legendText, { color: currentTheme.text }]}>{item.label}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.spacer} />
-        </ScrollView>
+        />
       </AsyncContent>
     </Screen>
   );
@@ -160,6 +187,7 @@ const styles = StyleSheet.create({
   classIndicator: { borderRadius: 2.5, height: 45, marginRight: 14, width: 5 },
   emptyText: { fontSize: 14, marginTop: 40, textAlign: 'center' },
   expandedContent: { borderTopWidth: 1, marginTop: 14, paddingTop: 14 },
+  flex1: { flex: 1 },
   gradeCard: {
     borderRadius: 12,
     elevation: 1,
@@ -178,15 +206,15 @@ const styles = StyleSheet.create({
   gradeSubtext: { fontSize: 12, marginTop: 4 },
   gradeValue: { fontSize: 22, fontWeight: '800' },
   gradeValueContainer: { alignItems: 'flex-end', gap: 2 },
-  legend: { borderBottomWidth: 1, borderRadius: 12, borderTopWidth: 1, marginBottom: 24, marginHorizontal: 16, paddingHorizontal: 16, paddingVertical: 18 },
+  legend: { borderBottomWidth: 1, borderRadius: 12, borderTopWidth: 1, marginBottom: 24, marginTop: 12, paddingHorizontal: 16, paddingVertical: 18 },
   legendDot: { borderRadius: 6, height: 12, marginRight: 10, width: 12 },
   legendGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
   legendItem: { alignItems: 'center', flexDirection: 'row', flex: 1, minWidth: '48%' },
   legendText: { fontSize: 12, fontWeight: '600' },
   legendTitle: { fontSize: 14, fontWeight: '700', marginBottom: 14 },
+  list: { flex: 1 },
   progressBar: { borderRadius: 4, height: 8, marginBottom: 14, overflow: 'hidden' },
   progressFill: { borderRadius: 4, height: '100%' },
-  scrollView: { flex: 1 },
-  section: { marginBottom: 24, paddingHorizontal: 16, paddingTop: 16 },
+  section: { paddingHorizontal: 16, paddingTop: 16 },
   spacer: { height: 40 },
 });

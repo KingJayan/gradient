@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   StyleSheet,
   View,
-  ScrollView,
+  FlatList,
   Text,
   TouchableOpacity,
   TextInput,
@@ -21,6 +21,8 @@ import { logWarning } from '../utils/error-logger';
 import { Screen, AsyncContent } from '../components/screen';
 
 const PERSONAL_TASKS_KEY = 'personalTasks';
+
+type Row = { type: 'header'; key: string; date: string } | { type: 'task'; key: string; task: Assignment };
 
 function formatDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -121,6 +123,9 @@ export default function PlannerScreen() {
   const [filterSource, setFilterSource] = useState<'all' | 'hac' | 'personal'>('all');
   const [showCompleted, setShowCompleted] = useState(false);
 
+  const tasksRef = useRef(personalTasks);
+  tasksRef.current = personalTasks;
+
   useEffect(() => {
     loadPersonalTasks();
   }, []);
@@ -139,13 +144,15 @@ export default function PlannerScreen() {
     }
   };
 
-  const savePersonalTasks = async (tasks: PersonalTask[]) => {
+  const persistTasks = useCallback(async (tasks: PersonalTask[], rollback: PersonalTask[]) => {
     try {
       await AsyncStorage.setItem(PERSONAL_TASKS_KEY, JSON.stringify(tasks));
     } catch (e) {
       logWarning('failed to save personal tasks', { error: e instanceof Error ? e.message : String(e) });
+      setPersonalTasks(rollback);
+      Alert.alert('Save Failed', 'Your change could not be saved. Please try again.');
     }
-  };
+  }, []);
 
   const handleAddTask = () => {
     if (!newTaskTitle || !newTaskDate) {
@@ -159,35 +166,51 @@ export default function PlannerScreen() {
       priority: newTaskPriority,
       completed: false,
     };
-    const updated = [...personalTasks, newTask];
+    const prev = tasksRef.current;
+    const updated = [...prev, newTask];
     setPersonalTasks(updated);
-    savePersonalTasks(updated);
+    persistTasks(updated, prev);
     setNewTaskTitle('');
     setNewTaskDate(null);
     setNewTaskPriority('medium');
     setShowAddModal(false);
   };
 
-  const handleToggleTask = (taskId: string) => {
-    if (!personalTasks.some((t) => t.id === taskId)) return;
-    const updated = personalTasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
-    setPersonalTasks(updated);
-    savePersonalTasks(updated);
-  };
-
-  const filteredTasks = allTasks.filter((task) => {
-    const sourceMatch = filterSource === 'all' || task.source === filterSource;
-    return sourceMatch && (showCompleted || !task.completed);
-  });
-
-  const overdueTasks = getOverdueTasks(filteredTasks);
-  const groupedTasks = groupByDate(
-    filteredTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+  const handleToggleTask = useCallback(
+    (taskId: string) => {
+      const prev = tasksRef.current;
+      if (!prev.some((t) => t.id === taskId)) return;
+      const updated = prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
+      setPersonalTasks(updated);
+      persistTasks(updated, prev);
+    },
+    [persistTasks]
   );
+
+  const filteredTasks = useMemo(
+    () =>
+      allTasks.filter((task) => {
+        const sourceMatch = filterSource === 'all' || task.source === filterSource;
+        return sourceMatch && (showCompleted || !task.completed);
+      }),
+    [allTasks, filterSource, showCompleted]
+  );
+
+  const overdueTasks = useMemo(() => getOverdueTasks(filteredTasks), [filteredTasks]);
+
+  const rows = useMemo<Row[]>(() => {
+    const sorted = [...filteredTasks].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+    const out: Row[] = [];
+    for (const [dateStr, tasks] of groupByDate(sorted)) {
+      out.push({ type: 'header', key: `h:${dateStr}`, date: dateStr });
+      for (const task of tasks) out.push({ type: 'task', key: task.id, task });
+    }
+    return out;
+  }, [filteredTasks]);
 
   return (
     <Screen>
-      <AsyncContent loading={cache.loading}>
+      <AsyncContent loading={cache.loading} hasData={cache.assignments != null}>
       <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
         <View>
           <Text style={[styles.greeting, { color: currentTheme.textSecondary }]}>Planner</Text>
@@ -212,7 +235,7 @@ export default function PlannerScreen() {
             <Text style={styles.overdueTitle}>Overdue ({overdueTasks.length})</Text>
           </View>
           {overdueTasks.slice(0, 2).map((task) => (
-            <TaskItem key={task.id} task={task} onToggle={() => handleToggleTask(task.id)} isOverdue currentTheme={currentTheme} />
+            <TaskItem key={task.id} task={task} onToggle={handleToggleTask} isOverdue currentTheme={currentTheme} />
           ))}
         </View>
       )}
@@ -240,22 +263,25 @@ export default function PlannerScreen() {
         </View>
       </View>
 
-      <ScrollView style={styles.taskList}>
-        {Array.from(groupedTasks.entries()).map(([dateStr, tasks]) => (
-          <View key={dateStr} style={styles.dateGroup}>
-            <Text style={[styles.dateHeader, { color: currentTheme.text }]}>{dateStr}</Text>
-            {tasks.map((task) => (
-              <TaskItem key={task.id} task={task} onToggle={() => handleToggleTask(task.id)} currentTheme={currentTheme} />
-            ))}
-          </View>
-        ))}
-        {filteredTasks.length === 0 && (
+      <FlatList
+        style={styles.taskList}
+        contentContainerStyle={styles.taskListContent}
+        data={rows}
+        keyExtractor={(item) => item.key}
+        renderItem={({ item }) =>
+          item.type === 'header' ? (
+            <Text style={[styles.dateHeader, { color: currentTheme.text }]}>{item.date}</Text>
+          ) : (
+            <TaskItem task={item.task} onToggle={handleToggleTask} currentTheme={currentTheme} />
+          )
+        }
+        ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="checkmark-circle" size={48} color={currentTheme.primary} />
             <Text style={[styles.emptyStateText, { color: currentTheme.textSecondary }]}>All caught up!</Text>
           </View>
-        )}
-      </ScrollView>
+        }
+      />
 
       <Modal visible={showAddModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
@@ -267,7 +293,7 @@ export default function PlannerScreen() {
                     <Ionicons name="chevron-back" size={24} color={currentTheme.text} />
                   </TouchableOpacity>
                   <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Select Date</Text>
-                  <View style={{ width: 24 }} />
+                  <View style={styles.modalHeaderSpacer} />
                 </View>
                 <CalendarPicker
                   value={newTaskDate}
@@ -333,7 +359,7 @@ export default function PlannerScreen() {
   );
 }
 
-function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignment; onToggle: () => void; isOverdue?: boolean; currentTheme: Theme }) {
+const TaskItem = React.memo(function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignment; onToggle: (id: string) => void; isOverdue?: boolean; currentTheme: Theme }) {
   const priorityColor =
     task.source === 'personal'
       ? task.priority === 'high' ? UI_COLORS.danger : task.priority === 'medium' ? UI_COLORS.warning : currentTheme.textSecondary
@@ -342,7 +368,7 @@ function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignmen
   return (
     <View style={[styles.taskItem, { backgroundColor: currentTheme.surface }, task.completed && styles.taskItemCompleted, isOverdue && styles.taskItemOverdue]}>
       <TouchableOpacity
-        onPress={onToggle}
+        onPress={() => onToggle(task.id)}
         style={styles.checkbox}
         accessibilityRole="button"
         accessibilityLabel={task.completed ? 'Mark incomplete' : 'Mark complete'}
@@ -372,7 +398,7 @@ function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignmen
       </Text>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   addButton: { alignItems: 'center', borderRadius: 24, height: 48, justifyContent: 'center', width: 48 },
@@ -386,8 +412,7 @@ const styles = StyleSheet.create({
   checkbox: { marginRight: 12 },
   completedToggle: { alignItems: 'center', flexDirection: 'row', gap: 8, marginLeft: 'auto' },
   completedToggleText: { fontSize: 12, fontWeight: '500' },
-  dateGroup: { marginBottom: 20 },
-  dateHeader: { fontSize: 14, fontWeight: '700', marginBottom: 8 },
+  dateHeader: { fontSize: 14, fontWeight: '700', marginBottom: 8, marginTop: 12 },
   datePickerButton: { alignItems: 'center', flexDirection: 'row', gap: 10 },
   datePickerText: { fontSize: 16 },
   emptyState: { alignItems: 'center', marginTop: 60 },
@@ -402,6 +427,7 @@ const styles = StyleSheet.create({
   modalButtonText: { fontSize: 16, fontWeight: '600' },
   modalContent: { borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 16, paddingVertical: 20 },
   modalHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+  modalHeaderSpacer: { width: 24 },
   modalInput: { borderRadius: 8, fontSize: 16, marginBottom: 16, paddingHorizontal: 12, paddingVertical: 12 },
   modalLabel: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
   modalOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', flex: 1, justifyContent: 'flex-end' },
@@ -422,7 +448,8 @@ const styles = StyleSheet.create({
   taskItem: { alignItems: 'center', borderRadius: 12, flexDirection: 'row', marginBottom: 8, paddingHorizontal: 12, paddingVertical: 12 },
   taskItemCompleted: { opacity: 0.6 },
   taskItemOverdue: { borderLeftColor: UI_COLORS.danger, borderLeftWidth: 3 },
-  taskList: { flex: 1, paddingHorizontal: 16, paddingVertical: 12 },
+  taskList: { flex: 1 },
+  taskListContent: { paddingBottom: 24, paddingHorizontal: 16, paddingTop: 12 },
   taskMeta: { alignItems: 'center', flexDirection: 'row', gap: 8, marginTop: 4 },
   taskPoints: { borderRadius: 3, fontSize: 11, fontWeight: '600', paddingHorizontal: 6, paddingVertical: 2 },
   taskTitle: { fontSize: 15, fontWeight: '600' },

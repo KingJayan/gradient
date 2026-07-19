@@ -80,7 +80,7 @@ export default function GPACalculatorScreen() {
 
   return (
     <Screen header={<ScreenHeader title="GPA Calculator" />}>
-      <AsyncContent loading={cache.loading || !gpaResult} error={cache.error} onRetry={onRefresh}>
+      <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh} hasData={!!gpaResult}>
     {gpaResult && (
     <ScrollView
       refreshControl={

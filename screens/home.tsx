@@ -66,7 +66,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 
   return (
     <Screen>
-      <AsyncContent loading={cache.loading}>
+      <AsyncContent loading={cache.loading} hasData={cache.grades != null}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -117,7 +117,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
             <View style={[styles.transcriptIcon, { backgroundColor: currentTheme.primary + '22' }]}>
               <Ionicons name="document" size={24} color={currentTheme.primary} />
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={styles.flex1}>
               <Text style={[styles.transcriptTitle, { color: currentTheme.text }]}>Transcript</Text>
               <Text style={[styles.transcriptSubtitle, { color: currentTheme.textSecondary }]}>View your full academic record</Text>
             </View>
@@ -134,6 +134,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 
 const styles = StyleSheet.create({
   dateText: { fontSize: 13, letterSpacing: 0.5, marginBottom: 2, textTransform: 'uppercase' },
+  flex1: { flex: 1 },
   header: {
     alignItems: 'flex-start',
     flexDirection: 'row',

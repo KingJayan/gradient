@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
   Text,
   SafeAreaView,
-  ActivityIndicator,
+  Animated,
+  Easing,
   TouchableOpacity,
   StyleProp,
   ViewStyle,
@@ -68,39 +69,68 @@ export function RetryButton({ onPress, style }: { onPress: () => void; style?: S
   );
 }
 
+export function Skeleton({ style }: { style?: StyleProp<ViewStyle> }) {
+  const { currentTheme } = useTheme();
+  const opacity = useRef(new Animated.Value(0.4)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.4, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [opacity]);
+
+  return <Animated.View style={[styles.skeletonBlock, { backgroundColor: currentTheme.border, opacity }, style]} />;
+}
+
+function DefaultSkeleton() {
+  return (
+    <View style={styles.skeletonWrap}>
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <Skeleton key={i} style={styles.skeletonCard} />
+      ))}
+    </View>
+  );
+}
+
 export function AsyncContent({
   loading,
   error,
   onRetry,
+  hasData,
   isEmpty,
   empty,
+  skeleton,
   children,
 }: {
   loading: boolean;
   error?: string | null;
   onRetry?: () => void;
+  hasData?: boolean;
   isEmpty?: boolean;
   empty?: React.ReactNode;
+  skeleton?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const { currentTheme } = useTheme();
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={currentTheme.primary} />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.center}>
-        <Ionicons name="alert-circle" size={48} color={UI_COLORS.danger} />
-        <Text style={[styles.errorText, { color: currentTheme.text }]}>{error}</Text>
-        {onRetry ? <RetryButton onPress={onRetry} /> : null}
-      </View>
-    );
+  if (!hasData) {
+    if (loading) {
+      return <>{skeleton ?? <DefaultSkeleton />}</>;
+    }
+    if (error) {
+      return (
+        <View style={styles.center}>
+          <Ionicons name="alert-circle" size={48} color={UI_COLORS.danger} />
+          <Text style={[styles.errorText, { color: currentTheme.text }]}>{error}</Text>
+          {onRetry ? <RetryButton onPress={onRetry} /> : null}
+        </View>
+      );
+    }
   }
 
   if (isEmpty && empty !== undefined) {
@@ -127,4 +157,7 @@ const styles = StyleSheet.create({
   retryButton: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
   retryButtonText: { fontSize: 12, fontWeight: '600' },
   screen: { flex: 1 },
+  skeletonBlock: { borderRadius: 8 },
+  skeletonCard: { borderRadius: 12, height: 76, marginBottom: 12 },
+  skeletonWrap: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
 });

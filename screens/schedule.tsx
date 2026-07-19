@@ -91,7 +91,7 @@ export default function ScheduleScreen() {
 
   return (
     <Screen header={header}>
-      <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh}>
+      <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh} hasData={cache.schedule != null}>
         <ScrollView
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
