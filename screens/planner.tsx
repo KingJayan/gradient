@@ -12,19 +12,18 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Assignment, PersonalTask, mergeTasks, groupByDate, getOverdueTasks } from '../utils/task-manager';
 import { UI_COLORS } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
-import { useFocusEffect } from '@react-navigation/native';
 
 const PERSONAL_TASKS_KEY = 'personalTasks';
 
 export default function PlannerScreen() {
   const { currentTheme } = useTheme();
-  const { cache, loadGradesAndCourses } = useDataCache();
+  const { cache } = useDataCache();
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -37,12 +36,6 @@ export default function PlannerScreen() {
     loadPersonalTasks();
   }, []);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadGradesAndCourses();
-    }, [loadGradesAndCourses])
-  );
-
   const allTasks = useMemo(
     () => mergeTasks(cache.assignments ?? [], personalTasks),
     [cache.assignments, personalTasks]
@@ -50,7 +43,7 @@ export default function PlannerScreen() {
 
   const loadPersonalTasks = async () => {
     try {
-      const stored = await SecureStore.getItemAsync(PERSONAL_TASKS_KEY);
+      const stored = await AsyncStorage.getItem(PERSONAL_TASKS_KEY);
       if (stored) {
         setPersonalTasks(JSON.parse(stored));
       }
@@ -61,7 +54,7 @@ export default function PlannerScreen() {
 
   const savePersonalTasks = async (tasks: PersonalTask[]) => {
     try {
-      await SecureStore.setItemAsync(PERSONAL_TASKS_KEY, JSON.stringify(tasks));
+      await AsyncStorage.setItem(PERSONAL_TASKS_KEY, JSON.stringify(tasks));
     } catch (e) {
       console.warn('failed to save personal tasks:', e instanceof Error ? e.message : String(e));
     }

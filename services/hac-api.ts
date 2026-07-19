@@ -105,13 +105,6 @@ function parseScore(val: string | number | undefined): number {
   return parseFloat(String(val).split('/')[0].trim());
 }
 
-function gradeColor(avg: number): string {
-  if (avg >= 90) return '#10B981';
-  if (avg >= 80) return '#3B82F6';
-  if (avg >= 70) return '#F59E0B';
-  return '#EF4444';
-}
-
 // AP/Honors prefix → weighted GPA multiplier
 function inferWeight(name: string): number {
   const u = name.toUpperCase();
@@ -160,11 +153,10 @@ function gradeLetterToPoints(grade: string): number {
 export interface GradeEntry {
   className: string;
   average: number;  // NaN if ungraded
-  color: string;
   teacher: string;
   room: string;
   period: string;
-  categories: { name: string; grade: string; color: string }[];
+  categories: { name: string; grade: string }[];
 }
 
 export async function fetchGrades(
@@ -179,7 +171,6 @@ export async function fetchGrades(
       return {
         className,
         average: avg,
-        color: gradeColor(avg),
         teacher: '',  // not exposed by /averages; schedule/teachers use /reportcard
         room: '',
         period: '',

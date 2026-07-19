@@ -5,12 +5,14 @@ import {
   ScrollView,
   Text,
   SafeAreaView,
+  TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { useCreds } from '../hooks/use-creds';
 import { fetchTeachers } from '../services/hac-api';
+import { logError } from '../utils/error-logger';
 
 interface Teacher {
   id: string;
@@ -24,6 +26,7 @@ export default function EmailTeachersScreen() {
   const { currentTheme } = useTheme();
   const creds = useCreds();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
 
   useEffect(() => {
@@ -34,9 +37,12 @@ export default function EmailTeachersScreen() {
     if (!creds) { setLoading(false); return; }
     try {
       setLoading(true);
+      setError(null);
       setTeachers(await fetchTeachers(creds.hacUrl, creds.username, creds.password));
     } catch (e) {
-      console.error('teachers load error:', e instanceof Error ? e.message : String(e));
+      const msg = e instanceof Error ? e.message : 'Failed to load teachers';
+      logError(e instanceof Error ? e : new Error(String(e)), { action: 'loadTeachers' });
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -47,6 +53,20 @@ export default function EmailTeachersScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={currentTheme.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+        <View style={styles.centerContainer}>
+          <Ionicons name="alert-circle" size={48} color="#EF4444" />
+          <Text style={[styles.errorText, { color: currentTheme.text }]}>{error}</Text>
+          <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={loadTeachers}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
@@ -99,7 +119,10 @@ export default function EmailTeachersScreen() {
 }
 
 const styles = StyleSheet.create({
-  centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
+  centerContainer: { alignItems: 'center', flex: 1, gap: 16, justifyContent: 'center' },
+  errorText: { fontSize: 14, paddingHorizontal: 32, textAlign: 'center' },
+  retryButton: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
+  retryButtonText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   container: { flex: 1 },
   emptyText: { fontSize: 14, lineHeight: 20, marginTop: 40, textAlign: 'center' },
   header: { marginBottom: 16, paddingHorizontal: 16, paddingVertical: 20 },

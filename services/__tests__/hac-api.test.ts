@@ -4,7 +4,7 @@ const mockFetch = (data: unknown, status = 200) =>
   jest.fn().mockResolvedValue({ ok: status < 400, status, json: async () => data });
 
 const gradeEntry = (className: string, average: number): GradeEntry => ({
-  className, average, color: '#10B981', teacher: '', room: '', period: '', categories: [],
+  className, average, teacher: '', room: '', period: '', categories: [],
 });
 
 beforeEach(() => { jest.restoreAllMocks(); });

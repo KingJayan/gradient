@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
-import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
@@ -31,17 +30,11 @@ interface NavCard {
 export default function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<Record<string, undefined>> }) {
   const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
-  const { cache, loadGradesAndCourses } = useDataCache();
+  const { cache } = useDataCache();
   const [gpa, setGpa] = useState('—');
   const [classes, setClasses] = useState(0);
   const [currentDate, setCurrentDate] = useState('');
   const slideAnim = useRef(new Animated.Value(0)).current;
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadGradesAndCourses();
-    }, [loadGradesAndCourses])
-  );
 
   useEffect(() => {
     const now = new Date();

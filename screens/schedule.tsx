@@ -4,6 +4,7 @@ import {
   View,
   ScrollView,
   Text,
+  TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
@@ -12,12 +13,14 @@ import { ClassPeriod } from '../utils/schedule-data';
 import { useCreds } from '../hooks/use-creds';
 import { useTheme } from '../hooks/use-theme';
 import { fetchSchedule } from '../services/hac-api';
+import { logError } from '../utils/error-logger';
 
 export default function ScheduleScreen() {
   const creds = useCreds();
   const { currentTheme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [fullSchedule, setFullSchedule] = useState<ClassPeriod[]>([]);
 
   useEffect(() => {
@@ -28,9 +31,12 @@ export default function ScheduleScreen() {
     if (!creds) { setLoading(false); return; }
     try {
       setLoading(true);
+      setError(null);
       setFullSchedule(await fetchSchedule(creds.hacUrl, creds.username, creds.password));
     } catch (e) {
-      console.error('schedule load error:', e instanceof Error ? e.message : String(e));
+      const msg = e instanceof Error ? e.message : 'Failed to load schedule';
+      logError(e instanceof Error ? e : new Error(String(e)), { action: 'loadSchedule' });
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -48,6 +54,18 @@ export default function ScheduleScreen() {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color={currentTheme.primary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <Ionicons name="alert-circle" size={48} color="#EF4444" />
+        <Text style={[styles.errorText, { color: currentTheme.text }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: currentTheme.primary }]} onPress={loadSchedule}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -94,7 +112,10 @@ export default function ScheduleScreen() {
 }
 
 const styles = StyleSheet.create({
-  centerContainer: { alignItems: 'center', flex: 1, justifyContent: 'center' },
+  centerContainer: { alignItems: 'center', flex: 1, gap: 16, justifyContent: 'center' },
+  errorText: { fontSize: 14, paddingHorizontal: 32, textAlign: 'center' },
+  retryButton: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
+  retryButtonText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   container: { flex: 1 },
   emptyText: { marginTop: 20, textAlign: 'center' },
   periodCard: { borderRadius: 8, flexDirection: 'row', marginBottom: 8, paddingHorizontal: 12, paddingVertical: 12 },

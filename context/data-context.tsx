@@ -54,11 +54,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, [creds]);
 
   const clearCache = useCallback(() => {
-    setCache({ grades: null, courses: null, assignments: null, loading: false, error: null });
+    const empty: DataCache = { grades: null, courses: null, assignments: null, loading: false, error: null };
+    cacheRef.current = empty;
+    setCache(empty);
   }, []);
 
   useEffect(() => {
-    if (!creds) clearCache();
+    if (creds) {
+      loadGradesAndCourses();
+    } else {
+      clearCache();
+    }
   }, [creds]);
 
   return (

@@ -10,7 +10,6 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/hac-api';
@@ -21,12 +20,6 @@ export default function GradesScreen() {
   const { cache, loadGradesAndCourses, clearCache } = useDataCache();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedClass, setExpandedClass] = useState<string | null>(null);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadGradesAndCourses();
-    }, [loadGradesAndCourses])
-  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -60,7 +53,6 @@ export default function GradesScreen() {
         .map(([name, { earned, possible }]) => ({
           name,
           grade: ((earned / possible) * 100).toFixed(1),
-          color: g.color,
         }));
       return { ...g, categories };
     });
@@ -113,13 +105,13 @@ export default function GradesScreen() {
           {grades.map((grade) => (
             <TouchableOpacity
               key={grade.className}
-              style={[styles.gradeCard, { backgroundColor: currentTheme.surface, borderLeftColor: grade.color, borderLeftWidth: 4 }]}
+              style={[styles.gradeCard, { backgroundColor: currentTheme.surface, borderLeftColor: gradeColor(grade.average), borderLeftWidth: 4 }]}
               onPress={() => setExpandedClass(expandedClass === grade.className ? null : grade.className)}
               activeOpacity={0.7}
             >
               <View style={styles.gradeHeader}>
                 <View style={styles.gradeInfo}>
-                  <View style={[styles.classIndicator, { backgroundColor: grade.color }]} />
+                  <View style={[styles.classIndicator, { backgroundColor: gradeColor(grade.average) }]} />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.gradeName, { color: currentTheme.text }]}>{grade.className}</Text>
                     <Text style={[styles.gradeSubtext, { color: currentTheme.textSecondary }]}>
@@ -152,11 +144,11 @@ export default function GradesScreen() {
                     <View key={idx} style={styles.assignmentItem}>
                       <View style={styles.assignmentDetails}>
                         <View style={styles.assignmentNameRow}>
-                          <View style={[styles.assignmentDot, { backgroundColor: cat.color }]} />
+                          <View style={[styles.assignmentDot, { backgroundColor: gradeColor(parseFloat(cat.grade)) }]} />
                           <Text style={[styles.assignmentName, { color: currentTheme.text }]}>{cat.name}</Text>
                         </View>
                       </View>
-                      <Text style={[styles.assignmentGrade, { color: cat.color }]}>{cat.grade}%</Text>
+                      <Text style={[styles.assignmentGrade, { color: gradeColor(parseFloat(cat.grade)) }]}>{cat.grade}%</Text>
                     </View>
                   ))}
                 </View>

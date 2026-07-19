@@ -14,12 +14,9 @@ import { calculateGPA, Course, DEFAULT_GRADE_SCALE, GPAResult, whatIfScenario } 
 import { UI_COLORS } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { useFocusEffect } from '@react-navigation/native';
-
-
 export default function GPACalculatorScreen() {
   const { currentTheme } = useTheme();
-  const { cache, loadGradesAndCourses } = useDataCache();
+  const { cache } = useDataCache();
   const [courses, setCourses] = useState<Course[]>([]);
   const [gpaResult, setGPAResult] = useState<GPAResult | null>(null);
   const [mockScenario, setMockScenario] = useState<{ courseId: string; mockGrade: number }[]>([]);
@@ -27,12 +24,6 @@ export default function GPACalculatorScreen() {
   const [showWhatIf, setShowWhatIf] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [mockGradeInput, setMockGradeInput] = useState('');
-
-  useFocusEffect(
-    React.useCallback(() => {
-      loadGradesAndCourses();
-    }, [loadGradesAndCourses])
-  );
 
   useEffect(() => {
     if (cache.courses) setCourses(cache.courses);
