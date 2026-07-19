@@ -30,7 +30,7 @@ export default function ScheduleScreen() {
       setLoading(true);
       setFullSchedule(await fetchSchedule(creds.hacUrl, creds.username, creds.password));
     } catch (e) {
-      console.error('schedule load error:', e);
+      console.error('schedule load error:', e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }

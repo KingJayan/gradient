@@ -36,7 +36,7 @@ export default function EmailTeachersScreen() {
       setLoading(true);
       setTeachers(await fetchTeachers(creds.hacUrl, creds.username, creds.password));
     } catch (e) {
-      console.error('teachers load error:', e);
+      console.error('teachers load error:', e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }

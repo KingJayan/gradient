@@ -68,9 +68,10 @@ export function useAuth() {
       });
       if (!response.ok) throw new Error('Invalid credentials');
       const data = await response.json();
+      const name = typeof data?.name === 'string' ? data.name : undefined;
 
       const token = CREDENTIAL_PRESENCE_MARKER;
-      const user: Student = { id: username, username, hacUrl, name: data.name };
+      const user: Student = { id: username, username, hacUrl, name };
 
       await SecureStore.setItemAsync('userToken', token);
       await SecureStore.setItemAsync('user', JSON.stringify(user));

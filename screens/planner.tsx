@@ -55,7 +55,7 @@ export default function PlannerScreen() {
         setPersonalTasks(JSON.parse(stored));
       }
     } catch (e) {
-      console.warn('failed to load personal tasks:', e);
+      console.warn('failed to load personal tasks:', e instanceof Error ? e.message : String(e));
     }
   };
 
@@ -63,7 +63,7 @@ export default function PlannerScreen() {
     try {
       await SecureStore.setItemAsync(PERSONAL_TASKS_KEY, JSON.stringify(tasks));
     } catch (e) {
-      console.warn('failed to save personal tasks:', e);
+      console.warn('failed to save personal tasks:', e instanceof Error ? e.message : String(e));
     }
   };
 
