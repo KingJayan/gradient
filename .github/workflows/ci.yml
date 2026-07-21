@@ -50,6 +50,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Install CocoaPods dependencies
+        run: pod install --repo-update
+        working-directory: ios
+
       - name: Build and launch on the simulator
         run: pnpm exec expo run:ios --configuration Release
 
