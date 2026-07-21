@@ -77,7 +77,19 @@ export default function GPACalculatorScreen() {
 
   return (
     <Screen header={<ScreenHeader title="GPA Calculator" />}>
-      <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh} hasData={!!gpaResult}>
+      <AsyncContent
+        loading={cache.loading}
+        error={cache.error}
+        onRetry={onRefresh}
+        hasData={!!gpaResult}
+        isEmpty={!gpaResult}
+        empty={
+          <View style={styles.emptyState}>
+            <Ionicons name="calculator-outline" size={48} color={currentTheme.textSecondary} />
+            <Text style={[styles.emptyText, { color: currentTheme.text }]}>No courses to calculate</Text>
+          </View>
+        }
+      >
     {gpaResult && (
     <ScrollView
       refreshControl={
@@ -264,6 +276,8 @@ const styles = StyleSheet.create({
   },
   courseInfo: { flex: 1 },
   courseName: { fontSize: FONT.lg, fontWeight: '600' },
+  emptyState: { alignItems: 'center', paddingTop: SPACING.giant },
+  emptyText: { fontSize: FONT.lg, fontWeight: '600', marginTop: SPACING.md },
   gpaCard: {
     alignItems: 'center',
     borderRadius: RADIUS.md,

@@ -31,6 +31,7 @@ sign in with your district's HAC url, username, and password. four districts are
 | `pnpm run ios` | ios simulator |
 | `pnpm run lint` | eslint |
 | `pnpm run type-check` | typescript check |
+| `pnpm test` | jest + react native testing library |
 | `pnpm run build:ios` | eas production build |
 
 ## stack

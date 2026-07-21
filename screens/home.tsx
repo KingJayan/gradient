@@ -63,7 +63,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 
   return (
     <Screen>
-      <AsyncContent loading={cache.loading} hasData={cache.grades != null}>
+      <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh} hasData={cache.grades != null}>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}

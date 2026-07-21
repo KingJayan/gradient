@@ -17,7 +17,7 @@ interface Dashboard {
   schedule: ClassPeriod[];
 }
 
-interface DataCache {
+export interface DataCache {
   grades: GradeEntry[] | null;
   courses: Course[] | null;
   assignments: Assignment[] | null;

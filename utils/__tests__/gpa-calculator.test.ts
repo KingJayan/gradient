@@ -29,6 +29,14 @@ describe('calculateGPA', () => {
     const r = calculateGPA([course('a', 95, 4, 1.25), course('b', 75, 4, 1)]);
     expect(r.weighted).toBeGreaterThan(r.unweighted);
   });
+
+  it.each([
+    [89.5, 3.3],
+    [92.5, 3.7],
+    [96.5, 4.0],
+  ])('gives %p, which falls in a gap between bands, the lower band points (%p)', (grade, points) => {
+    expect(calculateGPA([course('a', grade)]).unweighted).toBe(points);
+  });
 });
 
 describe('whatIfScenario', () => {

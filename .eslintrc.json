@@ -58,6 +58,20 @@
       }
     },
     {
+      "files": ["test/**", "**/__tests__/**"],
+      "env": { "jest": true },
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off",
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "MemberExpression[object.name='console']",
+            "message": "Use logError/logWarning/logInfo from utils/error-logger instead of console.*"
+          }
+        ]
+      }
+    },
+    {
       "files": ["utils/error-logger.ts"],
       "rules": {
         "no-restricted-syntax": [

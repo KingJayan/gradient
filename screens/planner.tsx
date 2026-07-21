@@ -128,7 +128,7 @@ function CalendarPicker({ value, onChange, currentTheme }: {
 
 export default function PlannerScreen() {
   const { currentTheme } = useTheme();
-  const { cache } = useDataCache();
+  const { cache, loadGradesAndCourses } = useDataCache();
   const [personalTasks, setPersonalTasks] = useState<PersonalTask[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -225,7 +225,12 @@ export default function PlannerScreen() {
 
   return (
     <Screen>
-      <AsyncContent loading={cache.loading} hasData={cache.assignments != null}>
+      <AsyncContent
+        loading={cache.loading}
+        error={cache.error}
+        onRetry={loadGradesAndCourses}
+        hasData={cache.assignments != null}
+      >
       <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
         <View>
           <Text style={[styles.greeting, { color: currentTheme.textSecondary }]}>Planner</Text>

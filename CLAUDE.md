@@ -10,7 +10,7 @@ pnpm run ios                  # iOS simulator
 pnpm run android              # Android simulator
 pnpm run lint                 # ESLint
 pnpm run type-check           # tsc --noEmit
-pnpm test                     # Jest unit tests
+pnpm test                     # Jest unit + component tests
 pnpm run precommit            # type-check + lint + test
 pnpm run prebuild             # Expo prebuild (native code)
 pnpm run build:ios            # EAS build for App Store
@@ -164,6 +164,7 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 | `utils/error-logger.ts` | Centralised logging (Sentry-ready) |
 | `utils/perf.ts` | `mark`/`measure` timings |
 | `screens/` | 10 screens (6 tabs, transcript modal, login, lock, loading) |
+| `test/` | Jest setup + shared render helpers (not a test suite itself) |
 | `docs/adr/` | Decision records for the non-obvious choices |
 
 ## Guidelines
@@ -172,9 +173,11 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 1. Create `screens/[name].tsx`.
 2. Get data from `useDataCache()` if it is already in the dashboard query,
    otherwise `useScreenData(key, fetcher)`.
-3. Wrap the body in `Screen` + `AsyncContent`.
+3. Wrap the body in `Screen` + `AsyncContent`, passing `error`/`onRetry` and an
+   `empty` node so all four states are reachable.
 4. Register in `AppTabs` or as a stack screen in `AppStack`, wrapped in `withBoundary`.
 5. Colors from `useTheme()`'s `currentTheme` or `utils/colors.ts`; metrics from `utils/tokens.ts`.
+6. Add a four-state test to `screens/__tests__/` using `renderScreen` + `dataContext`.
 
 ### New fetcher
 1. Add a module under `services/api/` (or extend the matching one).
@@ -207,15 +210,32 @@ Typical flow: `pnpm run prebuild && pnpm run build:ios && eas submit --platform 
 
 ## Testing
 
-Tests live in `__tests__/` subdirectories next to the modules they cover. Run with `pnpm test`.
+Jest with the `jest-expo/ios` preset and React Native Testing Library. Tests live
+in `__tests__/` subdirectories next to the modules they cover. Run with `pnpm test`.
 
 | Test file | Covers |
 |-----------|--------|
-| `utils/__tests__/gpa-calculator.test.ts` | `calculateGPA`, `whatIfScenario` |
+| `utils/__tests__/gpa-calculator.test.ts` | `calculateGPA`, `whatIfScenario`, the between-band grade boundaries (89.5/92.5/96.5) |
 | `utils/__tests__/task-manager.test.ts` | `mergeTasks`, `getOverdueTasks`, `groupByDate` |
+| `utils/__tests__/colors.test.ts` | `gradeLetter`, `gradeColor` agreeing with the letter shown, `onPrimary` |
+| `hooks/__tests__/use-creds.test.tsx` | on-demand password read, stable object identity, logout on keychain failure |
+| `hooks/__tests__/use-hac-query.test.tsx` | TTL, disabled key, per-key invalidation, cache + persistence cleared and requests aborted on logout |
+| `context/__tests__/data-context.test.tsx` | dashboard fetch once credentials resolve; cache cleared when the user logs out |
+| `screens/__tests__/dashboard-screens.test.tsx` | loading / error+retry / empty / data for Home, Grades, GPA, Schedule, Planner |
+| `screens/__tests__/transcript.test.tsx` | the same four states for the transcript modal |
 | `services/api/__tests__/fetchers.test.ts` | `fetchGrades`, `fetchCourses`, `fetchAssignments`, `fetchTranscript` — fetch is mocked |
 
-CI (`.github/workflows/ci.yml`) runs type-check → lint → test on every push and PR to `main`.
+`test/setup.ts` mocks SecureStore, AsyncStorage, local auth, and the icon font;
+`test/render.tsx` provides `renderScreen` (theme + auth providers) and
+`dataContext()` for stubbing `useDataCache`.
+
+Every screen must keep all four `AsyncContent` states reachable — pass `error`
+and `onRetry`, and an `empty` node when a loaded-but-empty response renders
+nothing.
+
+CI (`.github/workflows/ci.yml`) runs type-check → lint → test → `pnpm audit
+--audit-level high` on every push and PR to `main`. Dependency bumps arrive
+weekly via `.github/dependabot.yml`.
 
 ## Known Limitations
 

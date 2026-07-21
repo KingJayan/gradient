@@ -29,3 +29,5 @@ jobs:
       - run: pnpm run lint
 
       - run: pnpm test
+
+      - run: pnpm audit --audit-level high
