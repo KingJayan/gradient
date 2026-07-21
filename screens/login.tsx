@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
 import { UI_COLORS } from '../utils/colors';
+import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 
 const DISTRICTS = [
   { id: 'frisco', name: 'Frisco ISD', url: 'https://homeaccess.friscoisd.org/' },
@@ -118,7 +119,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
             ))}
             {selectedDistrictId === 'other' && (
-              <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: currentTheme.border, marginTop: 8 }]}>
+              <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: currentTheme.border, marginTop: SPACING.sm }]}>
                 <Ionicons name="globe" size={20} color={currentTheme.textSecondary} />
                 <TextInput
                   style={[styles.input, { color: currentTheme.text }]}
@@ -201,87 +202,87 @@ const styles = StyleSheet.create({
   },
   districtButton: {
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
     flexDirection: 'row',
-    marginBottom: 8,
-    minHeight: 44,
-    paddingHorizontal: 16,
+    marginBottom: SPACING.sm,
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.lg,
   },
   districtButtonText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: FONT.base,
     fontWeight: '500',
-    marginLeft: 12,
+    marginLeft: SPACING.md,
   },
   districtContainer: {
-    marginBottom: 24,
+    marginBottom: SPACING.xxl,
   },
   footer: {
-    marginTop: 40,
+    marginTop: SPACING.huge,
   },
   footerText: {
-    fontSize: 12,
+    fontSize: FONT.sm,
     textAlign: 'center',
   },
   form: {
-    marginBottom: 40,
+    marginBottom: SPACING.huge,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
-    marginTop: 60,
+    marginBottom: SPACING.huge,
+    marginTop: SPACING.giant,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    marginLeft: 12,
-    paddingVertical: 12,
+    fontSize: FONT.lg,
+    marginLeft: SPACING.md,
+    minHeight: TOUCH_TARGET,
   },
   inputContainer: {
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
     flexDirection: 'row',
-    marginBottom: 16,
-    paddingHorizontal: 16,
+    marginBottom: SPACING.lg,
+    paddingHorizontal: SPACING.lg,
   },
   label: {
-    fontSize: 14,
+    fontSize: FONT.base,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
   loginButton: {
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: RADIUS.sm,
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
-    paddingVertical: 14,
+    marginTop: SPACING.xxl,
+    minHeight: TOUCH_TARGET,
   },
   loginButtonDisabled: {
     opacity: 0.7,
   },
   loginButtonText: {
     color: UI_COLORS.white,
-    fontSize: 16,
+    fontSize: FONT.lg,
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: SPACING.sm,
   },
   logoContainer: {
-    marginBottom: 16,
+    marginBottom: SPACING.lg,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'space-between',
-    padding: 20,
+    padding: SPACING.xl,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: FONT.base,
   },
   title: {
-    fontSize: 32,
+    fontSize: FONT.hero,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: SPACING.xs,
   },
 });

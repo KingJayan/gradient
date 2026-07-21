@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FALLBACK, UI_COLORS } from '../utils/colors';
 import { logError } from '../utils/error-logger';
+import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 
 interface Props {
   children: ReactNode;
@@ -62,16 +63,16 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     backgroundColor: FALLBACK.primary,
-    borderRadius: 8,
+    borderRadius: RADIUS.sm,
     flexDirection: 'row',
-    gap: 8,
+    gap: SPACING.sm,
     justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: 24,
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.xxl,
   },
   buttonText: {
     color: UI_COLORS.white,
-    fontSize: 16,
+    fontSize: FONT.lg,
     fontWeight: '600',
   },
   container: {
@@ -79,20 +80,20 @@ const styles = StyleSheet.create({
     backgroundColor: FALLBACK.background,
     flex: 1,
     justifyContent: 'center',
-    padding: 24,
+    padding: SPACING.xxl,
   },
   message: {
     color: FALLBACK.textSecondary,
-    fontSize: 14,
-    marginBottom: 32,
-    paddingHorizontal: 32,
+    fontSize: FONT.base,
+    marginBottom: SPACING.xxxl,
+    paddingHorizontal: SPACING.xxxl,
     textAlign: 'center',
   },
   title: {
     color: FALLBACK.text,
-    fontSize: 24,
+    fontSize: FONT.xxl,
     fontWeight: '700',
-    marginBottom: 12,
-    marginTop: 24,
+    marginBottom: SPACING.md,
+    marginTop: SPACING.xxl,
   },
 });

@@ -8,9 +8,10 @@
 
 ## features
 
-- grades, GPA (weighted + unweighted), schedule, planner, transcript, attendance
+- grades, GPA (weighted + unweighted), schedule, planner, transcript
 - personal tasks merged with HAC assignments
-- 6 dark themes
+- 6 dark themes, optional face id lock
+- offline-friendly: last fetch is cached and shown on cold start
 - creds stored in ios keychain, never on a server
 
 ## quick start
@@ -34,7 +35,7 @@ sign in with your district's HAC url, username, and password. four districts are
 
 ## stack
 
-react native 0.76 · expo sdk 52 · react navigation 6 · ts · expo-secure-store
+react native 0.81 · expo sdk 54 · react navigation 6 · ts · expo-secure-store
 
 ## security
 

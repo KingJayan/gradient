@@ -40,3 +40,5 @@ todo.txt
 
 .pnpm-store/
 .npm-cache/
+docs
+CLAUDE.md

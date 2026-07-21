@@ -37,6 +37,10 @@
       {
         "selector": "Literal[value=/^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/]",
         "message": "Do not hardcode hex color literals. Reference a token from utils/colors.ts or the theme."
+      },
+      {
+        "selector": "Property[key.name=/^(padding|paddingTop|paddingBottom|paddingLeft|paddingRight|paddingHorizontal|paddingVertical|margin|marginTop|marginBottom|marginLeft|marginRight|marginHorizontal|marginVertical|gap|rowGap|columnGap|borderRadius|borderTopLeftRadius|borderTopRightRadius|borderBottomLeftRadius|borderBottomRightRadius|fontSize)$/] > Literal[raw=/^[0-9.]/]",
+        "message": "Do not hardcode spacing, radius, or font sizes. Reference SPACING/RADIUS/FONT from utils/tokens.ts."
       }
     ]
   },

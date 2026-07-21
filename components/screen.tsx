@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { UI_COLORS, onPrimary } from '../utils/colors';
+import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 
 export function Screen({
   header,
@@ -172,24 +173,30 @@ export function AsyncContent({
 }
 
 const styles = StyleSheet.create({
-  center: { alignItems: 'center', flex: 1, gap: 16, justifyContent: 'center' },
-  errorText: { fontSize: 14, paddingHorizontal: 32, textAlign: 'center' },
+  center: { alignItems: 'center', flex: 1, gap: SPACING.lg, justifyContent: 'center' },
+  errorText: { fontSize: FONT.base, paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
   header: {
     alignItems: 'center',
     borderBottomWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 24,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.xxl,
   },
-  headerSubtitle: { fontSize: 14, marginTop: 6 },
+  headerSubtitle: { fontSize: FONT.base, marginTop: SPACING.sm },
   headerText: { flex: 1 },
-  headerTitle: { fontSize: 28, fontWeight: '700' },
-  iconButton: { alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44 },
-  retryButton: { alignItems: 'center', borderRadius: 8, justifyContent: 'center', minHeight: 44, paddingHorizontal: 24 },
-  retryButtonText: { fontSize: 12, fontWeight: '600' },
+  headerTitle: { fontSize: FONT.display, fontWeight: '700' },
+  iconButton: { alignItems: 'center', justifyContent: 'center', minHeight: TOUCH_TARGET, minWidth: TOUCH_TARGET },
+  retryButton: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    justifyContent: 'center',
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.xxl,
+  },
+  retryButtonText: { fontSize: FONT.sm, fontWeight: '600' },
   screen: { flex: 1 },
-  skeletonBlock: { borderRadius: 8 },
-  skeletonCard: { borderRadius: 12, height: 76, marginBottom: 12 },
-  skeletonWrap: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  skeletonBlock: { borderRadius: RADIUS.sm },
+  skeletonCard: { borderRadius: RADIUS.md, height: 76, marginBottom: SPACING.md },
+  skeletonWrap: { flex: 1, paddingHorizontal: SPACING.lg, paddingTop: SPACING.lg },
 });

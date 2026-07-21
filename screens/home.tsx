@@ -16,6 +16,7 @@ import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { calculateGPA } from '../utils/gpa-calculator';
 import { UI_COLORS } from '../utils/colors';
+import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, AsyncContent } from '../components/screen';
 
 export default function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<Record<string, undefined>> }) {
@@ -137,38 +138,51 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 }
 
 const styles = StyleSheet.create({
-  dateText: { fontSize: 13, letterSpacing: 0.5, marginBottom: 2, textTransform: 'uppercase' },
+  dateText: { fontSize: FONT.md, letterSpacing: 0.5, marginBottom: SPACING.xxs, textTransform: 'uppercase' },
   flex1: { flex: 1 },
   header: {
     alignItems: 'flex-start',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.xxl,
   },
-  name: { fontSize: 28, fontWeight: '700', marginTop: 4 },
-  profileButton: { borderRadius: 24, padding: 8 },
+  name: { fontSize: FONT.display, fontWeight: '700', marginTop: SPACING.xs },
+  profileButton: { borderRadius: RADIUS.pill, padding: SPACING.sm },
   scrollView: { flex: 1 },
-  section: { marginBottom: 16, paddingHorizontal: 20 },
+  section: { marginBottom: SPACING.lg, paddingHorizontal: SPACING.xl },
   spacer: { height: 40 },
   statCard: {
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     elevation: 3,
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.xl,
     shadowColor: UI_COLORS.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
   },
-  statLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 0.3 },
-  statTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  statValue: { fontSize: 32, fontWeight: '800' },
-  statsContainer: { flexDirection: 'row', gap: 12, marginBottom: 28, paddingHorizontal: 20 },
-  transcriptCard: { alignItems: 'center', borderRadius: 12, flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
-  transcriptIcon: { alignItems: 'center', borderRadius: 10, height: 44, justifyContent: 'center', width: 44 },
-  transcriptSubtitle: { fontSize: 12, marginTop: 2 },
-  transcriptTitle: { fontSize: 15, fontWeight: '600' },
+  statLabel: { fontSize: FONT.sm, fontWeight: '600', letterSpacing: 0.3 },
+  statTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
+  statValue: { fontSize: FONT.hero, fontWeight: '800' },
+  statsContainer: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.xxl, paddingHorizontal: SPACING.xl },
+  transcriptCard: {
+    alignItems: 'center',
+    borderRadius: RADIUS.md,
+    flexDirection: 'row',
+    gap: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.lg,
+  },
+  transcriptIcon: {
+    alignItems: 'center',
+    borderRadius: RADIUS.md,
+    height: TOUCH_TARGET,
+    justifyContent: 'center',
+    width: TOUCH_TARGET,
+  },
+  transcriptSubtitle: { fontSize: FONT.sm, marginTop: SPACING.xxs },
+  transcriptTitle: { fontSize: FONT.lg, fontWeight: '600' },
 });

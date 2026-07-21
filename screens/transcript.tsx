@@ -7,6 +7,7 @@ import { Theme } from '../context/theme-context';
 import { useScreenData } from '../hooks/use-screen-data';
 import { Screen, AsyncContent } from '../components/screen';
 import { gradeColorFromLetter, onPrimary } from '../utils/colors';
+import { FONT, RADIUS, SPACING } from '../utils/tokens';
 
 function yearGPA(entries: TranscriptEntry[]): string {
   const credits = entries.reduce((s, e) => s + e.credits, 0);
@@ -136,22 +137,51 @@ export default function TranscriptScreen() {
 
 const styles = StyleSheet.create({
   courseContent: { flex: 1 },
-  courseName: { fontSize: 14, fontWeight: '600' },
-  courseRow: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10 },
-  courseSemester: { fontSize: 12, marginTop: 2 },
-  coursesContainer: { paddingVertical: 8 },
-  emptyText: { marginTop: 40, textAlign: 'center' },
-  gpaCard: { alignItems: 'center', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 16 },
-  gpaLabel: { fontSize: 12, fontWeight: '600' },
-  gpaValue: { fontSize: 32, fontWeight: '700', marginTop: 8 },
-  gradeBadge: { borderRadius: 4, marginLeft: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  gradeBadgeText: { fontSize: 14, fontWeight: '700' },
-  header: { borderBottomWidth: 1, marginBottom: 12, paddingHorizontal: 16, paddingVertical: 16 },
-  totalCredits: { fontSize: 12, marginTop: 4, opacity: 0.9 },
-  yearGPA: { fontSize: 12, fontWeight: '600', marginTop: 4 },
-  yearHeader: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 12 },
-  yearSection: { borderRadius: 8, marginBottom: 8, overflow: 'hidden' },
-  yearTitle: { fontSize: 16, fontWeight: '700' },
+  courseName: { fontSize: FONT.base, fontWeight: '600' },
+  courseRow: {
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+  },
+  courseSemester: { fontSize: FONT.sm, marginTop: SPACING.xxs },
+  coursesContainer: { paddingVertical: SPACING.sm },
+  emptyText: { marginTop: SPACING.huge, textAlign: 'center' },
+  gpaCard: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.lg,
+  },
+  gpaLabel: { fontSize: FONT.sm, fontWeight: '600' },
+  gpaValue: { fontSize: FONT.hero, fontWeight: '700', marginTop: SPACING.sm },
+  gradeBadge: {
+    borderRadius: RADIUS.xs,
+    marginLeft: SPACING.md,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+  },
+  gradeBadgeText: { fontSize: FONT.base, fontWeight: '700' },
+  header: {
+    borderBottomWidth: 1,
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.lg,
+  },
+  totalCredits: { fontSize: FONT.sm, marginTop: SPACING.xs, opacity: 0.9 },
+  yearGPA: { fontSize: FONT.sm, fontWeight: '600', marginTop: SPACING.xs },
+  yearHeader: {
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.md,
+  },
+  yearSection: { borderRadius: RADIUS.sm, marginBottom: SPACING.sm, overflow: 'hidden' },
+  yearTitle: { fontSize: FONT.lg, fontWeight: '700' },
   yearTitleContainer: { flex: 1 },
-  yearsContainer: { paddingBottom: 12, paddingHorizontal: 16 },
+  yearsContainer: { paddingBottom: SPACING.md, paddingHorizontal: SPACING.lg },
 });

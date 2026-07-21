@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BRAND, UI_COLORS } from '../utils/colors';
+import { FONT, RADIUS, SPACING } from '../utils/tokens';
 
 export default function LoadingScreen() {
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   gradientCircle: {
     alignItems: 'center',
     backgroundColor: BRAND.primary,
-    borderRadius: 40,
+    borderRadius: RADIUS.pill,
     elevation: 8,
     height: 80,
     justifyContent: 'center',
@@ -84,16 +85,16 @@ const styles = StyleSheet.create({
     width: 80,
   },
   iconContainer: {
-    marginBottom: 20,
+    marginBottom: SPACING.xl,
   },
   subtitle: {
     color: BRAND.textSecondary,
-    fontSize: 14,
+    fontSize: FONT.base,
   },
   title: {
     color: BRAND.primary,
-    fontSize: 32,
+    fontSize: FONT.hero,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: SPACING.sm,
   },
 });

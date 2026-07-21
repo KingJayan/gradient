@@ -15,6 +15,7 @@ import { ClassPeriod } from '../services/api/schedule';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { onPrimary } from '../utils/colors';
+import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, ScreenHeader, AsyncContent, RetryButton, IconButton } from '../components/screen';
 
 const BELL_SCHEDULE_KEY = 'bellSchedule';
@@ -173,7 +174,7 @@ export default function ScheduleScreen() {
             </Text>
             <ScrollView style={styles.bellEditorScroll} showsVerticalScrollIndicator={false}>
               {schedule.length === 0 ? (
-                <Text style={[styles.modalSubtitle, { color: currentTheme.textSecondary, marginTop: 12 }]}>
+                <Text style={[styles.modalSubtitle, { color: currentTheme.textSecondary, marginTop: SPACING.md }]}>
                   Load your schedule first to configure bell times.
                 </Text>
               ) : (
@@ -227,31 +228,75 @@ export default function ScheduleScreen() {
 }
 
 const styles = StyleSheet.create({
-  bellButton: { alignItems: 'center', borderRadius: 8, flexDirection: 'row', gap: 6, minHeight: 44, paddingHorizontal: 12 },
-  bellButtonText: { fontSize: 13, fontWeight: '600' },
-  bellDash: { fontSize: 16, marginHorizontal: 4 },
+  bellButton: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.md,
+  },
+  bellButtonText: { fontSize: FONT.md, fontWeight: '600' },
+  bellDash: { fontSize: FONT.lg, marginHorizontal: SPACING.xs },
   bellEditorScroll: { maxHeight: 320 },
-  bellInput: { borderRadius: 8, flex: 1, fontSize: 14, minHeight: 44, paddingHorizontal: 10, textAlign: 'center' },
-  bellPeriodLabel: { fontSize: 14, fontWeight: '700', marginRight: 8, width: 28 },
-  bellRow: { alignItems: 'center', flexDirection: 'row', marginBottom: 10 },
-  emptyRetry: { marginTop: 16 },
-  emptyState: { alignItems: 'center', paddingTop: 60 },
-  emptySubtext: { fontSize: 13, marginTop: 6, paddingHorizontal: 32, textAlign: 'center' },
-  emptyText: { fontSize: 16, fontWeight: '600', marginTop: 12 },
-  modalContent: { borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingHorizontal: 16, paddingVertical: 20 },
-  modalHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  bellInput: {
+    borderRadius: RADIUS.sm,
+    flex: 1,
+    fontSize: FONT.base,
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.md,
+    textAlign: 'center',
+  },
+  bellPeriodLabel: { fontSize: FONT.base, fontWeight: '700', marginRight: SPACING.sm, width: 28 },
+  bellRow: { alignItems: 'center', flexDirection: 'row', marginBottom: SPACING.md },
+  emptyRetry: { marginTop: SPACING.lg },
+  emptyState: { alignItems: 'center', paddingTop: SPACING.giant },
+  emptySubtext: { fontSize: FONT.md, marginTop: SPACING.sm, paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
+  emptyText: { fontSize: FONT.lg, fontWeight: '600', marginTop: SPACING.md },
+  modalContent: {
+    borderTopLeftRadius: RADIUS.lg,
+    borderTopRightRadius: RADIUS.lg,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.xl,
+  },
+  modalHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.sm },
   modalOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', flex: 1, justifyContent: 'flex-end' },
-  modalSubtitle: { fontSize: 12, lineHeight: 18, marginBottom: 16 },
-  modalTitle: { fontSize: 18, fontWeight: '700' },
-  periodBadge: { alignItems: 'center', borderRadius: 8, height: 44, justifyContent: 'center', width: 44 },
-  periodBadgeText: { fontSize: 14, fontWeight: '700' },
-  periodCard: { borderRadius: 12, flexDirection: 'row', gap: 12, marginBottom: 8, paddingHorizontal: 14, paddingVertical: 12 },
+  modalSubtitle: { fontSize: FONT.sm, lineHeight: 18, marginBottom: SPACING.lg },
+  modalTitle: { fontSize: FONT.xl, fontWeight: '700' },
+  periodBadge: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    height: TOUCH_TARGET,
+    justifyContent: 'center',
+    width: TOUCH_TARGET,
+  },
+  periodBadgeText: { fontSize: FONT.base, fontWeight: '700' },
+  periodCard: {
+    borderRadius: RADIUS.md,
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+  },
   periodInfo: { flex: 1 },
-  periodList: { paddingBottom: 24, paddingHorizontal: 16, paddingTop: 16 },
-  periodMeta: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
-  periodMetaText: { fontSize: 12, marginRight: 8 },
-  periodName: { fontSize: 15, fontWeight: '600' },
-  periodTime: { fontSize: 12, fontWeight: '600', marginTop: 2 },
-  saveButton: { alignItems: 'center', borderRadius: 8, marginTop: 16, paddingVertical: 14 },
-  saveButtonText: { fontSize: 16, fontWeight: '600' },
+  periodList: { paddingBottom: SPACING.xxl, paddingHorizontal: SPACING.lg, paddingTop: SPACING.lg },
+  periodMeta: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+    marginTop: SPACING.xs,
+  },
+  periodMetaText: { fontSize: FONT.sm, marginRight: SPACING.sm },
+  periodName: { fontSize: FONT.lg, fontWeight: '600' },
+  periodTime: { fontSize: FONT.sm, fontWeight: '600', marginTop: SPACING.xxs },
+  saveButton: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    justifyContent: 'center',
+    marginTop: SPACING.lg,
+    minHeight: TOUCH_TARGET,
+  },
+  saveButtonText: { fontSize: FONT.lg, fontWeight: '600' },
 });

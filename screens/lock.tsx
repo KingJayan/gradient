@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { useAppLock } from '../context/app-lock-context';
 import { onPrimary } from '../utils/colors';
+import { FONT, RADIUS, SPACING } from '../utils/tokens';
 
 export default function LockScreen() {
   const { currentTheme } = useTheme();
@@ -38,22 +39,22 @@ export default function LockScreen() {
 const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: RADIUS.md,
     flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 28,
-    paddingVertical: 14,
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.xxl,
+    paddingVertical: SPACING.lg,
   },
-  buttonText: { fontSize: 16, fontWeight: '600' },
-  container: { alignItems: 'center', flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
+  buttonText: { fontSize: FONT.lg, fontWeight: '600' },
+  container: { alignItems: 'center', flex: 1, justifyContent: 'center', paddingHorizontal: SPACING.xxxl },
   iconCircle: {
     alignItems: 'center',
-    borderRadius: 48,
+    borderRadius: RADIUS.pill,
     height: 96,
     justifyContent: 'center',
-    marginBottom: 24,
+    marginBottom: SPACING.xxl,
     width: 96,
   },
-  subtitle: { fontSize: 14, marginBottom: 32, textAlign: 'center' },
-  title: { fontSize: 22, fontWeight: '700', marginBottom: 8 },
+  subtitle: { fontSize: FONT.base, marginBottom: SPACING.xxxl, textAlign: 'center' },
+  title: { fontSize: FONT.xxl, fontWeight: '700', marginBottom: SPACING.sm },
 });

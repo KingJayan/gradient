@@ -13,6 +13,7 @@ import { useAuth } from './hooks/use-auth';
 import { useTheme } from './hooks/use-theme';
 import { useNetworkStatus } from './hooks/use-network';
 import { UI_COLORS } from './utils/colors';
+import { FONT, RADIUS, SPACING } from './utils/tokens';
 import { mark, measure } from './utils/perf';
 
 mark('coldStart:start');
@@ -92,8 +93,8 @@ function AppTabs() {
           backgroundColor: currentTheme.surface,
           borderTopWidth: 1,
           borderTopColor: currentTheme.border,
-          paddingBottom: 8,
-          paddingTop: 8,
+          paddingBottom: SPACING.sm,
+          paddingTop: SPACING.sm,
         },
       })}
     >
@@ -192,18 +193,18 @@ const styles = StyleSheet.create({
   offlineBanner: {
     alignItems: 'center',
     backgroundColor: 'rgba(15,15,15,0.80)',
-    borderRadius: 20,
+    borderRadius: RADIUS.lg,
     bottom: 100,
     flexDirection: 'row',
-    gap: 6,
+    gap: SPACING.sm,
     justifyContent: 'center',
     left: 24,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
     position: 'absolute',
     right: 24,
     zIndex: 9999,
   },
-  offlineText: { color: UI_COLORS.dangerMuted, fontSize: 12, fontWeight: '500' },
+  offlineText: { color: UI_COLORS.dangerMuted, fontSize: FONT.sm, fontWeight: '500' },
   root: { flex: 1 },
 });
