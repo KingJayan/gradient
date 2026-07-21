@@ -5,7 +5,7 @@
         "buildType": "apk"
       },
       "ios": {
-        "buildType": "simulator"
+        "simulator": true
       }
     },
     "preview2": {
@@ -18,7 +18,7 @@
     },
     "production": {
       "ios": {
-        "buildType": "archive"
+        "resourceClass": "m-medium"
       }
     }
   },

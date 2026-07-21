@@ -23,6 +23,8 @@ pnpm start         # press `i` for ios simulator
 
 sign in with your district's HAC url, username, and password. four districts are preset; add more in [screens/login.tsx](screens/login.tsx).
 
+no HAC account? tap **explore the demo account** on the login screen (or sign in as `demo` / `demo`) — every screen renders from fixtures in [services/api/demo.ts](services/api/demo.ts), no network. turn it off with `extra.demoMode: false` in [app.json](app.json).
+
 ## scripts
 
 | command | what it does |
@@ -32,6 +34,7 @@ sign in with your district's HAC url, username, and password. four districts are
 | `pnpm run lint` | eslint |
 | `pnpm run type-check` | typescript check |
 | `pnpm test` | jest + react native testing library |
+| `maestro test .maestro` | end-to-end smoke flow on a simulator build |
 | `pnpm run build:ios` | eas production build |
 
 ## stack

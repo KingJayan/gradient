@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { AuthState, Student } from '../context/auth-context';
 import { logError } from '../utils/error-logger';
 import { API_URL } from '../services/api/config';
+import { DEMO_CREDENTIALS, DEMO_STUDENT_NAME, isDemoUser } from '../services/api/demo';
 
 const CREDENTIAL_PRESENCE_MARKER = 'authenticated';
 
@@ -62,14 +63,20 @@ export function useAuth() {
 
   const login = useCallback(
     async (username: string, password: string, hacUrl: string) => {
-      const response = await fetch(`${API_URL}/name`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
-      });
-      if (!response.ok) throw new Error('Invalid credentials');
-      const data = await response.json();
-      const name = typeof data?.name === 'string' ? data.name : undefined;
+      let name: string | undefined;
+      if (isDemoUser(username)) {
+        if (password !== DEMO_CREDENTIALS.password) throw new Error('Invalid credentials');
+        name = DEMO_STUDENT_NAME;
+      } else {
+        const response = await fetch(`${API_URL}/name`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
+        });
+        if (!response.ok) throw new Error('Invalid credentials');
+        const data = await response.json();
+        name = typeof data?.name === 'string' ? data.name : undefined;
+      }
 
       const token = CREDENTIAL_PRESENCE_MARKER;
       const user: Student = { id: username, username, hacUrl, name };

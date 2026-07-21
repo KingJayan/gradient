@@ -1,0 +1,31 @@
+name: EAS preview build
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  preview:
+    name: Simulator build
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: eas build --platform ios --profile preview --non-interactive --no-wait

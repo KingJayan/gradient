@@ -1,5 +1,6 @@
 import { logError, logWarning } from '../../utils/error-logger';
 import { API_URL } from './config';
+import { demoPayload } from './demo';
 
 export function isObject(val: unknown): val is Record<string, unknown> {
   return val !== null && typeof val === 'object' && !Array.isArray(val);
@@ -79,6 +80,9 @@ export async function apiFetch<T>(
   parse: (data: unknown, endpoint: string) => T,
   signal?: AbortSignal
 ): Promise<T> {
+  const demo = demoPayload(endpoint, username);
+  if (demo !== undefined) return parse(demo, endpoint);
+
   for (let attempt = 0; ; attempt++) {
     const lastAttempt = attempt === MAX_ATTEMPTS - 1;
     try {

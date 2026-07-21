@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
+import { DEMO_CREDENTIALS, DEMO_MODE } from '../services/api/demo';
 import { useTheme } from '../hooks/use-theme';
 import { UI_COLORS } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
@@ -49,7 +50,18 @@ export default function LoginScreen() {
     }).start();
   }, [fadeAnim]);
 
-  const handleLogin = async () => {
+  const signIn = async (user: string, pass: string, url: string) => {
+    setLoading(true);
+    try {
+      await authContext!.login(user, pass, url);
+    } catch (error) {
+      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = () => {
     if (!username || !password) {
       Alert.alert('Error', 'Please enter username and password');
       return;
@@ -58,15 +70,11 @@ export default function LoginScreen() {
       Alert.alert('Error', 'Please enter your district URL');
       return;
     }
-    setLoading(true);
-    try {
-      await authContext!.login(username, password, hacUrl);
-    } catch (error) {
-      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
-    } finally {
-      setLoading(false);
-    }
+    signIn(username, password, hacUrl);
   };
+
+  const handleDemo = () =>
+    signIn(DEMO_CREDENTIALS.username, DEMO_CREDENTIALS.password, DEMO_CREDENTIALS.hacUrl);
 
   return (
     <KeyboardAvoidingView
@@ -184,6 +192,21 @@ export default function LoginScreen() {
               </>
             )}
           </TouchableOpacity>
+
+          {DEMO_MODE && (
+            <TouchableOpacity
+              style={[styles.demoButton, { borderColor: currentTheme.border }]}
+              onPress={handleDemo}
+              disabled={loading}
+              accessibilityRole="button"
+              accessibilityLabel="Explore the demo account"
+              accessibilityState={{ disabled: loading }}
+            >
+              <Text style={[styles.demoButtonText, { color: currentTheme.textSecondary }]}>
+                Explore the demo account
+              </Text>
+            </TouchableOpacity>
+          )}
         </Animated.View>
 
         <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
@@ -199,6 +222,18 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  demoButton: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    justifyContent: 'center',
+    marginTop: SPACING.md,
+    minHeight: TOUCH_TARGET,
+  },
+  demoButtonText: {
+    fontSize: FONT.base,
+    fontWeight: '500',
   },
   districtButton: {
     alignItems: 'center',

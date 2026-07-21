@@ -45,8 +45,9 @@
     "scheme": "gradient",
     "extra": {
       "apiBaseUrl": "https://gradient-hac-api.vercel.app",
+      "demoMode": true,
       "eas": {
-        "projectId": "your-eas-project-id"
+        "projectId": "774b8478-2c1e-428b-a313-462ed7638fb1"
       }
     },
     "updates": {

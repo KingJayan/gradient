@@ -1,0 +1,11 @@
+appId: com.kingjayan.gradient
+name: Login and render grades
+---
+- launchApp:
+    clearState: true
+- assertVisible: Gradient
+- tapOn: Explore the demo account
+- assertVisible: Weighted GPA
+- tapOn: Grades
+- assertVisible: Your Grades
+- assertVisible: AP Calculus BC

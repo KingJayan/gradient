@@ -93,6 +93,7 @@ The app never talks to HAC directly — see [ADR 1](./docs/adr/0001-proxy-api.md
 | `assignments.ts` | `fetchAssignments` |
 | `schedule.ts` | `fetchSchedule` |
 | `transcript.ts` | `fetchTranscript` |
+| `demo.ts` | `DEMO_MODE`, `DEMO_CREDENTIALS`, `isDemoUser`, `demoPayload` |
 
 Implementation details:
 - Fetchers take `(hacUrl, username, password, ...optional, signal?)` and return typed arrays.
@@ -103,6 +104,17 @@ Implementation details:
 - `inferWeight(name)` returns 1.0 for AP, 0.5 for Honors, 0.0 otherwise — used by `fetchCourses`; users can override per-course in the GPA screen.
 - Period numbers come from HAC; bell times are not exposed by the API and are
   entered by the user (AsyncStorage key `bellSchedule`).
+
+### Demo mode (services/api/demo.ts)
+- `DEMO_MODE` comes from `app.json` `extra.demoMode` (on unless set to `false`).
+- Signing in as `demo` / `demo` — from the "Explore the demo account" button on
+  the login screen or by typing the credentials — serves fixtures instead of
+  hitting the proxy, so the app runs with no HAC account (App Store review,
+  screenshots, the Maestro flow).
+- `apiFetch()` short-circuits through `demoPayload(endpoint, username)`, and
+  `login()` skips `/api/name`. Fixtures are raw HAC-shaped payloads, so they go
+  through the same `schema.ts` validators and `parsers.ts` as real responses.
+- Any other username always takes the network path.
 
 ### Themes (context/theme-context.ts)
 - 6 themes: emerald (default), ocean, violet, rose, amber, slate.
@@ -165,6 +177,7 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 | `utils/perf.ts` | `mark`/`measure` timings |
 | `screens/` | 10 screens (6 tabs, transcript modal, login, lock, loading) |
 | `test/` | Jest setup + shared render helpers (not a test suite itself) |
+| `.maestro/` | End-to-end smoke flow (login → grades) |
 | `docs/adr/` | Decision records for the non-obvious choices |
 
 ## Guidelines
@@ -199,7 +212,7 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 ## Deployment
 
 Typical flow: `pnpm run prebuild && pnpm run build:ios && eas submit --platform ios`.
-`app.json` carries `extra.eas.projectId` and `extra.apiBaseUrl`.
+`app.json` carries `extra.eas.projectId`, `extra.apiBaseUrl`, and `extra.demoMode`.
 
 ## Security
 
@@ -224,6 +237,7 @@ in `__tests__/` subdirectories next to the modules they cover. Run with `pnpm te
 | `screens/__tests__/dashboard-screens.test.tsx` | loading / error+retry / empty / data for Home, Grades, GPA, Schedule, Planner |
 | `screens/__tests__/transcript.test.tsx` | the same four states for the transcript modal |
 | `services/api/__tests__/fetchers.test.ts` | `fetchGrades`, `fetchCourses`, `fetchAssignments`, `fetchTranscript` — fetch is mocked |
+| `services/api/__tests__/demo.test.ts` | every fetcher served from fixtures without a request; real usernames still hit the network |
 
 `test/setup.ts` mocks SecureStore, AsyncStorage, local auth, and the icon font;
 `test/render.tsx` provides `renderScreen` (theme + auth providers) and
@@ -233,8 +247,15 @@ Every screen must keep all four `AsyncContent` states reachable — pass `error`
 and `onRetry`, and an `empty` node when a loaded-but-empty response renders
 nothing.
 
+`.maestro/login-grades.yaml` is the end-to-end smoke test: launch → demo sign-in
+→ Grades tab renders a class. It runs against the demo account, so it needs no
+credentials. Run it locally with `maestro test .maestro` against a simulator
+build.
+
 CI (`.github/workflows/ci.yml`) runs type-check → lint → test → `pnpm audit
---audit-level high` on every push and PR to `main`. Dependency bumps arrive
+--audit-level high` on every push and PR to `main`, then the Maestro flow on a
+macOS runner. `.github/workflows/eas-preview.yml` kicks off an EAS simulator
+build for every PR (needs the `EXPO_TOKEN` secret). Dependency bumps arrive
 weekly via `.github/dependabot.yml`.
 
 ## Known Limitations
