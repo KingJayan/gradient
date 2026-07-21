@@ -55,7 +55,10 @@ export default function LoginScreen() {
     try {
       await authContext!.login(user, pass, url);
     } catch (error) {
-      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials');
+      Alert.alert(
+        "Couldn't Sign In",
+        error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -63,11 +66,11 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     if (!username || !password) {
-      Alert.alert('Error', 'Please enter username and password');
+      Alert.alert('Missing Details', 'Enter the username and password you use for Home Access Center.');
       return;
     }
     if (!hacUrl) {
-      Alert.alert('Error', 'Please enter your district URL');
+      Alert.alert('Missing District', "Enter your district's Home Access Center URL.");
       return;
     }
     signIn(username, password, hacUrl);

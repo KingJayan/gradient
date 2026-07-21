@@ -2,6 +2,7 @@ import { useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { AuthContext } from '../context/auth-context';
 import * as SecureStore from 'expo-secure-store';
 import { logError } from '../utils/error-logger';
+import { SECURE_KEYS } from '../utils/storage';
 
 export interface Creds {
   hacUrl: string;
@@ -21,7 +22,7 @@ export function useCreds(): Creds | null {
       setPassword(null);
       return;
     }
-    SecureStore.getItemAsync('userPass')
+    SecureStore.getItemAsync(SECURE_KEYS.password)
       .then(setPassword)
       .catch((e) => {
         logError(e as Error, { action: 'useCreds.getUserPass' });

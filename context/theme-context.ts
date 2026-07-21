@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { logWarning } from '../utils/error-logger';
+import { SECURE_KEYS } from '../utils/storage';
 
 export interface Theme {
   primary: string;
@@ -73,14 +74,12 @@ export interface ThemeContextType {
 
 export const ThemeContext = createContext<ThemeContextType | null>(null);
 
-const THEME_KEY = 'appTheme';
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeName, setThemeName] = useState('emerald');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    SecureStore.getItemAsync(THEME_KEY)
+    SecureStore.getItemAsync(SECURE_KEYS.theme)
       .then((saved) => {
         if (saved && THEMES[saved]) setThemeName(saved);
       })
@@ -94,7 +93,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!THEMES[name]) return;
     setThemeName(name);
     try {
-      await SecureStore.setItemAsync(THEME_KEY, name);
+      await SecureStore.setItemAsync(SECURE_KEYS.theme, name);
     } catch (e) {
       logWarning('theme persist failed', { themeName: name, error: (e as Error).message });
     }

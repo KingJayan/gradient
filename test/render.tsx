@@ -23,6 +23,7 @@ export const auth: AuthContextType = {
   bootstrapAsync: jest.fn(async () => {}),
   login: jest.fn(async () => {}),
   logout: jest.fn(async () => {}),
+  deleteAccount: jest.fn(async () => {}),
 };
 
 export function renderScreen(ui: React.ReactElement) {

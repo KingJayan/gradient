@@ -18,6 +18,23 @@ jest.mock('expo-secure-store', () => {
 
 jest.mock('@expo/vector-icons', () => ({ Ionicons: require('react-native').View }));
 
+jest.mock('@sentry/react-native', () => ({
+  init: jest.fn(),
+  wrap: <T,>(component: T) => component,
+  setTag: jest.fn(),
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+}));
+
+jest.mock('expo-updates', () => ({
+  isEnabled: false,
+  updateId: null,
+  channel: null,
+  checkForUpdateAsync: jest.fn(async () => ({ isAvailable: false })),
+  fetchUpdateAsync: jest.fn(async () => ({ isNew: false })),
+  reloadAsync: jest.fn(async () => {}),
+}));
+
 jest.mock('expo-local-authentication', () => ({
   hasHardwareAsync: jest.fn(async () => true),
   isEnrolledAsync: jest.fn(async () => true),

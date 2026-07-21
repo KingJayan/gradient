@@ -20,6 +20,7 @@ export interface AuthContextType {
   bootstrapAsync: () => Promise<void>;
   login: (username: string, password: string, hacUrl: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 export const AuthContext = React.createContext<AuthContextType | undefined>(

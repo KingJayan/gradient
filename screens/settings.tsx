@@ -7,15 +7,27 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
 import { useAppLock } from '../context/app-lock-context';
 import { THEMES } from '../context/theme-context';
+import { applyUpdate, currentUpdateLabel, fetchUpdate, OTA_ENABLED } from '../hooks/use-updates';
 import { UI_COLORS, onPrimary } from '../utils/colors';
+import { districtName } from '../utils/district';
+import { APP_VERSION, BUILD_NUMBER, PRIVACY_URL, SUPPORT_URL } from '../utils/links';
+import { logWarning } from '../utils/error-logger';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, ScreenHeader } from '../components/screen';
+
+const UPDATE_MESSAGES = {
+  downloaded: 'An update is ready. Restart Gradient to apply it.',
+  current: "You're on the latest version.",
+  unsupported: 'Over-the-air updates are unavailable in this build.',
+  failed: 'Could not check for updates. Try again when you have a connection.',
+} as const;
 
 export default function SettingsScreen() {
   const authContext = useContext(AuthContext);
@@ -23,7 +35,7 @@ export default function SettingsScreen() {
   const { enabled: appLockEnabled, setEnabled: setAppLockEnabled, isSupported } = useAppLock();
 
   if (!authContext) return null;
-  const { state, logout } = authContext;
+  const { state, logout, deleteAccount } = authContext;
 
   const handleAppLockToggle = async (value: boolean) => {
     if (value && !(await isSupported())) {
@@ -43,8 +55,39 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This erases your saved credentials, cached grades, and personal tasks from this device. Your Home Access Center account belongs to your district and is not affected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete Everything', onPress: deleteAccount, style: 'destructive' },
+      ]
+    );
+  };
+
   const handleThemeChange = async (name: string) => {
     await setTheme(name);
+  };
+
+  const openLink = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch (e) {
+      logWarning('Failed to open link', { url, error: e instanceof Error ? e.message : String(e) });
+      Alert.alert('Unable to Open Link', url);
+    }
+  };
+
+  const handleCheckForUpdates = async () => {
+    const result = await fetchUpdate();
+    Alert.alert(
+      'Updates',
+      UPDATE_MESSAGES[result],
+      result === 'downloaded'
+        ? [{ text: 'Later', style: 'cancel' }, { text: 'Restart', onPress: applyUpdate }]
+        : [{ text: 'OK' }]
+    );
   };
 
   return (
@@ -98,7 +141,7 @@ export default function SettingsScreen() {
                 {state.user?.username}
               </Text>
               <Text style={[styles.accountDistrict, { color: currentTheme.primary }]}>
-                {state.user?.hacUrl.split('/')[2].split('.')[0] || 'District'}
+                {districtName(state.user?.hacUrl)}
               </Text>
             </View>
           </View>
@@ -129,16 +172,53 @@ export default function SettingsScreen() {
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
+            Support
+          </Text>
+          <TouchableOpacity
+            style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}
+            onPress={() => openLink(SUPPORT_URL)}
+            accessibilityRole="link"
+            accessibilityLabel="Get help and report a problem"
+          >
+            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Get Help</Text>
+            <Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}
+            onPress={() => openLink(PRIVACY_URL)}
+            accessibilityRole="link"
+            accessibilityLabel="Read the privacy policy"
+          >
+            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Privacy Policy</Text>
+            <Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}
+            onPress={handleCheckForUpdates}
+            accessibilityRole="button"
+            accessibilityLabel="Check for updates"
+          >
+            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Check for Updates</Text>
+            <Ionicons name="refresh" size={18} color={currentTheme.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             About
           </Text>
           <View style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}>
             <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Version</Text>
-            <Text style={[styles.infoValue, { color: currentTheme.text }]}>1.0.0</Text>
+            <Text style={[styles.infoValue, { color: currentTheme.text }]}>
+              {APP_VERSION} ({BUILD_NUMBER})
+            </Text>
           </View>
-          <View style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}>
-            <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Build</Text>
-            <Text style={[styles.infoValue, { color: currentTheme.text }]}>1</Text>
-          </View>
+          {OTA_ENABLED && (
+            <View style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Update</Text>
+              <Text style={[styles.infoValue, { color: currentTheme.text }]}>{currentUpdateLabel()}</Text>
+            </View>
+          )}
           <View style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}>
             <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Powered by</Text>
             <Text style={[styles.infoValue, { color: currentTheme.text }]}>HAC API</Text>
@@ -154,6 +234,15 @@ export default function SettingsScreen() {
           >
             <Ionicons name="log-out" size={20} color={UI_COLORS.white} />
             <Text style={styles.logoutText}>Sign Out</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.deleteButton, { borderColor: UI_COLORS.danger }]}
+            onPress={handleDeleteAccount}
+            accessibilityRole="button"
+            accessibilityLabel="Delete account and erase all data on this device"
+          >
+            <Ionicons name="trash" size={18} color={UI_COLORS.danger} />
+            <Text style={styles.deleteText}>Delete Account</Text>
           </TouchableOpacity>
         </View>
 
@@ -198,6 +287,21 @@ const styles = StyleSheet.create({
   },
   accountName: {
     fontSize: FONT.lg,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    alignItems: 'center',
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    justifyContent: 'center',
+    marginTop: SPACING.md,
+    minHeight: TOUCH_TARGET,
+  },
+  deleteText: {
+    color: UI_COLORS.danger,
+    fontSize: FONT.base,
     fontWeight: '600',
   },
   footer: {

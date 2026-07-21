@@ -20,8 +20,7 @@ import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { logWarning } from '../utils/error-logger';
 import { Screen, AsyncContent, IconButton } from '../components/screen';
-
-const PERSONAL_TASKS_KEY = 'personalTasks';
+import { LOCAL_KEYS } from '../utils/storage';
 
 type Row = { type: 'header'; key: string; date: string } | { type: 'task'; key: string; task: Assignment };
 
@@ -152,7 +151,7 @@ export default function PlannerScreen() {
 
   const loadPersonalTasks = async () => {
     try {
-      const stored = await AsyncStorage.getItem(PERSONAL_TASKS_KEY);
+      const stored = await AsyncStorage.getItem(LOCAL_KEYS.personalTasks);
       if (stored) setPersonalTasks(JSON.parse(stored));
     } catch (e) {
       logWarning('failed to load personal tasks', { error: e instanceof Error ? e.message : String(e) });
@@ -161,7 +160,7 @@ export default function PlannerScreen() {
 
   const persistTasks = useCallback(async (tasks: PersonalTask[], rollback: PersonalTask[]) => {
     try {
-      await AsyncStorage.setItem(PERSONAL_TASKS_KEY, JSON.stringify(tasks));
+      await AsyncStorage.setItem(LOCAL_KEYS.personalTasks, JSON.stringify(tasks));
     } catch (e) {
       logWarning('failed to save personal tasks', { error: e instanceof Error ? e.message : String(e) });
       setPersonalTasks(rollback);

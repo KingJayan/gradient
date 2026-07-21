@@ -17,8 +17,7 @@ import { useDataCache } from '../context/data-context';
 import { onPrimary } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, ScreenHeader, AsyncContent, RetryButton, IconButton } from '../components/screen';
-
-const BELL_SCHEDULE_KEY = 'bellSchedule';
+import { LOCAL_KEYS } from '../utils/storage';
 
 type BellSchedule = Record<string, { start: string; end: string }>;
 
@@ -41,7 +40,7 @@ export default function ScheduleScreen() {
   const [editTimes, setEditTimes] = useState<BellSchedule>({});
 
   useEffect(() => {
-    AsyncStorage.getItem(BELL_SCHEDULE_KEY).then((raw) => {
+    AsyncStorage.getItem(LOCAL_KEYS.bellSchedule).then((raw) => {
       if (raw) setBellTimes(JSON.parse(raw));
     });
   }, []);
@@ -60,7 +59,7 @@ export default function ScheduleScreen() {
 
   const saveBellTimes = async () => {
     setBellTimes(editTimes);
-    await AsyncStorage.setItem(BELL_SCHEDULE_KEY, JSON.stringify(editTimes));
+    await AsyncStorage.setItem(LOCAL_KEYS.bellSchedule, JSON.stringify(editTimes));
     setShowBellEditor(false);
   };
 

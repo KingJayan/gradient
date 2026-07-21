@@ -3,8 +3,7 @@ import { AppState } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { logWarning } from '../utils/error-logger';
-
-const APP_LOCK_KEY = 'appLockEnabled';
+import { SECURE_KEYS } from '../utils/storage';
 
 interface AppLockValue {
   enabled: boolean;
@@ -22,7 +21,7 @@ export function AppLockProvider({ isLoggedIn, children }: { isLoggedIn: boolean;
   const enabledRef = useRef(false);
 
   useEffect(() => {
-    SecureStore.getItemAsync(APP_LOCK_KEY).then((v) => {
+    SecureStore.getItemAsync(SECURE_KEYS.appLock).then((v) => {
       const on = v === 'true';
       enabledRef.current = on;
       setEnabledState(on);
@@ -62,7 +61,7 @@ export function AppLockProvider({ isLoggedIn, children }: { isLoggedIn: boolean;
     enabledRef.current = value;
     setEnabledState(value);
     setUnlocked(!value);
-    await SecureStore.setItemAsync(APP_LOCK_KEY, value ? 'true' : 'false');
+    await SecureStore.setItemAsync(SECURE_KEYS.appLock, value ? 'true' : 'false');
   }, []);
 
   const locked = isLoggedIn && enabled && !unlocked;

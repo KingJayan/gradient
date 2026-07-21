@@ -23,6 +23,7 @@ function authValue(current: Student | null): AuthContextType {
     bootstrapAsync: jest.fn(async () => {}),
     login: jest.fn(async () => {}),
     logout: jest.fn(async () => {}),
+    deleteAccount: jest.fn(async () => {}),
   };
 }
 
