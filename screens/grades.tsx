@@ -31,7 +31,9 @@ const GradeCard = React.memo(function GradeCard({
       onPress={() => onToggle(grade.className)}
       activeOpacity={0.7}
       accessibilityRole="button"
-      accessibilityLabel={`${grade.className}, ${grade.average.toFixed(1)}%, grade ${letter}, ${expanded ? 'collapse' : 'expand'}`}
+      accessibilityLabel={`${grade.className}, ${grade.average.toFixed(1)} percent, grade ${letter}`}
+      accessibilityHint={expanded ? 'Collapses the category breakdown' : 'Expands the category breakdown'}
+      accessibilityState={{ expanded }}
     >
       <View style={styles.gradeHeader}>
         <View style={styles.gradeInfo}>
@@ -50,24 +52,36 @@ const GradeCard = React.memo(function GradeCard({
         </View>
       </View>
 
-      <View style={[styles.progressBar, { backgroundColor: currentTheme.border }]}>
+      <View
+        style={[styles.progressBar, { backgroundColor: currentTheme.border }]}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      >
         <View style={[styles.progressFill, { width: `${grade.average}%`, backgroundColor: color }]} />
       </View>
 
       {expanded && grade.categories.length > 0 && (
         <View style={[styles.expandedContent, { borderTopColor: currentTheme.border }]}>
           <Text style={[styles.assignmentTitle, { color: currentTheme.textSecondary }]}>Category Breakdown</Text>
-          {grade.categories.map((cat, idx) => (
-            <View key={idx} style={styles.assignmentItem}>
-              <View style={styles.assignmentDetails}>
-                <View style={styles.assignmentNameRow}>
-                  <View style={[styles.assignmentDot, { backgroundColor: gradeColor(parseFloat(cat.grade)) }]} />
-                  <Text style={[styles.assignmentName, { color: currentTheme.text }]}>{cat.name}</Text>
+          {grade.categories.map((cat, idx) => {
+            const catAvg = parseFloat(cat.grade);
+            return (
+              <View key={idx} style={styles.assignmentItem}>
+                <View style={styles.assignmentDetails}>
+                  <View style={styles.assignmentNameRow}>
+                    <View style={[styles.assignmentDot, { backgroundColor: gradeColor(catAvg) }]} />
+                    <Text style={[styles.assignmentName, { color: currentTheme.text }]}>{cat.name}</Text>
+                  </View>
                 </View>
+                <Text
+                  style={[styles.assignmentGrade, { color: gradeColor(catAvg) }]}
+                  accessibilityLabel={`${cat.grade} percent, grade ${gradeLetter(catAvg)}`}
+                >
+                  {gradeLetter(catAvg)} · {cat.grade}%
+                </Text>
               </View>
-              <Text style={[styles.assignmentGrade, { color: gradeColor(parseFloat(cat.grade)) }]}>{cat.grade}%</Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
       )}
     </TouchableOpacity>
@@ -129,7 +143,8 @@ export default function GradesScreen() {
           { label: 'A (90-100)', color: gradeColor(95) },
           { label: 'B (80-89)', color: gradeColor(85) },
           { label: 'C (70-79)', color: gradeColor(75) },
-          { label: 'F (<70)', color: gradeColor(65) },
+          { label: 'D (60-69)', color: gradeColor(65) },
+          { label: 'F (<60)', color: gradeColor(55) },
         ].map((item) => (
           <View key={item.label} style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: item.color }]} />

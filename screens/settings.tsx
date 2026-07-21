@@ -50,7 +50,7 @@ export default function SettingsScreen() {
     <Screen header={<ScreenHeader title="Settings" />}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             Appearance
           </Text>
           <View style={styles.themeGrid}>
@@ -69,9 +69,10 @@ export default function SettingsScreen() {
                   ]}
                   onPress={() => handleThemeChange(theme)}
                   accessibilityRole="button"
-                  accessibilityLabel={`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme${themeName === theme ? ', selected' : ''}`}
+                  accessibilityLabel={`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme`}
+                  accessibilityState={{ selected: themeName === theme }}
                 >
-                  <Text style={[styles.themeOptionText, { color: onPrimary(themeColor) }]}>
+                  <Text style={[styles.themeOptionText, { color: onPrimary(themeColor) }]} maxFontSizeMultiplier={1.6}>
                     {theme.charAt(0).toUpperCase() + theme.slice(1)}
                   </Text>
                 </TouchableOpacity>
@@ -81,7 +82,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             Account
           </Text>
           <View style={[styles.accountCard, { backgroundColor: currentTheme.surface }]}>
@@ -103,7 +104,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             Security
           </Text>
           <View style={[styles.lockRow, { backgroundColor: currentTheme.surface }]}>
@@ -126,7 +127,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             About
           </Text>
           <View style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}>
@@ -275,8 +276,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flex: 1,
     justifyContent: 'center',
+    minHeight: 44,
     minWidth: '30%',
-    paddingVertical: 12,
   },
   themeOptionText: {
     fontSize: 11,

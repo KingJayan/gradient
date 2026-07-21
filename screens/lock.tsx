@@ -18,7 +18,7 @@ export default function LockScreen() {
       <View style={[styles.iconCircle, { backgroundColor: currentTheme.primary + '22' }]}>
         <Ionicons name="lock-closed" size={40} color={currentTheme.primary} />
       </View>
-      <Text style={[styles.title, { color: currentTheme.text }]}>Gradient is locked</Text>
+      <Text style={[styles.title, { color: currentTheme.text }]} accessibilityRole="header">Gradient is locked</Text>
       <Text style={[styles.subtitle, { color: currentTheme.textSecondary }]}>
         Authenticate to view your grades.
       </Text>

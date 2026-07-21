@@ -80,13 +80,13 @@ export default function LoginScreen() {
           <View style={styles.logoContainer}>
             <Ionicons name="school" size={48} color={currentTheme.primary} />
           </View>
-          <Text style={[styles.title, { color: currentTheme.primary }]}>Gradient</Text>
+          <Text style={[styles.title, { color: currentTheme.primary }]} accessibilityRole="header">Gradient</Text>
           <Text style={[styles.subtitle, { color: currentTheme.textSecondary }]}>Your grades, visualized</Text>
         </Animated.View>
 
         <Animated.View style={[styles.form, { opacity: fadeAnim }]}>
           <Text style={[styles.label, { color: currentTheme.text }]}>School District</Text>
-          <View style={styles.districtContainer}>
+          <View style={styles.districtContainer} accessibilityRole="radiogroup">
             {DISTRICTS.map((district) => (
               <TouchableOpacity
                 key={district.id}
@@ -98,6 +98,9 @@ export default function LoginScreen() {
                   }
                 ]}
                 onPress={() => setSelectedDistrictId(district.id)}
+                accessibilityRole="radio"
+                accessibilityLabel={district.name}
+                accessibilityState={{ checked: selectedDistrictId === district.id }}
               >
                 <Ionicons
                   name={selectedDistrictId === district.id ? 'checkmark-circle' : 'ellipse-outline'}
@@ -126,6 +129,7 @@ export default function LoginScreen() {
                   autoCapitalize="none"
                   keyboardType="url"
                   editable={!loading}
+                  accessibilityLabel="District home access URL"
                 />
               </View>
             )}
@@ -141,6 +145,8 @@ export default function LoginScreen() {
               onChangeText={setUsername}
               editable={!loading}
               placeholderTextColor={currentTheme.textSecondary}
+              autoCapitalize="none"
+              accessibilityLabel="Username"
             />
           </View>
 
@@ -155,6 +161,8 @@ export default function LoginScreen() {
               secureTextEntry
               editable={!loading}
               placeholderTextColor={currentTheme.textSecondary}
+              autoCapitalize="none"
+              accessibilityLabel="Password"
             />
           </View>
 
@@ -162,6 +170,9 @@ export default function LoginScreen() {
             style={[styles.loginButton, { backgroundColor: currentTheme.primary }, loading && styles.loginButtonDisabled]}
             onPress={handleLogin}
             disabled={loading}
+            accessibilityRole="button"
+            accessibilityLabel={loading ? 'Signing in' : 'Sign in'}
+            accessibilityState={{ disabled: loading, busy: loading }}
           >
             {loading ? (
               <ActivityIndicator color={UI_COLORS.white} />
@@ -194,8 +205,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: 'row',
     marginBottom: 8,
+    minHeight: 44,
     paddingHorizontal: 16,
-    paddingVertical: 12,
   },
   districtButtonText: {
     flex: 1,

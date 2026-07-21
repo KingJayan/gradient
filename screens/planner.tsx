@@ -18,7 +18,7 @@ import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { logWarning } from '../utils/error-logger';
-import { Screen, AsyncContent } from '../components/screen';
+import { Screen, AsyncContent, IconButton } from '../components/screen';
 
 const PERSONAL_TASKS_KEY = 'personalTasks';
 
@@ -63,17 +63,25 @@ function CalendarPicker({ value, onChange, currentTheme }: {
   return (
     <View>
       <View style={styles.calHeader}>
-        <TouchableOpacity onPress={() => setViewMonth(new Date(year, month - 1, 1))}>
-          <Ionicons name="chevron-back" size={22} color={currentTheme.text} />
-        </TouchableOpacity>
-        <Text style={[styles.calMonthLabel, { color: currentTheme.text }]}>
+        <IconButton
+          name="chevron-back"
+          size={22}
+          color={currentTheme.text}
+          label="Previous month"
+          onPress={() => setViewMonth(new Date(year, month - 1, 1))}
+        />
+        <Text style={[styles.calMonthLabel, { color: currentTheme.text }]} accessibilityRole="header">
           {MONTH_NAMES[month]} {year}
         </Text>
-        <TouchableOpacity onPress={() => setViewMonth(new Date(year, month + 1, 1))}>
-          <Ionicons name="chevron-forward" size={22} color={currentTheme.text} />
-        </TouchableOpacity>
+        <IconButton
+          name="chevron-forward"
+          size={22}
+          color={currentTheme.text}
+          label="Next month"
+          onPress={() => setViewMonth(new Date(year, month + 1, 1))}
+        />
       </View>
-      <View style={styles.calDowRow}>
+      <View style={styles.calDowRow} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {DOW_LABELS.map((d, i) => (
           <Text key={i} style={[styles.calDowLabel, { color: currentTheme.textSecondary }]}>{d}</Text>
         ))}
@@ -95,11 +103,17 @@ function CalendarPicker({ value, onChange, currentTheme }: {
                   isToday && !isSelected && { borderWidth: 1, borderColor: currentTheme.primary, borderRadius: 20 },
                 ]}
                 onPress={() => onChange(d)}
+                accessibilityRole="button"
+                accessibilityLabel={`${MONTH_NAMES[month]} ${day}, ${year}${isToday ? ', today' : ''}`}
+                accessibilityState={{ selected: isSelected }}
               >
-                <Text style={[
-                  styles.calDayText,
-                  { color: isSelected ? onPrimary(currentTheme.primary) : isToday ? currentTheme.primary : currentTheme.text },
-                ]}>
+                <Text
+                  style={[
+                    styles.calDayText,
+                    { color: isSelected ? onPrimary(currentTheme.primary) : isToday ? currentTheme.primary : currentTheme.text },
+                  ]}
+                  maxFontSizeMultiplier={1.4}
+                >
                   {day}
                 </Text>
               </TouchableOpacity>
@@ -232,7 +246,7 @@ export default function PlannerScreen() {
         <View style={styles.overdueSection}>
           <View style={styles.overdueHeader}>
             <Ionicons name="alert-circle" size={20} color={UI_COLORS.danger} />
-            <Text style={styles.overdueTitle}>Overdue ({overdueTasks.length})</Text>
+            <Text style={styles.overdueTitle} accessibilityRole="header">Overdue ({overdueTasks.length})</Text>
           </View>
           {overdueTasks.slice(0, 2).map((task) => (
             <TaskItem key={task.id} task={task} onToggle={handleToggleTask} isOverdue currentTheme={currentTheme} />
@@ -246,6 +260,9 @@ export default function PlannerScreen() {
             key={src}
             style={[styles.filterButton, { borderColor: currentTheme.border }, filterSource === src && [styles.filterButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
             onPress={() => setFilterSource(src)}
+            accessibilityRole="button"
+            accessibilityLabel={`Show ${src === 'hac' ? 'HAC' : src} tasks`}
+            accessibilityState={{ selected: filterSource === src }}
           >
             <Text style={[styles.filterButtonText, { color: filterSource === src ? onPrimary(currentTheme.primary) : currentTheme.textSecondary }]}>
               {src.charAt(0).toUpperCase() + src.slice(1)}
@@ -259,6 +276,7 @@ export default function PlannerScreen() {
             onValueChange={setShowCompleted}
             trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
             thumbColor={showCompleted ? UI_COLORS.white : currentTheme.textSecondary}
+            accessibilityLabel="Show completed tasks"
           />
         </View>
       </View>
@@ -270,7 +288,7 @@ export default function PlannerScreen() {
         keyExtractor={(item) => item.key}
         renderItem={({ item }) =>
           item.type === 'header' ? (
-            <Text style={[styles.dateHeader, { color: currentTheme.text }]}>{item.date}</Text>
+            <Text style={[styles.dateHeader, { color: currentTheme.text }]} accessibilityRole="header">{item.date}</Text>
           ) : (
             <TaskItem task={item.task} onToggle={handleToggleTask} currentTheme={currentTheme} />
           )
@@ -283,16 +301,24 @@ export default function PlannerScreen() {
         }
       />
 
-      <Modal visible={showAddModal} transparent animationType="slide">
+      <Modal
+        visible={showAddModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => (showCalendar ? setShowCalendar(false) : setShowAddModal(false))}
+      >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
             {showCalendar ? (
               <>
                 <View style={styles.modalHeader}>
-                  <TouchableOpacity onPress={() => setShowCalendar(false)}>
-                    <Ionicons name="chevron-back" size={24} color={currentTheme.text} />
-                  </TouchableOpacity>
-                  <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Select Date</Text>
+                  <IconButton
+                    name="chevron-back"
+                    color={currentTheme.text}
+                    label="Back to task details"
+                    onPress={() => setShowCalendar(false)}
+                  />
+                  <Text style={[styles.modalTitle, { color: currentTheme.text }]} accessibilityRole="header">Select Date</Text>
                   <View style={styles.modalHeaderSpacer} />
                 </View>
                 <CalendarPicker
@@ -304,10 +330,13 @@ export default function PlannerScreen() {
             ) : (
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Add Task</Text>
-                  <TouchableOpacity onPress={() => setShowAddModal(false)}>
-                    <Ionicons name="close" size={24} color={currentTheme.text} />
-                  </TouchableOpacity>
+                  <Text style={[styles.modalTitle, { color: currentTheme.text }]} accessibilityRole="header">Add Task</Text>
+                  <IconButton
+                    name="close"
+                    color={currentTheme.text}
+                    label="Close add task"
+                    onPress={() => setShowAddModal(false)}
+                  />
                 </View>
                 <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Task Title</Text>
                 <TextInput
@@ -316,11 +345,15 @@ export default function PlannerScreen() {
                   placeholderTextColor={currentTheme.textSecondary}
                   value={newTaskTitle}
                   onChangeText={setNewTaskTitle}
+                  accessibilityLabel="Task title"
                 />
                 <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Due Date</Text>
                 <TouchableOpacity
                   style={[styles.modalInput, styles.datePickerButton, { backgroundColor: currentTheme.background }]}
                   onPress={() => setShowCalendar(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Due date: ${newTaskDate ? formatDate(newTaskDate) : 'not set'}`}
+                  accessibilityHint="Opens the date picker"
                 >
                   <Ionicons name="calendar-outline" size={18} color={newTaskDate ? currentTheme.primary : currentTheme.textSecondary} />
                   <Text style={[styles.datePickerText, { color: newTaskDate ? currentTheme.text : currentTheme.textSecondary }]}>
@@ -334,6 +367,9 @@ export default function PlannerScreen() {
                       key={p}
                       style={[styles.priorityButton, { borderColor: currentTheme.border }, newTaskPriority === p && [styles.priorityButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
                       onPress={() => setNewTaskPriority(p)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${p.charAt(0).toUpperCase() + p.slice(1)} priority`}
+                      accessibilityState={{ selected: newTaskPriority === p }}
                     >
                       <Text style={[styles.priorityButtonText, { color: newTaskPriority === p ? onPrimary(currentTheme.primary) : currentTheme.textSecondary }]}>
                         {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -370,8 +406,9 @@ const TaskItem = React.memo(function TaskItem({ task, onToggle, isOverdue, curre
       <TouchableOpacity
         onPress={() => onToggle(task.id)}
         style={styles.checkbox}
-        accessibilityRole="button"
-        accessibilityLabel={task.completed ? 'Mark incomplete' : 'Mark complete'}
+        accessibilityRole="checkbox"
+        accessibilityLabel={`${task.title}${task.priority ? `, ${task.priority} priority` : ''}${isOverdue ? ', overdue' : ''}`}
+        accessibilityState={{ checked: task.completed }}
       >
         <Ionicons
           name={task.completed ? 'checkmark-circle' : 'ellipse-outline'}
@@ -384,11 +421,13 @@ const TaskItem = React.memo(function TaskItem({ task, onToggle, isOverdue, curre
         <View style={styles.taskMeta}>
           <Text style={[styles.taskClass, { color: currentTheme.textSecondary }]}>{task.class}</Text>
           {task.source === 'hac' && task.points && (
-            <Text style={[styles.taskPoints, { backgroundColor: currentTheme.primary + '20', color: currentTheme.primary }]}>{task.points} pts</Text>
+            <Text style={[styles.taskPoints, { backgroundColor: currentTheme.primary + '20', color: currentTheme.primary }]} maxFontSizeMultiplier={1.4}>{task.points} pts</Text>
           )}
           {task.source === 'personal' && (
             <View style={[styles.sourceBadge, { backgroundColor: priorityColor }]}>
-              <Text style={styles.sourceBadgeText}>Personal</Text>
+              <Text style={styles.sourceBadgeText} maxFontSizeMultiplier={1.4}>
+                {task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'Personal'}
+              </Text>
             </View>
           )}
         </View>
@@ -402,23 +441,23 @@ const TaskItem = React.memo(function TaskItem({ task, onToggle, isOverdue, curre
 
 const styles = StyleSheet.create({
   addButton: { alignItems: 'center', borderRadius: 24, height: 48, justifyContent: 'center', width: 48 },
-  calCell: { alignItems: 'center', flex: 1, justifyContent: 'center', paddingVertical: 7 },
+  calCell: { alignItems: 'center', flex: 1, justifyContent: 'center', minHeight: 44 },
   calDayText: { fontSize: 14 },
   calDowLabel: { flex: 1, fontSize: 12, fontWeight: '600', textAlign: 'center' },
   calDowRow: { flexDirection: 'row', marginBottom: 4 },
   calHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingHorizontal: 4 },
   calMonthLabel: { fontSize: 16, fontWeight: '600' },
   calWeekRow: { flexDirection: 'row', marginBottom: 2 },
-  checkbox: { marginRight: 12 },
+  checkbox: { alignItems: 'center', justifyContent: 'center', marginRight: 8, minHeight: 44, minWidth: 44 },
   completedToggle: { alignItems: 'center', flexDirection: 'row', gap: 8, marginLeft: 'auto' },
   completedToggleText: { fontSize: 12, fontWeight: '500' },
   dateHeader: { fontSize: 14, fontWeight: '700', marginBottom: 8, marginTop: 12 },
-  datePickerButton: { alignItems: 'center', flexDirection: 'row', gap: 10 },
+  datePickerButton: { alignItems: 'center', flexDirection: 'row', gap: 10, minHeight: 44 },
   datePickerText: { fontSize: 16 },
   emptyState: { alignItems: 'center', marginTop: 60 },
   emptyStateText: { fontSize: 16, marginTop: 12 },
   filterBar: { alignItems: 'center', borderBottomWidth: 1, flexDirection: 'row', gap: 8, paddingHorizontal: 12, paddingVertical: 12 },
-  filterButton: { alignItems: 'center', borderRadius: 6, borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6 },
+  filterButton: { alignItems: 'center', borderRadius: 6, borderWidth: 1, justifyContent: 'center', minHeight: 44, paddingHorizontal: 12 },
   filterButtonActive: { borderColor: 'transparent' },
   filterButtonText: { fontSize: 12, fontWeight: '500' },
   greeting: { fontSize: 14 },
@@ -435,7 +474,7 @@ const styles = StyleSheet.create({
   overdueHeader: { alignItems: 'center', flexDirection: 'row', marginBottom: 8 },
   overdueSection: { backgroundColor: 'rgba(239,68,68,0.12)', borderLeftColor: UI_COLORS.danger, borderLeftWidth: 4, borderRadius: 8, marginHorizontal: 16, marginVertical: 12, paddingHorizontal: 12, paddingVertical: 12 },
   overdueTitle: { color: UI_COLORS.danger, fontSize: 14, fontWeight: '700', marginLeft: 8 },
-  priorityButton: { alignItems: 'center', borderRadius: 6, borderWidth: 1, flex: 1, paddingVertical: 10 },
+  priorityButton: { alignItems: 'center', borderRadius: 6, borderWidth: 1, flex: 1, justifyContent: 'center', minHeight: 44 },
   priorityButtonActive: { borderColor: 'transparent' },
   priorityButtonText: { fontSize: 12, fontWeight: '600' },
   priorityRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },

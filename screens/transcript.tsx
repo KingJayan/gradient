@@ -27,15 +27,20 @@ const YearSection = React.memo(function YearSection({
   onToggle: (year: string) => void;
   currentTheme: Theme;
 }) {
+  const gpa = yearGPA(entries);
   return (
     <View style={[styles.yearSection, { backgroundColor: currentTheme.surface }]}>
       <TouchableOpacity
         style={[styles.yearHeader, { borderBottomColor: currentTheme.border }]}
         onPress={() => onToggle(year)}
+        accessibilityRole="button"
+        accessibilityLabel={`${year}, GPA ${gpa}`}
+        accessibilityHint={expanded ? 'Collapses the course list' : 'Expands the course list'}
+        accessibilityState={{ expanded }}
       >
         <View style={styles.yearTitleContainer}>
           <Text style={[styles.yearTitle, { color: currentTheme.text }]}>{year}</Text>
-          <Text style={[styles.yearGPA, { color: currentTheme.primary }]}>GPA: {yearGPA(entries)}</Text>
+          <Text style={[styles.yearGPA, { color: currentTheme.primary }]}>GPA: {gpa}</Text>
         </View>
         <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={24} color={currentTheme.textSecondary} />
       </TouchableOpacity>
@@ -48,7 +53,13 @@ const YearSection = React.memo(function YearSection({
                 <Text style={[styles.courseSemester, { color: currentTheme.textSecondary }]}>{entry.semester} · {entry.credits} credits</Text>
               </View>
               <View style={[styles.gradeBadge, { backgroundColor: gradeColorFromLetter(entry.grade) }]}>
-                <Text style={[styles.gradeBadgeText, { color: onPrimary(gradeColorFromLetter(entry.grade)) }]}>{entry.grade}</Text>
+                <Text
+                  style={[styles.gradeBadgeText, { color: onPrimary(gradeColorFromLetter(entry.grade)) }]}
+                  accessibilityLabel={`Grade ${entry.grade}`}
+                  maxFontSizeMultiplier={1.4}
+                >
+                  {entry.grade}
+                </Text>
               </View>
             </View>
           ))}

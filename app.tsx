@@ -31,6 +31,24 @@ import TranscriptScreen from './screens/transcript';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+function withBoundary<P extends object>(Component: React.ComponentType<P>) {
+  return function BoundedScreen(props: P) {
+    return (
+      <ErrorBoundary>
+        <Component {...props} />
+      </ErrorBoundary>
+    );
+  };
+}
+
+const Home = withBoundary(HomeScreen);
+const Grades = withBoundary(GradesScreen);
+const GPA = withBoundary(GPACalculatorScreen);
+const Schedule = withBoundary(ScheduleScreen);
+const Planner = withBoundary(PlannerScreen);
+const Settings = withBoundary(SettingsScreen);
+const Transcript = withBoundary(TranscriptScreen);
+
 function AuthStack() {
   const { currentTheme } = useTheme();
   return (
@@ -76,16 +94,15 @@ function AppTabs() {
           borderTopColor: currentTheme.border,
           paddingBottom: 8,
           paddingTop: 8,
-          height: 64,
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
-      <Tab.Screen name="Grades" component={GradesScreen} options={{ title: 'Grades' }} />
-      <Tab.Screen name="GPA" component={GPACalculatorScreen} options={{ title: 'GPA' }} />
-      <Tab.Screen name="Schedule" component={ScheduleScreen} options={{ title: 'Schedule' }} />
-      <Tab.Screen name="Planner" component={PlannerScreen} options={{ title: 'Planner' }} />
-      <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: 'Settings' }} />
+      <Tab.Screen name="Home" component={Home} options={{ title: 'Home' }} />
+      <Tab.Screen name="Grades" component={Grades} options={{ title: 'Grades' }} />
+      <Tab.Screen name="GPA" component={GPA} options={{ title: 'GPA' }} />
+      <Tab.Screen name="Schedule" component={Schedule} options={{ title: 'Schedule' }} />
+      <Tab.Screen name="Planner" component={Planner} options={{ title: 'Planner' }} />
+      <Tab.Screen name="Settings" component={Settings} options={{ title: 'Settings' }} />
     </Tab.Navigator>
   );
 }
@@ -100,7 +117,7 @@ function AppStack() {
       }}
     >
       <Stack.Screen name="Tabs" component={AppTabs} />
-      <Stack.Screen name="Transcript" component={TranscriptScreen} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="Transcript" component={Transcript} options={{ presentation: 'modal' }} />
     </Stack.Navigator>
   );
 }
@@ -145,7 +162,14 @@ function AppShell({ isLoggedOut, isOffline }: { isLoggedOut: boolean; isOffline:
         </NavigationContainer>
       )}
       {isOffline && (
-        <View style={styles.offlineBanner} pointerEvents="none">
+        <View
+          style={styles.offlineBanner}
+          pointerEvents="none"
+          accessible
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          accessibilityLabel="No internet connection"
+        >
           <Ionicons name="cloud-offline-outline" size={12} color={UI_COLORS.dangerMuted} />
           <Text style={styles.offlineText}>No internet connection</Text>
         </View>

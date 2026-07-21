@@ -39,7 +39,7 @@ export default function LoadingScreen() {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessible accessibilityRole="progressbar" accessibilityLabel="Loading your grades">
       <Animated.View
         style={[
           styles.iconContainer,

@@ -41,6 +41,36 @@ function parseAPIError(status: number, endpoint: string): string {
   return `Unable to load ${endpoint}. Check your connection.`;
 }
 
+const MAX_ATTEMPTS = 3;
+const BACKOFF_BASE_MS = 400;
+
+function isRetryableStatus(status: number): boolean {
+  return status === 429 || status >= 500;
+}
+
+function isNetworkError(e: unknown): boolean {
+  return e instanceof TypeError && e.message.includes('fetch');
+}
+
+function backoff(attempt: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      clearTimeout(timer);
+      const aborted = new Error('Aborted');
+      aborted.name = 'AbortError';
+      reject(aborted);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, BACKOFF_BASE_MS * 2 ** attempt);
+    if (signal) {
+      if (signal.aborted) onAbort();
+      else signal.addEventListener('abort', onAbort);
+    }
+  });
+}
+
 export async function apiFetch<T>(
   endpoint: string,
   hacUrl: string,
@@ -49,27 +79,36 @@ export async function apiFetch<T>(
   parse: (data: unknown, endpoint: string) => T,
   signal?: AbortSignal
 ): Promise<T> {
-  try {
-    const res = await fetch(`${API_URL}/${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
-      signal,
-    });
-    if (!res.ok) {
-      throw new HACError(parseAPIError(res.status, endpoint), res.status);
+  for (let attempt = 0; ; attempt++) {
+    const lastAttempt = attempt === MAX_ATTEMPTS - 1;
+    try {
+      const res = await fetch(`${API_URL}/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
+        signal,
+      });
+      if (!res.ok) {
+        if (isRetryableStatus(res.status) && !lastAttempt) {
+          await backoff(attempt, signal);
+          continue;
+        }
+        throw new HACError(parseAPIError(res.status, endpoint), res.status);
+      }
+      return parse(await res.json(), endpoint);
+    } catch (e) {
+      if ((e as Error)?.name === 'AbortError') throw e;
+      if (e instanceof HACError) throw e;
+      if (isNetworkError(e)) {
+        if (!lastAttempt) {
+          await backoff(attempt, signal);
+          continue;
+        }
+        logWarning('Network error in apiFetch', { endpoint, error: (e as Error).message });
+        throw new HACError('No internet connection. Please check your network.');
+      }
+      logError(e as Error, { endpoint });
+      throw new HACError(`Failed to load ${endpoint}`);
     }
-    return parse(await res.json(), endpoint);
-  } catch (e) {
-    if ((e as Error)?.name === 'AbortError') throw e;
-    if (e instanceof HACError) throw e;
-    if (e instanceof TypeError && e.message.includes('fetch')) {
-      const networkError = new HACError('No internet connection. Please check your network.');
-      logWarning('Network error in apiFetch', { endpoint, error: (e as Error).message });
-      throw networkError;
-    }
-    const wrappedError = new HACError(`Failed to load ${endpoint}`);
-    logError(e as Error, { endpoint });
-    throw wrappedError;
   }
 }

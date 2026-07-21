@@ -35,13 +35,18 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <View style={styles.container}>
+        <View style={styles.container} accessibilityRole="alert" accessibilityLiveRegion="polite">
           <Ionicons name="alert-circle" size={64} color={UI_COLORS.danger} />
           <Text style={styles.title}>Something went wrong</Text>
           <Text style={styles.message}>
             {this.state.error?.message ?? 'An unexpected error occurred'}
           </Text>
-          <TouchableOpacity style={styles.button} onPress={this.handleReset}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={this.handleReset}
+            accessibilityRole="button"
+            accessibilityLabel="Try again"
+          >
             <Ionicons name="refresh" size={20} color={UI_COLORS.white} />
             <Text style={styles.buttonText}>Try Again</Text>
           </TouchableOpacity>
@@ -60,8 +65,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flexDirection: 'row',
     gap: 8,
+    justifyContent: 'center',
+    minHeight: 44,
     paddingHorizontal: 24,
-    paddingVertical: 12,
   },
   buttonText: {
     color: UI_COLORS.white,

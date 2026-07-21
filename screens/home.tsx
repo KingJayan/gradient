@@ -73,7 +73,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
         <View style={[styles.header, { backgroundColor: currentTheme.surface }]}>
           <View>
             <Text style={[styles.dateText, { color: currentTheme.textSecondary }]}>{currentDate}</Text>
-            <Text style={[styles.name, { color: currentTheme.text }]}>{state.user?.name || 'Welcome'}</Text>
+            <Text style={[styles.name, { color: currentTheme.text }]} accessibilityRole="header">{state.user?.name || 'Welcome'}</Text>
           </View>
           <TouchableOpacity
             style={[styles.profileButton, { backgroundColor: currentTheme.primary + '20' }]}
@@ -86,14 +86,22 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
         </View>
 
         <View style={styles.statsContainer}>
-          <View style={[styles.statCard, { backgroundColor: currentTheme.surface }]}>
+          <View
+            style={[styles.statCard, { backgroundColor: currentTheme.surface }]}
+            accessible
+            accessibilityLabel={`Weighted GPA ${gpaResult ? gpaResult.weighted : 'unavailable'}`}
+          >
             <View style={styles.statTop}>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>Weighted GPA</Text>
               <Ionicons name="trending-up" size={18} color={currentTheme.textSecondary} />
             </View>
             <Text style={[styles.statValue, { color: currentTheme.text }]}>{gpa}</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: currentTheme.surface }]}>
+          <View
+            style={[styles.statCard, { backgroundColor: currentTheme.surface }]}
+            accessible
+            accessibilityLabel={`${classes} active classes`}
+          >
             <View style={styles.statTop}>
               <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>Active Classes</Text>
               <Ionicons name="school" size={18} color={currentTheme.textSecondary} />

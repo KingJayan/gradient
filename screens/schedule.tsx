@@ -15,7 +15,7 @@ import { ClassPeriod } from '../services/api/schedule';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { onPrimary } from '../utils/colors';
-import { Screen, ScreenHeader, AsyncContent, RetryButton } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, RetryButton, IconButton } from '../components/screen';
 
 const BELL_SCHEDULE_KEY = 'bellSchedule';
 
@@ -113,7 +113,13 @@ export default function ScheduleScreen() {
                 return (
                   <View key={period.id} style={[styles.periodCard, { backgroundColor: currentTheme.surface }]}>
                     <View style={[styles.periodBadge, { backgroundColor: currentTheme.primary + '22' }]}>
-                      <Text style={[styles.periodBadgeText, { color: currentTheme.primary }]}>P{period.id}</Text>
+                      <Text
+                        style={[styles.periodBadgeText, { color: currentTheme.primary }]}
+                        accessibilityLabel={`Period ${period.id}`}
+                        maxFontSizeMultiplier={1.3}
+                      >
+                        P{period.id}
+                      </Text>
                     </View>
                     <View style={styles.periodInfo}>
                       <Text style={[styles.periodName, { color: currentTheme.text }]}>{period.name}</Text>
@@ -145,14 +151,22 @@ export default function ScheduleScreen() {
         </ScrollView>
       </AsyncContent>
 
-      <Modal visible={showBellEditor} transparent animationType="slide">
+      <Modal
+        visible={showBellEditor}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowBellEditor(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Bell Schedule</Text>
-              <TouchableOpacity onPress={() => setShowBellEditor(false)}>
-                <Ionicons name="close" size={24} color={currentTheme.text} />
-              </TouchableOpacity>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]} accessibilityRole="header">Bell Schedule</Text>
+              <IconButton
+                name="close"
+                color={currentTheme.text}
+                label="Close bell schedule"
+                onPress={() => setShowBellEditor(false)}
+              />
             </View>
             <Text style={[styles.modalSubtitle, { color: currentTheme.textSecondary }]}>
               Enter start and end times for each period (HH:MM, 24-hour).
@@ -165,7 +179,13 @@ export default function ScheduleScreen() {
               ) : (
                 schedule.map((period) => (
                   <View key={period.id} style={styles.bellRow}>
-                    <Text style={[styles.bellPeriodLabel, { color: currentTheme.text }]}>P{period.id}</Text>
+                    <Text
+                      style={[styles.bellPeriodLabel, { color: currentTheme.text }]}
+                      accessibilityLabel={`Period ${period.id}`}
+                      maxFontSizeMultiplier={1.3}
+                    >
+                      P{period.id}
+                    </Text>
                     <TextInput
                       style={[styles.bellInput, { backgroundColor: currentTheme.background, color: currentTheme.text }]}
                       placeholder="08:00"
@@ -174,6 +194,7 @@ export default function ScheduleScreen() {
                       onChangeText={(v) => setEditTime(period.id, 'start', v)}
                       keyboardType="numbers-and-punctuation"
                       maxLength={5}
+                      accessibilityLabel={`Period ${period.id} start time, 24-hour`}
                     />
                     <Text style={[styles.bellDash, { color: currentTheme.textSecondary }]}>–</Text>
                     <TextInput
@@ -184,12 +205,18 @@ export default function ScheduleScreen() {
                       onChangeText={(v) => setEditTime(period.id, 'end', v)}
                       keyboardType="numbers-and-punctuation"
                       maxLength={5}
+                      accessibilityLabel={`Period ${period.id} end time, 24-hour`}
                     />
                   </View>
                 ))
               )}
             </ScrollView>
-            <TouchableOpacity style={[styles.saveButton, { backgroundColor: currentTheme.primary }]} onPress={saveBellTimes}>
+            <TouchableOpacity
+              style={[styles.saveButton, { backgroundColor: currentTheme.primary }]}
+              onPress={saveBellTimes}
+              accessibilityRole="button"
+              accessibilityLabel="Save bell times"
+            >
               <Text style={[styles.saveButtonText, { color: onPrimary(currentTheme.primary) }]}>Save</Text>
             </TouchableOpacity>
           </View>
@@ -200,11 +227,11 @@ export default function ScheduleScreen() {
 }
 
 const styles = StyleSheet.create({
-  bellButton: { alignItems: 'center', borderRadius: 8, flexDirection: 'row', gap: 6, paddingHorizontal: 12, paddingVertical: 8 },
+  bellButton: { alignItems: 'center', borderRadius: 8, flexDirection: 'row', gap: 6, minHeight: 44, paddingHorizontal: 12 },
   bellButtonText: { fontSize: 13, fontWeight: '600' },
   bellDash: { fontSize: 16, marginHorizontal: 4 },
   bellEditorScroll: { maxHeight: 320 },
-  bellInput: { borderRadius: 8, flex: 1, fontSize: 14, paddingHorizontal: 10, paddingVertical: 8, textAlign: 'center' },
+  bellInput: { borderRadius: 8, flex: 1, fontSize: 14, minHeight: 44, paddingHorizontal: 10, textAlign: 'center' },
   bellPeriodLabel: { fontSize: 14, fontWeight: '700', marginRight: 8, width: 28 },
   bellRow: { alignItems: 'center', flexDirection: 'row', marginBottom: 10 },
   emptyRetry: { marginTop: 16 },

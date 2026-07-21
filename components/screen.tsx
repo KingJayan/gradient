@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   StyleProp,
   ViewStyle,
+  AccessibilityState,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
@@ -45,7 +46,7 @@ export function ScreenHeader({
   return (
     <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
       <View style={styles.headerText}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]}>{title}</Text>
+        <Text style={[styles.headerTitle, { color: currentTheme.text }]} accessibilityRole="header">{title}</Text>
         {subtitle ? (
           <Text style={[styles.headerSubtitle, { color: currentTheme.textSecondary }]}>{subtitle}</Text>
         ) : null}
@@ -65,6 +66,36 @@ export function RetryButton({ onPress, style }: { onPress: () => void; style?: S
       accessibilityLabel="Retry"
     >
       <Text style={[styles.retryButtonText, { color: onPrimary(currentTheme.primary) }]}>Retry</Text>
+    </TouchableOpacity>
+  );
+}
+
+export function IconButton({
+  name,
+  color,
+  label,
+  onPress,
+  size = 24,
+  state,
+  style,
+}: {
+  name: keyof typeof Ionicons.glyphMap;
+  color: string;
+  label: string;
+  onPress: () => void;
+  size?: number;
+  state?: AccessibilityState;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <TouchableOpacity
+      style={[styles.iconButton, style]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={state}
+    >
+      <Ionicons name={name} size={size} color={color} />
     </TouchableOpacity>
   );
 }
@@ -89,7 +120,7 @@ export function Skeleton({ style }: { style?: StyleProp<ViewStyle> }) {
 
 function DefaultSkeleton() {
   return (
-    <View style={styles.skeletonWrap}>
+    <View style={styles.skeletonWrap} accessible accessibilityRole="progressbar" accessibilityLabel="Loading">
       {[0, 1, 2, 3, 4, 5].map((i) => (
         <Skeleton key={i} style={styles.skeletonCard} />
       ))}
@@ -124,7 +155,7 @@ export function AsyncContent({
     }
     if (error) {
       return (
-        <View style={styles.center}>
+        <View style={styles.center} accessibilityRole="alert" accessibilityLiveRegion="polite">
           <Ionicons name="alert-circle" size={48} color={UI_COLORS.danger} />
           <Text style={[styles.errorText, { color: currentTheme.text }]}>{error}</Text>
           {onRetry ? <RetryButton onPress={onRetry} /> : null}
@@ -154,7 +185,8 @@ const styles = StyleSheet.create({
   headerSubtitle: { fontSize: 14, marginTop: 6 },
   headerText: { flex: 1 },
   headerTitle: { fontSize: 28, fontWeight: '700' },
-  retryButton: { borderRadius: 8, paddingHorizontal: 24, paddingVertical: 10 },
+  iconButton: { alignItems: 'center', justifyContent: 'center', minHeight: 44, minWidth: 44 },
+  retryButton: { alignItems: 'center', borderRadius: 8, justifyContent: 'center', minHeight: 44, paddingHorizontal: 24 },
   retryButtonText: { fontSize: 12, fontWeight: '600' },
   screen: { flex: 1 },
   skeletonBlock: { borderRadius: 8 },

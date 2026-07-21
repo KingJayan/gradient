@@ -57,12 +57,8 @@ function subscribe(key: string, fn: () => void): () => void {
   return () => set!.delete(fn);
 }
 
-// dedupes concurrent callers, retries on failure, and captures the result in the store
-function revalidate(
-  key: string,
-  fetcher: (signal: AbortSignal) => Promise<unknown>,
-  retries: number
-): Promise<void> {
+// dedupes concurrent callers and captures the result in the store
+function revalidate(key: string, fetcher: (signal: AbortSignal) => Promise<unknown>): Promise<void> {
   const entry = getEntry(key);
   if (entry.promise) return entry.promise;
   const controller = new AbortController();
@@ -70,16 +66,7 @@ function revalidate(
   entry.loading = true;
   notify(key);
 
-  const attempt = async (n: number): Promise<unknown> => {
-    try {
-      return await fetcher(controller.signal);
-    } catch (e) {
-      if (!controller.signal.aborted && n < retries) return attempt(n + 1);
-      throw e;
-    }
-  };
-
-  const promise = attempt(0)
+  const promise = fetcher(controller.signal)
     .then(
       (data) => {
         entry.data = data;
@@ -128,7 +115,6 @@ export interface HacQuery<T> {
 interface Options {
   enabled?: boolean;
   ttl?: number;
-  retries?: number;
 }
 
 export function useHacQuery<T>(
@@ -136,7 +122,7 @@ export function useHacQuery<T>(
   fetcher: (signal: AbortSignal) => Promise<T>,
   options: Options = {}
 ): HacQuery<T> {
-  const { enabled = true, ttl = DEFAULT_TTL, retries = 1 } = options;
+  const { enabled = true, ttl = DEFAULT_TTL } = options;
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
   const [, forceRender] = useReducer((n: number) => n + 1, 0);
@@ -150,9 +136,9 @@ export function useHacQuery<T>(
       if (!force && !entry.promise && entry.data !== null && Date.now() - entry.updatedAt < ttl) {
         return Promise.resolve();
       }
-      return revalidate(key, (signal) => fetcherRef.current(signal), retries);
+      return revalidate(key, (signal) => fetcherRef.current(signal));
     },
-    [active, key, ttl, retries]
+    [active, key, ttl]
   );
 
   useEffect(() => {

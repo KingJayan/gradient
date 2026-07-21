@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { calculateGPA, Course, DEFAULT_GRADE_SCALE, whatIfScenario } from '../utils/gpa-calculator';
-import { UI_COLORS, onPrimary } from '../utils/colors';
+import { UI_COLORS, onPrimary, gradeLetter } from '../utils/colors';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { Screen, ScreenHeader, AsyncContent } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, IconButton } from '../components/screen';
 export default function GPACalculatorScreen() {
   const { currentTheme } = useTheme();
   const { cache, clearCache, loadGradesAndCourses } = useDataCache();
@@ -115,18 +115,34 @@ export default function GPACalculatorScreen() {
                   <TouchableOpacity
                     style={[styles.weightBadge, { backgroundColor: course.weight === 1.0 ? UI_COLORS.info : course.weight === 0.5 ? UI_COLORS.warning : currentTheme.border }]}
                     onPress={() => handleToggleWeight(course.id)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${course.name} weight: ${course.weight === 1.0 ? 'AP' : course.weight === 0.5 ? 'Honors' : 'Regular'}`}
+                    accessibilityHint="Cycles the course weight"
                   >
-                    <Text style={[styles.weightBadgeText, { color: course.weight > 0 ? UI_COLORS.white : currentTheme.textSecondary }]}>
+                    <Text
+                      style={[styles.weightBadgeText, { color: course.weight > 0 ? UI_COLORS.white : currentTheme.textSecondary }]}
+                      maxFontSizeMultiplier={1.4}
+                    >
                       {course.weight === 1.0 ? 'AP' : course.weight === 0.5 ? 'HON' : 'REG'}
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleToggleCourseExclusion(course.id)}>
-                    <Ionicons name={course.excluded ? 'eye-off' : 'eye'} size={20} color={course.excluded ? currentTheme.textSecondary : currentTheme.primary} />
-                  </TouchableOpacity>
+                  <IconButton
+                    name={course.excluded ? 'eye-off' : 'eye'}
+                    size={20}
+                    color={course.excluded ? currentTheme.textSecondary : currentTheme.primary}
+                    label={`${course.excluded ? 'Include' : 'Exclude'} ${course.name} in GPA`}
+                    state={{ selected: !course.excluded }}
+                    onPress={() => handleToggleCourseExclusion(course.id)}
+                  />
                 </View>
               </View>
               <View style={styles.gradeRow}>
-                <Text style={[styles.gradeLabel, { color: currentTheme.primary }]}>Current: {course.grade.toFixed(1)}%</Text>
+                <Text
+                  style={[styles.gradeLabel, { color: currentTheme.primary }]}
+                  accessibilityLabel={`Current grade ${course.grade.toFixed(1)} percent, ${gradeLetter(course.grade)}`}
+                >
+                  Current: {course.grade.toFixed(1)}% ({gradeLetter(course.grade)})
+                </Text>
                 {mockGrade !== undefined && (
                   <Text style={styles.mockLabel}>Mock: {mockGrade}%</Text>
                 )}
@@ -149,7 +165,12 @@ export default function GPACalculatorScreen() {
         <View style={styles.section}>
           <View style={styles.scenarioHeader}>
             <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Scenario Result</Text>
-            <TouchableOpacity onPress={() => setMockScenario([])}>
+            <TouchableOpacity
+              style={styles.clearButtonHit}
+              onPress={() => setMockScenario([])}
+              accessibilityRole="button"
+              accessibilityLabel="Clear all mock grades"
+            >
               <Text style={styles.clearButton}>Clear All</Text>
             </TouchableOpacity>
           </View>
@@ -170,14 +191,22 @@ export default function GPACalculatorScreen() {
         </View>
       )}
 
-      <Modal visible={showWhatIf} transparent animationType="slide">
+      <Modal
+        visible={showWhatIf}
+        transparent
+        animationType="slide"
+        onRequestClose={() => { setShowWhatIf(false); setSelectedCourseId(null); setMockGradeInput(''); }}
+      >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: currentTheme.text }]}>What-If Calculator</Text>
-              <TouchableOpacity onPress={() => { setShowWhatIf(false); setSelectedCourseId(null); setMockGradeInput(''); }}>
-                <Ionicons name="close" size={24} color={currentTheme.text} />
-              </TouchableOpacity>
+              <IconButton
+                name="close"
+                color={currentTheme.text}
+                label="Close what-if calculator"
+                onPress={() => { setShowWhatIf(false); setSelectedCourseId(null); setMockGradeInput(''); }}
+              />
             </View>
             {selectedCourseId && (
               <>
@@ -192,6 +221,7 @@ export default function GPACalculatorScreen() {
                   onChangeText={setMockGradeInput}
                   keyboardType="number-pad"
                   maxLength={3}
+                  accessibilityLabel="Predicted grade, 0 to 100"
                 />
                 <TouchableOpacity
                   style={[styles.modalButton, { backgroundColor: currentTheme.primary }]}
@@ -215,6 +245,7 @@ export default function GPACalculatorScreen() {
 
 const styles = StyleSheet.create({
   clearButton: { color: UI_COLORS.danger, fontSize: 12, fontWeight: '600' },
+  clearButtonHit: { justifyContent: 'center', minHeight: 44, paddingHorizontal: 4 },
   courseActions: { alignItems: 'center', flexDirection: 'row', gap: 12 },
   courseCard: { borderRadius: 12, marginBottom: 8, paddingHorizontal: 16, paddingVertical: 12 },
   courseCount: { fontSize: 12, textAlign: 'center' },
@@ -247,6 +278,6 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   weightBadge: { borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4 },
   weightBadgeText: { fontSize: 11, fontWeight: '700' },
-  whatIfButton: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', paddingVertical: 8 },
+  whatIfButton: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', minHeight: 44 },
   whatIfButtonText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
 });
