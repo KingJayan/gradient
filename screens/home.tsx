@@ -19,6 +19,26 @@ import { UI_COLORS } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, AsyncContent } from '../components/screen';
 
+const LINK_CARDS: {
+  route: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  subtitle: string;
+}[] = [
+  {
+    route: 'Schedule',
+    icon: 'calendar',
+    label: 'View schedule',
+    subtitle: 'Your periods, teachers, and bell times',
+  },
+  {
+    route: 'Transcript',
+    icon: 'document',
+    label: 'View transcript',
+    subtitle: 'Your full academic record',
+  },
+];
+
 export default function HomeScreen({ navigation }: { navigation: NativeStackNavigationProp<Record<string, undefined>> }) {
   const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
@@ -112,22 +132,25 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
         </View>
 
         <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.transcriptCard, { backgroundColor: currentTheme.surface }]}
-            onPress={() => navigation.navigate('Transcript')}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="View transcript"
-          >
-            <View style={[styles.transcriptIcon, { backgroundColor: currentTheme.primary + '22' }]}>
-              <Ionicons name="document" size={24} color={currentTheme.primary} />
-            </View>
-            <View style={styles.flex1}>
-              <Text style={[styles.transcriptTitle, { color: currentTheme.text }]}>Transcript</Text>
-              <Text style={[styles.transcriptSubtitle, { color: currentTheme.textSecondary }]}>View your full academic record</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
-          </TouchableOpacity>
+          {LINK_CARDS.map((card) => (
+            <TouchableOpacity
+              key={card.route}
+              style={[styles.linkCard, { backgroundColor: currentTheme.surface }]}
+              onPress={() => navigation.navigate(card.route)}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={card.label}
+            >
+              <View style={[styles.linkIcon, { backgroundColor: currentTheme.primary + '22' }]}>
+                <Ionicons name={card.icon} size={24} color={currentTheme.primary} />
+              </View>
+              <View style={styles.flex1}>
+                <Text style={[styles.linkTitle, { color: currentTheme.text }]}>{card.route}</Text>
+                <Text style={[styles.linkSubtitle, { color: currentTheme.textSecondary }]}>{card.subtitle}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
+            </TouchableOpacity>
+          ))}
         </View>
 
         <View style={styles.spacer} />
@@ -148,6 +171,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.xxl,
   },
+  linkCard: {
+    alignItems: 'center',
+    borderRadius: RADIUS.md,
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.lg,
+  },
+  linkIcon: {
+    alignItems: 'center',
+    borderRadius: RADIUS.md,
+    height: TOUCH_TARGET,
+    justifyContent: 'center',
+    width: TOUCH_TARGET,
+  },
+  linkSubtitle: { fontSize: FONT.sm, marginTop: SPACING.xxs },
+  linkTitle: { fontSize: FONT.lg, fontWeight: '600' },
   name: { fontSize: FONT.display, fontWeight: '700', marginTop: SPACING.xs },
   profileButton: { borderRadius: RADIUS.pill, padding: SPACING.sm },
   scrollView: { flex: 1 },
@@ -168,21 +209,4 @@ const styles = StyleSheet.create({
   statTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
   statValue: { fontSize: FONT.hero, fontWeight: '800' },
   statsContainer: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.xxl, paddingHorizontal: SPACING.xl },
-  transcriptCard: {
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
-    flexDirection: 'row',
-    gap: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.lg,
-  },
-  transcriptIcon: {
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
-    height: TOUCH_TARGET,
-    justifyContent: 'center',
-    width: TOUCH_TARGET,
-  },
-  transcriptSubtitle: { fontSize: FONT.sm, marginTop: SPACING.xxs },
-  transcriptTitle: { fontSize: FONT.lg, fontWeight: '600' },
 });

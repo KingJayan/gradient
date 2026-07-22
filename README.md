@@ -9,6 +9,7 @@
 ## features
 
 - grades, GPA (weighted + unweighted), schedule, planner, transcript
+- "what do i need?" — pick a target GPA, get the average you need across your courses
 - personal tasks merged with HAC assignments
 - 6 dark themes, optional face id lock
 - offline-friendly: last fetch is cached and shown on cold start

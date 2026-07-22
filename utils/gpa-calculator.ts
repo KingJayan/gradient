@@ -36,6 +36,8 @@ export const DEFAULT_GRADE_SCALE: GradeScale[] = [
   { label: 'F', minGrade: 0, maxGrade: 59, points: 0.0 },
 ];
 
+export const UNREACHABLE_GRADE = 101;
+
 function getGradePoints(grade: number, sortedScale: GradeScale[]): number {
   return sortedScale.find((g) => grade >= g.minGrade)?.points ?? 0;
 }
@@ -74,6 +76,48 @@ export function calculateGPA(
     courseCount: activeCourses.length,
     totalCredits: activeCourses.reduce((sum, c) => sum + c.credits, 0),
   };
+}
+
+export function predictedGradeNeeded(
+  targetGPA: number,
+  remainingCourses: Course[],
+  completedCourses: Course[] = [],
+  gradeScale: GradeScale[] = DEFAULT_GRADE_SCALE
+): number {
+  if (remainingCourses.length === 0) return 0;
+
+  const sortedScale = gradeScale.slice().sort((a, b) => b.minGrade - a.minGrade);
+
+  let completedPoints = 0;
+  let completedCredits = 0;
+  completedCourses
+    .filter((c) => !c.excluded)
+    .forEach((c) => {
+      completedPoints += (getGradePoints(c.grade, sortedScale) + c.weight) * c.credits;
+      completedCredits += c.credits;
+    });
+
+  let remainingCredits = 0;
+  let remainingBonusPoints = 0;
+  remainingCourses
+    .filter((c) => !c.excluded)
+    .forEach((c) => {
+      remainingCredits += c.credits;
+      remainingBonusPoints += c.weight * c.credits;
+    });
+
+  if (remainingCredits === 0) return 0;
+
+  const needed = targetGPA * (completedCredits + remainingCredits) - completedPoints;
+  const requiredAvgPoints = (needed - remainingBonusPoints) / remainingCredits;
+
+  if (requiredAvgPoints <= 0) return 0;
+  if (requiredAvgPoints > 4.0) return UNREACHABLE_GRADE;
+
+  for (let grade = 0; grade <= 100; grade++) {
+    if (getGradePoints(grade, sortedScale) >= requiredAvgPoints) return grade;
+  }
+  return UNREACHABLE_GRADE;
 }
 
 export function whatIfScenario(

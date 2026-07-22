@@ -10,12 +10,22 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { calculateGPA, Course, DEFAULT_GRADE_SCALE, whatIfScenario } from '../utils/gpa-calculator';
+import {
+  calculateGPA,
+  Course,
+  DEFAULT_GRADE_SCALE,
+  predictedGradeNeeded,
+  UNREACHABLE_GRADE,
+  whatIfScenario,
+} from '../utils/gpa-calculator';
 import { UI_COLORS, onPrimary, gradeLetter } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { Screen, ScreenHeader, AsyncContent, IconButton } from '../components/screen';
+
+const TARGET_GPAS = [3.0, 3.5, 4.0];
+
 export default function GPACalculatorScreen() {
   const { currentTheme } = useTheme();
   const { cache, clearCache, loadGradesAndCourses } = useDataCache();
@@ -25,6 +35,7 @@ export default function GPACalculatorScreen() {
   const [showWhatIf, setShowWhatIf] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [mockGradeInput, setMockGradeInput] = useState('');
+  const [targetGPA, setTargetGPA] = useState(TARGET_GPAS[1]);
 
   useEffect(() => {
     if (cache.courses) setCourses(cache.courses);
@@ -39,6 +50,20 @@ export default function GPACalculatorScreen() {
     () => (mockScenario.length > 0 ? whatIfScenario(courses, mockScenario, DEFAULT_GRADE_SCALE) : null),
     [mockScenario, courses]
   );
+
+  const gradeNeeded = useMemo(
+    () => (courses.length > 0 ? predictedGradeNeeded(targetGPA, courses) : null),
+    [courses, targetGPA]
+  );
+
+  const gradeNeededText =
+    gradeNeeded === null
+      ? ''
+      : gradeNeeded === 0
+        ? `Your current courses already reach a ${targetGPA.toFixed(1)}.`
+        : gradeNeeded === UNREACHABLE_GRADE
+          ? `A ${targetGPA.toFixed(1)} is out of reach with these courses, even with perfect scores.`
+          : `Average ${gradeNeeded}% across your courses to finish at a ${targetGPA.toFixed(1)}.`;
 
   const handleToggleCourseExclusion = (courseId: string) => {
     setCourses(courses.map((c) => (c.id === courseId ? { ...c, excluded: !c.excluded } : c)));
@@ -111,6 +136,41 @@ export default function GPACalculatorScreen() {
         <Text style={[styles.courseCount, { color: currentTheme.textSecondary }]}>
           {gpaResult.courseCount} courses · {gpaResult.totalCredits} credits
         </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>What Do I Need?</Text>
+        <View style={styles.targetRow} accessibilityRole="radiogroup">
+          {TARGET_GPAS.map((target) => {
+            const selected = target === targetGPA;
+            return (
+              <TouchableOpacity
+                key={target}
+                style={[
+                  styles.targetChip,
+                  {
+                    backgroundColor: selected ? currentTheme.primary : currentTheme.surface,
+                    borderColor: selected ? currentTheme.primary : currentTheme.border,
+                  },
+                ]}
+                onPress={() => setTargetGPA(target)}
+                accessibilityRole="radio"
+                accessibilityLabel={`Target GPA ${target.toFixed(1)}`}
+                accessibilityState={{ checked: selected }}
+              >
+                <Text
+                  style={[
+                    styles.targetChipText,
+                    { color: selected ? onPrimary(currentTheme.primary) : currentTheme.text },
+                  ]}
+                >
+                  {target.toFixed(1)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <Text style={[styles.targetResult, { color: currentTheme.textSecondary }]}>{gradeNeededText}</Text>
       </View>
 
       <View style={styles.section}>
@@ -340,6 +400,17 @@ const styles = StyleSheet.create({
   scenarioValue: { fontSize: FONT.display, fontWeight: '700', marginTop: SPACING.sm },
   section: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.lg },
   sectionTitle: { fontSize: FONT.xl, fontWeight: '700', marginBottom: SPACING.md },
+  targetChip: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: TOUCH_TARGET,
+  },
+  targetChipText: { fontSize: FONT.lg, fontWeight: '700' },
+  targetResult: { fontSize: FONT.base, lineHeight: 20, marginTop: SPACING.md },
+  targetRow: { flexDirection: 'row', gap: SPACING.md },
   weightBadge: { borderRadius: RADIUS.xs, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs },
   weightBadgeText: { fontSize: FONT.xs, fontWeight: '700' },
   whatIfButton: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', minHeight: TOUCH_TARGET },

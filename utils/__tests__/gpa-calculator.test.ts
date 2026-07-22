@@ -1,4 +1,10 @@
-import { calculateGPA, whatIfScenario, Course } from '../gpa-calculator';
+import {
+  calculateGPA,
+  predictedGradeNeeded,
+  whatIfScenario,
+  Course,
+  UNREACHABLE_GRADE,
+} from '../gpa-calculator';
 
 const course = (id: string, grade: number, credits = 4, weight = 0, excluded = false): Course => ({
   id, name: id, credits, weight, grade, excluded,
@@ -36,6 +42,33 @@ describe('calculateGPA', () => {
     [96.5, 4.0],
   ])('gives %p, which falls in a gap between bands, the lower band points (%p)', (grade, points) => {
     expect(calculateGPA([course('a', grade)]).unweighted).toBe(points);
+  });
+});
+
+describe('predictedGradeNeeded', () => {
+  it('returns 0 when there are no remaining courses', () => {
+    expect(predictedGradeNeeded(4.0, [])).toBe(0);
+  });
+
+  it('returns 0 when completed work already meets the target', () => {
+    const completed = [course('a', 95), course('b', 95)];
+    expect(predictedGradeNeeded(2.0, [course('c', 0)], completed)).toBe(0);
+  });
+
+  it('flags an unreachable target', () => {
+    expect(predictedGradeNeeded(4.0, [course('c', 0)], [course('a', 50)])).toBe(UNREACHABLE_GRADE);
+  });
+
+  it('finds an achievable grade', () => {
+    const g = predictedGradeNeeded(3.5, [course('b', 0)], [course('a', 85)]);
+    expect(g).toBeGreaterThan(0);
+    expect(g).toBeLessThanOrEqual(100);
+  });
+
+  it('accounts for course weight when solving the target', () => {
+    const plain = predictedGradeNeeded(4.0, [course('a', 0)]);
+    const weighted = predictedGradeNeeded(4.0, [course('a', 0, 4, 1)]);
+    expect(weighted).toBeLessThan(plain);
   });
 });
 

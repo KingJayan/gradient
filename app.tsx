@@ -82,8 +82,6 @@ function AppTabs() {
             iconName = focused ? 'document-text' : 'document-text-outline';
           } else if (route.name === 'GPA') {
             iconName = focused ? 'calculator' : 'calculator-outline';
-          } else if (route.name === 'Schedule') {
-            iconName = focused ? 'calendar' : 'calendar-outline';
           } else if (route.name === 'Planner') {
             iconName = focused ? 'checkbox' : 'checkbox-outline';
           } else if (route.name === 'Settings') {
@@ -106,7 +104,6 @@ function AppTabs() {
       <Tab.Screen name="Home" component={Home} options={{ title: 'Home' }} />
       <Tab.Screen name="Grades" component={Grades} options={{ title: 'Grades' }} />
       <Tab.Screen name="GPA" component={GPA} options={{ title: 'GPA' }} />
-      <Tab.Screen name="Schedule" component={Schedule} options={{ title: 'Schedule' }} />
       <Tab.Screen name="Planner" component={Planner} options={{ title: 'Planner' }} />
       <Tab.Screen name="Settings" component={Settings} options={{ title: 'Settings' }} />
     </Tab.Navigator>
@@ -123,6 +120,7 @@ function AppStack() {
       }}
     >
       <Stack.Screen name="Tabs" component={AppTabs} />
+      <Stack.Screen name="Schedule" component={Schedule} options={{ presentation: 'modal' }} />
       <Stack.Screen name="Transcript" component={Transcript} options={{ presentation: 'modal' }} />
     </Stack.Navigator>
   );

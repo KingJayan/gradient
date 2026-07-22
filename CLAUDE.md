@@ -41,9 +41,9 @@ ErrorBoundary
             NavigationContainer
               AuthStack  |  AppStack
 ```
-- `AppStack` (native stack): `Tabs` (default) + `Transcript` as a modal screen.
-- `AppTabs`: Home, Grades, GPA, Schedule, Planner, Settings.
-- Transcript is reached by navigating from Home; it is not a tab.
+- `AppStack` (native stack): `Tabs` (default) + `Schedule` and `Transcript` as modal screens.
+- `AppTabs`: Home, Grades, GPA, Planner, Settings.
+- Schedule and Transcript are reached from the link cards on Home; neither is a tab.
 - Every screen is wrapped in its own `ErrorBoundary` via `withBoundary`, so one
   crashing screen does not take down the app or the tab bar.
 - `AppShell` renders `LockScreen` instead of the navigator while the app lock is
@@ -171,11 +171,11 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 | `services/api/` | Proxy client + per-endpoint fetchers |
 | `utils/tokens.ts` | Spacing, radius, type scale, touch target |
 | `utils/colors.ts` | Color tokens + grade letter/color scale |
-| `utils/gpa-calculator.ts` | Weighted/unweighted GPA, what-if scenarios |
+| `utils/gpa-calculator.ts` | Weighted/unweighted GPA, what-if scenarios, `predictedGradeNeeded` target solver |
 | `utils/task-manager.ts` | HAC + personal task merge |
 | `utils/error-logger.ts` | Centralised logging (Sentry-ready) |
 | `utils/perf.ts` | `mark`/`measure` timings |
-| `screens/` | 10 screens (6 tabs, transcript modal, login, lock, loading) |
+| `screens/` | 10 screens (5 tabs, schedule + transcript modals, login, lock, loading) |
 | `test/` | Jest setup + shared render helpers (not a test suite itself) |
 | `.maestro/` | End-to-end smoke flow (login → grades) |
 | `docs/adr/` | Decision records for the non-obvious choices |
@@ -228,7 +228,7 @@ in `__tests__/` subdirectories next to the modules they cover. Run with `pnpm te
 
 | Test file | Covers |
 |-----------|--------|
-| `utils/__tests__/gpa-calculator.test.ts` | `calculateGPA`, `whatIfScenario`, the between-band grade boundaries (89.5/92.5/96.5) |
+| `utils/__tests__/gpa-calculator.test.ts` | `calculateGPA`, `whatIfScenario`, `predictedGradeNeeded`, the between-band grade boundaries (89.5/92.5/96.5) |
 | `utils/__tests__/task-manager.test.ts` | `mergeTasks`, `getOverdueTasks`, `groupByDate` |
 | `utils/__tests__/colors.test.ts` | `gradeLetter`, `gradeColor` agreeing with the letter shown, `onPrimary` |
 | `hooks/__tests__/use-creds.test.tsx` | on-demand password read, stable object identity, logout on keychain failure |
