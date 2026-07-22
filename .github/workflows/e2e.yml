@@ -1,0 +1,41 @@
+name: Maestro smoke test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: Maestro smoke test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build and launch on the simulator
+        env:
+          SENTRY_DISABLE_AUTO_UPLOAD: "true"
+        run: pnpm exec expo run:ios --configuration Release
+
+      - name: Install Maestro
+        run: |
+          curl -Ls https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Run the login → grades flow
+        run: maestro test .maestro
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: maestro-debug
+          path: ~/.maestro/tests
