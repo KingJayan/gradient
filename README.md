@@ -9,9 +9,9 @@
 ## features
 
 - grades, GPA (weighted + unweighted), schedule, planner, transcript
-- "what do i need?" — pick a target GPA, get the average you need across your courses
+- "what if?" — pick a target GPA to see the average you need, or mock a grade to see where it lands you
 - personal tasks merged with HAC assignments
-- 6 dark themes, optional face id lock
+- 6 themes, each in light and dark; matching app icon and splash; optional face id lock
 - offline-friendly: last fetch is cached and shown on cold start
 - creds stored in ios keychain, never on a server
 - tells you *why* things broke: "HAC is down for FRISCOISD" beats a spinner
@@ -38,6 +38,7 @@ no HAC account? tap **explore the demo account** on the login screen (or sign in
 | `pnpm run type-check` | typescript check |
 | `pnpm test` | jest + react native testing library |
 | `maestro test .maestro` | end-to-end smoke flow on a simulator build |
+| `pnpm run assets` | regenerate app icons + splashes from `assets/themes.json` |
 | `pnpm run build:ios` | eas production build |
 | `pnpm run update` | publish an OTA update to the current branch's channel |
 
@@ -47,7 +48,7 @@ react native 0.81 · expo sdk 54 · react navigation 6 · ts · expo-secure-stor
 
 ## releases & monitoring
 
-- **ota updates:** run through eas (`production` and `preview` channels). updates download in the background and swap in on next launch (or force it via settings).
+- **ota updates:** run through eas (`production` and `preview` channels). updates download in the background and swap in on next launch (or force it via settings). app icons and the splash are native — they need a full rebuild.
 - **error tracking:** drop `EXPO_PUBLIC_SENTRY_DSN` into `.env.local` to enable sentry. it tracks crash-free sessions and tags errors with the active ota update id.
 - **dev-friendly:** monitoring is a safe no-op in dev mode or if keys are missing. 
 - **source maps:** require `SENTRY_ORG`, `SENTRY_PROJECT`, and `SENTRY_AUTH_TOKEN` in your prod build environment.

@@ -15,9 +15,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { calculateGPA } from '../utils/gpa-calculator';
-import { UI_COLORS } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, AsyncContent } from '../components/screen';
+import { Screen, AsyncContent, Card } from '../components/screen';
 
 const LINK_CARDS: {
   route: string;
@@ -107,8 +106,8 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
         </View>
 
         <View style={styles.statsContainer}>
-          <View
-            style={[styles.statCard, { backgroundColor: currentTheme.surface }]}
+          <Card
+            style={styles.statCard}
             accessible
             accessibilityLabel={`Weighted GPA ${gpaResult ? gpaResult.weighted : 'unavailable'}`}
           >
@@ -117,9 +116,9 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
               <Ionicons name="trending-up" size={18} color={currentTheme.textSecondary} />
             </View>
             <Text style={[styles.statValue, { color: currentTheme.text }]}>{gpa}</Text>
-          </View>
-          <View
-            style={[styles.statCard, { backgroundColor: currentTheme.surface }]}
+          </Card>
+          <Card
+            style={styles.statCard}
             accessible
             accessibilityLabel={`${classes} active classes`}
           >
@@ -128,16 +127,15 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
               <Ionicons name="school" size={18} color={currentTheme.textSecondary} />
             </View>
             <Text style={[styles.statValue, { color: currentTheme.text }]}>{classes}</Text>
-          </View>
+          </Card>
         </View>
 
         <View style={styles.section}>
           {LINK_CARDS.map((card) => (
-            <TouchableOpacity
+            <Card
               key={card.route}
-              style={[styles.linkCard, { backgroundColor: currentTheme.surface }]}
+              style={styles.linkCard}
               onPress={() => navigation.navigate(card.route)}
-              activeOpacity={0.8}
               accessibilityRole="button"
               accessibilityLabel={card.label}
             >
@@ -149,7 +147,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
                 <Text style={[styles.linkSubtitle, { color: currentTheme.textSecondary }]}>{card.subtitle}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
-            </TouchableOpacity>
+            </Card>
           ))}
         </View>
 
@@ -173,7 +171,6 @@ const styles = StyleSheet.create({
   },
   linkCard: {
     alignItems: 'center',
-    borderRadius: RADIUS.md,
     flexDirection: 'row',
     gap: SPACING.md,
     marginBottom: SPACING.md,
@@ -195,15 +192,9 @@ const styles = StyleSheet.create({
   section: { marginBottom: SPACING.lg, paddingHorizontal: SPACING.xl },
   spacer: { height: 40 },
   statCard: {
-    borderRadius: RADIUS.md,
-    elevation: 3,
     flex: 1,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.xl,
-    shadowColor: UI_COLORS.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
   },
   statLabel: { fontSize: FONT.sm, fontWeight: '600', letterSpacing: 0.3 },
   statTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },

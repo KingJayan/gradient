@@ -22,7 +22,7 @@ import { UI_COLORS, onPrimary, gradeLetter } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { Screen, ScreenHeader, AsyncContent, IconButton } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, IconButton, Card } from '../components/screen';
 
 const TARGET_GPAS = [3.0, 3.5, 4.0];
 
@@ -32,7 +32,7 @@ export default function GPACalculatorScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [mockScenario, setMockScenario] = useState<{ courseId: string; mockGrade: number }[]>([]);
-  const [showWhatIf, setShowWhatIf] = useState(false);
+  const [showMock, setShowMock] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [mockGradeInput, setMockGradeInput] = useState('');
   const [targetGPA, setTargetGPA] = useState(TARGET_GPAS[1]);
@@ -97,7 +97,7 @@ export default function GPACalculatorScreen() {
     }
     setMockGradeInput('');
     setSelectedCourseId(null);
-    setShowWhatIf(false);
+    setShowMock(false);
   };
 
   return (
@@ -139,7 +139,19 @@ export default function GPACalculatorScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>What Do I Need?</Text>
+        <View style={styles.scenarioHeader}>
+          <Text style={[styles.sectionTitleFlush, { color: currentTheme.text }]}>What If?</Text>
+          {scenarioGPA && (
+            <TouchableOpacity
+              style={styles.clearButtonHit}
+              onPress={() => setMockScenario([])}
+              accessibilityRole="button"
+              accessibilityLabel="Clear all mock grades"
+            >
+              <Text style={styles.clearButton}>Clear All</Text>
+            </TouchableOpacity>
+          )}
+        </View>
         <View style={styles.targetRow} accessibilityRole="radiogroup">
           {TARGET_GPAS.map((target) => {
             const selected = target === targetGPA;
@@ -171,6 +183,22 @@ export default function GPACalculatorScreen() {
           })}
         </View>
         <Text style={[styles.targetResult, { color: currentTheme.textSecondary }]}>{gradeNeededText}</Text>
+        {scenarioGPA && (
+          <View style={styles.scenarioGrid}>
+            {[
+              { label: 'Weighted', current: gpaResult.weighted, scenario: scenarioGPA.weighted },
+              { label: 'Unweighted', current: gpaResult.unweighted, scenario: scenarioGPA.unweighted },
+            ].map((item) => (
+              <View key={item.label} style={[styles.scenarioCard, { backgroundColor: currentTheme.surface, borderColor: currentTheme.primary }]}>
+                <Text style={[styles.scenarioLabel, { color: currentTheme.textSecondary }]}>{item.label}</Text>
+                <Text style={[styles.scenarioValue, { color: currentTheme.primary }]}>{item.scenario}</Text>
+                <Text style={[styles.scenarioDelta, { color: currentTheme.text }]}>
+                  {item.scenario > item.current ? '+' : ''}{(item.scenario - item.current).toFixed(2)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -178,7 +206,7 @@ export default function GPACalculatorScreen() {
         {courses.map((course) => {
           const mockGrade = mockScenario.find((m) => m.courseId === course.id)?.mockGrade;
           return (
-            <View key={course.id} style={[styles.courseCard, { backgroundColor: currentTheme.surface }]}>
+            <Card key={course.id} style={styles.courseCard}>
               <View style={styles.courseHeader}>
                 <View style={styles.courseInfo}>
                   <Text style={[styles.courseName, { color: currentTheme.text }]}>{course.name}</Text>
@@ -221,64 +249,34 @@ export default function GPACalculatorScreen() {
                 )}
               </View>
               <TouchableOpacity
-                style={styles.whatIfButton}
-                onPress={() => { setSelectedCourseId(course.id); setShowWhatIf(true); }}
+                style={styles.mockButton}
+                onPress={() => { setSelectedCourseId(course.id); setShowMock(true); }}
                 accessibilityRole="button"
                 accessibilityLabel={`Add mock grade for ${course.name}`}
               >
                 <Ionicons name="add-circle" size={16} color={currentTheme.primary} />
-                <Text style={[styles.whatIfButtonText, { color: currentTheme.primary }]}>Add Mock Grade</Text>
+                <Text style={[styles.mockButtonText, { color: currentTheme.primary }]}>Add Mock Grade</Text>
               </TouchableOpacity>
-            </View>
+            </Card>
           );
         })}
       </View>
 
-      {scenarioGPA && (
-        <View style={styles.section}>
-          <View style={styles.scenarioHeader}>
-            <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Scenario Result</Text>
-            <TouchableOpacity
-              style={styles.clearButtonHit}
-              onPress={() => setMockScenario([])}
-              accessibilityRole="button"
-              accessibilityLabel="Clear all mock grades"
-            >
-              <Text style={styles.clearButton}>Clear All</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.scenarioGrid}>
-            {[
-              { label: 'Weighted', current: gpaResult.weighted, scenario: scenarioGPA.weighted },
-              { label: 'Unweighted', current: gpaResult.unweighted, scenario: scenarioGPA.unweighted },
-            ].map((item) => (
-              <View key={item.label} style={[styles.scenarioCard, { backgroundColor: currentTheme.surface, borderColor: currentTheme.primary }]}>
-                <Text style={[styles.scenarioLabel, { color: currentTheme.textSecondary }]}>{item.label}</Text>
-                <Text style={[styles.scenarioValue, { color: currentTheme.primary }]}>{item.scenario}</Text>
-                <Text style={[styles.scenarioDelta, { color: currentTheme.text }]}>
-                  {item.scenario > item.current ? '+' : ''}{(item.scenario - item.current).toFixed(2)}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-
       <Modal
-        visible={showWhatIf}
+        visible={showMock}
         transparent
         animationType="slide"
-        onRequestClose={() => { setShowWhatIf(false); setSelectedCourseId(null); setMockGradeInput(''); }}
+        onRequestClose={() => { setShowMock(false); setSelectedCourseId(null); setMockGradeInput(''); }}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>What-If Calculator</Text>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Mock Grade</Text>
               <IconButton
                 name="close"
                 color={currentTheme.text}
-                label="Close what-if calculator"
-                onPress={() => { setShowWhatIf(false); setSelectedCourseId(null); setMockGradeInput(''); }}
+                label="Close mock grade"
+                onPress={() => { setShowMock(false); setSelectedCourseId(null); setMockGradeInput(''); }}
               />
             </View>
             {selectedCourseId && (
@@ -321,7 +319,6 @@ const styles = StyleSheet.create({
   clearButtonHit: { justifyContent: 'center', minHeight: TOUCH_TARGET, paddingHorizontal: SPACING.xs },
   courseActions: { alignItems: 'center', flexDirection: 'row', gap: SPACING.md },
   courseCard: {
-    borderRadius: RADIUS.md,
     marginBottom: SPACING.sm,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
@@ -350,6 +347,8 @@ const styles = StyleSheet.create({
   gpaValue: { fontSize: FONT.hero, fontWeight: '700', marginTop: SPACING.sm },
   gradeLabel: { fontSize: FONT.base, fontWeight: '600' },
   gradeRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.sm },
+  mockButton: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', minHeight: TOUCH_TARGET },
+  mockButtonText: { fontSize: FONT.sm, fontWeight: '600', marginLeft: SPACING.xs },
   mockLabel: { color: UI_COLORS.info, fontSize: FONT.base, fontWeight: '600' },
   modalButton: {
     alignItems: 'center',
@@ -389,7 +388,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.lg,
   },
   scenarioDelta: { fontSize: FONT.sm, fontWeight: '600', marginTop: SPACING.xs },
-  scenarioGrid: { flexDirection: 'row', gap: SPACING.md },
+  scenarioGrid: { flexDirection: 'row', gap: SPACING.md, marginTop: SPACING.md },
   scenarioHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -400,6 +399,7 @@ const styles = StyleSheet.create({
   scenarioValue: { fontSize: FONT.display, fontWeight: '700', marginTop: SPACING.sm },
   section: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.lg },
   sectionTitle: { fontSize: FONT.xl, fontWeight: '700', marginBottom: SPACING.md },
+  sectionTitleFlush: { fontSize: FONT.xl, fontWeight: '700' },
   targetChip: {
     alignItems: 'center',
     borderRadius: RADIUS.sm,
@@ -413,6 +413,4 @@ const styles = StyleSheet.create({
   targetRow: { flexDirection: 'row', gap: SPACING.md },
   weightBadge: { borderRadius: RADIUS.xs, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs },
   weightBadgeText: { fontSize: FONT.xs, fontWeight: '700' },
-  whatIfButton: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', minHeight: TOUCH_TARGET },
-  whatIfButtonText: { fontSize: FONT.sm, fontWeight: '600', marginLeft: SPACING.xs },
 });

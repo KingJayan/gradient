@@ -7,6 +7,7 @@ export const SECURE_KEYS = {
   password: 'userPass',
   appLock: 'appLockEnabled',
   theme: 'appTheme',
+  appearance: 'appAppearance',
 } as const;
 
 export const LOCAL_KEYS = {

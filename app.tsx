@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
 import { AuthContext } from './context/auth-context';
 import { ThemeProvider } from './context/theme-context';
 import { DataProvider } from './context/data-context';
@@ -168,6 +169,7 @@ function statusMessage(status: ServiceStatus, hacUrl?: string): string {
 
 function AppShell({ isLoggedOut, hacUrl }: { isLoggedOut: boolean; hacUrl?: string }) {
   const { locked } = useAppLock();
+  const { scheme } = useTheme();
   const status = useServiceStatus();
   const banner =
     status === 'ok'
@@ -176,6 +178,7 @@ function AppShell({ isLoggedOut, hacUrl }: { isLoggedOut: boolean; hacUrl?: stri
 
   return (
     <View style={styles.root}>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       {locked ? (
         <LockScreen />
       ) : (

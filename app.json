@@ -9,12 +9,7 @@
       "policy": "appVersion"
     },
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#060F0B"
-    },
+    "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -26,7 +21,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSFaceIDUsageDescription": "Gradient uses Face ID to lock the app so only you can view your grades."
       },
-      "userInterfaceStyle": "dark",
+      "userInterfaceStyle": "automatic",
       "privacyManifests": {
         "NSPrivacyTracking": false,
         "NSPrivacyTrackingDomains": [],
@@ -71,6 +66,30 @@
     "plugins": [
       "@sentry/react-native/expo",
       "expo-updates",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-light.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#F2F8F5",
+          "dark": {
+            "image": "./assets/splash-dark.png",
+            "backgroundColor": "#060F0B"
+          }
+        }
+      ],
+      [
+        "expo-alternate-app-icons",
+        [
+          { "name": "Emerald", "ios": "./assets/icons/emerald.png" },
+          { "name": "Ocean", "ios": "./assets/icons/ocean.png" },
+          { "name": "Violet", "ios": "./assets/icons/violet.png" },
+          { "name": "Rose", "ios": "./assets/icons/rose.png" },
+          { "name": "Amber", "ios": "./assets/icons/amber.png" },
+          { "name": "Slate", "ios": "./assets/icons/slate.png" }
+        ]
+      ],
       [
         "expo-build-properties",
         {

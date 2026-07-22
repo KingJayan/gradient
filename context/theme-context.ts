@@ -1,7 +1,9 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { useColorScheme } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { logWarning } from '../utils/error-logger';
 import { SECURE_KEYS } from '../utils/storage';
+import THEME_DATA from '../assets/themes.json';
 
 export interface Theme {
   primary: string;
@@ -12,76 +14,45 @@ export interface Theme {
   border: string;
 }
 
-export const THEMES: Record<string, Theme> = {
-  emerald: {
-    primary: '#00F5A0',
-    background: '#060F0B',
-    surface: '#0F1E14',
-    text: '#FFFFFF',
-    textSecondary: '#6B9E85',
-    border: '#1A3326',
-  },
-  ocean: {
-    primary: '#4A9FFF',
-    background: '#060B12',
-    surface: '#0E1822',
-    text: '#FFFFFF',
-    textSecondary: '#6B8CAE',
-    border: '#152336',
-  },
-  violet: {
-    primary: '#A855F7',
-    background: '#08060F',
-    surface: '#130E1E',
-    text: '#FFFFFF',
-    textSecondary: '#8B72AE',
-    border: '#1F1230',
-  },
-  rose: {
-    primary: '#F43F5E',
-    background: '#0F060A',
-    surface: '#1E0E14',
-    text: '#FFFFFF',
-    textSecondary: '#AE728A',
-    border: '#33121C',
-  },
-  amber: {
-    primary: '#FCD34D',
-    background: '#0F0C04',
-    surface: '#1E1A0A',
-    text: '#FFFFFF',
-    textSecondary: '#AE9E6B',
-    border: '#332E10',
-  },
-  slate: {
-    primary: '#94A3B8',
-    background: '#070A0E',
-    surface: '#0F1520',
-    text: '#FFFFFF',
-    textSecondary: '#7A8EAA',
-    border: '#1A2336',
-  },
-};
+export type Scheme = 'light' | 'dark';
+export type Appearance = 'system' | Scheme;
+
+export const THEMES: Record<string, Record<Scheme, Theme>> = THEME_DATA;
 
 const THEME_NAMES = Object.keys(THEMES) as readonly string[];
+const APPEARANCES: readonly Appearance[] = ['system', 'light', 'dark'];
+
+function isAppearance(value: string): value is Appearance {
+  return (APPEARANCES as readonly string[]).includes(value);
+}
 
 export interface ThemeContextType {
   currentTheme: Theme;
   themeName: string;
   availableThemes: readonly string[];
   setTheme: (name: string) => Promise<void>;
+  appearance: Appearance;
+  availableAppearances: readonly Appearance[];
+  setAppearance: (value: Appearance) => Promise<void>;
+  scheme: Scheme;
 }
 
 export const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeName, setThemeName] = useState('emerald');
+  const [appearance, setAppearanceState] = useState<Appearance>('system');
   const [loading, setLoading] = useState(true);
+  const systemScheme = useColorScheme();
 
   useEffect(() => {
-    SecureStore.getItemAsync(SECURE_KEYS.theme)
-      .then((saved) => {
-        if (saved && THEMES[saved]) setThemeName(saved);
+    Promise.all([
+      SecureStore.getItemAsync(SECURE_KEYS.theme),
+      SecureStore.getItemAsync(SECURE_KEYS.appearance),
+    ])
+      .then(([savedTheme, savedAppearance]) => {
+        if (savedTheme && THEMES[savedTheme]) setThemeName(savedTheme);
+        if (savedAppearance && isAppearance(savedAppearance)) setAppearanceState(savedAppearance);
       })
       .catch((e) => {
         logWarning('theme restore failed', { error: (e as Error).message });
@@ -99,15 +70,28 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const value: ThemeContextType = useMemo(
-    () => ({
-      currentTheme: THEMES[themeName] ?? THEMES.emerald,
+  const setAppearance = useCallback(async (value: Appearance) => {
+    setAppearanceState(value);
+    try {
+      await SecureStore.setItemAsync(SECURE_KEYS.appearance, value);
+    } catch (e) {
+      logWarning('appearance persist failed', { appearance: value, error: (e as Error).message });
+    }
+  }, []);
+
+  const value: ThemeContextType = useMemo(() => {
+    const scheme: Scheme = appearance === 'system' ? systemScheme ?? 'dark' : appearance;
+    return {
+      currentTheme: (THEMES[themeName] ?? THEMES.emerald)[scheme],
       themeName,
       availableThemes: THEME_NAMES,
       setTheme,
-    }),
-    [themeName, setTheme]
-  );
+      appearance,
+      availableAppearances: APPEARANCES,
+      setAppearance,
+      scheme,
+    };
+  }, [themeName, setTheme, appearance, setAppearance, systemScheme]);
 
   if (loading) return null;
 

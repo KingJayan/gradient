@@ -32,3 +32,12 @@ export const FONT = {
 } as const;
 
 export const TOUCH_TARGET = 44;
+
+export const ELEVATION = {
+  offset: { width: 0, height: 4 },
+  radius: 8,
+  android: 3,
+  opacity: { light: 0.1, dark: 0.35 },
+  pressedOpacity: { light: 0.04, dark: 0.15 },
+  pressedScale: 0.985,
+} as const;

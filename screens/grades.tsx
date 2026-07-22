@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { StyleSheet, View, FlatList, Text, TouchableOpacity, RefreshControl } from 'react-native';
+import { StyleSheet, View, FlatList, Text, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/api/grades';
-import { UI_COLORS, gradeLetter, gradeColor } from '../utils/colors';
+import { gradeLetter, gradeColor } from '../utils/colors';
 import { FONT, RADIUS, SPACING } from '../utils/tokens';
-import { Screen, ScreenHeader, AsyncContent } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, Card } from '../components/screen';
 
 interface GradeRow extends GradeEntry {
   categories: { name: string; grade: string }[];
@@ -27,10 +27,9 @@ const GradeCard = React.memo(function GradeCard({
   const color = gradeColor(grade.average);
   const letter = gradeLetter(grade.average);
   return (
-    <TouchableOpacity
-      style={[styles.gradeCard, { backgroundColor: currentTheme.surface, borderLeftColor: color, borderLeftWidth: 4 }]}
+    <Card
+      style={[styles.gradeCard, { borderLeftColor: color, borderLeftWidth: 4 }]}
       onPress={() => onToggle(grade.className)}
-      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={`${grade.className}, ${grade.average.toFixed(1)} percent, grade ${letter}`}
       accessibilityHint={expanded ? 'Collapses the category breakdown' : 'Expands the category breakdown'}
@@ -85,7 +84,7 @@ const GradeCard = React.memo(function GradeCard({
           })}
         </View>
       )}
-    </TouchableOpacity>
+    </Card>
   );
 });
 
@@ -216,15 +215,9 @@ const styles = StyleSheet.create({
   expandedContent: { borderTopWidth: 1, marginTop: SPACING.lg, paddingTop: SPACING.lg },
   flex1: { flex: 1 },
   gradeCard: {
-    borderRadius: RADIUS.md,
-    elevation: 1,
     marginBottom: SPACING.md,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.xl,
-    shadowColor: UI_COLORS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
   },
   gradeHeader: {
     alignItems: 'center',

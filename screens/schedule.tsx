@@ -16,7 +16,7 @@ import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { onPrimary } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, ScreenHeader, AsyncContent, RetryButton, IconButton } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, RetryButton, IconButton, Card } from '../components/screen';
 import { LOCAL_KEYS } from '../utils/storage';
 
 type BellSchedule = Record<string, { start: string; end: string }>;
@@ -111,7 +111,7 @@ export default function ScheduleScreen() {
               schedule.map((period: ClassPeriod) => {
                 const bt = bellTimes[period.id];
                 return (
-                  <View key={period.id} style={[styles.periodCard, { backgroundColor: currentTheme.surface }]}>
+                  <Card key={period.id} style={styles.periodCard}>
                     <View style={[styles.periodBadge, { backgroundColor: currentTheme.primary + '22' }]}>
                       <Text
                         style={[styles.periodBadgeText, { color: currentTheme.primary }]}
@@ -143,7 +143,7 @@ export default function ScheduleScreen() {
                         ) : null}
                       </View>
                     </View>
-                  </View>
+                  </Card>
                 );
               })
             )}
@@ -271,7 +271,6 @@ const styles = StyleSheet.create({
   },
   periodBadgeText: { fontSize: FONT.base, fontWeight: '700' },
   periodCard: {
-    borderRadius: RADIUS.md,
     flexDirection: 'row',
     gap: SPACING.md,
     marginBottom: SPACING.sm,

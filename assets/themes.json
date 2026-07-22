@@ -1,0 +1,110 @@
+{
+  "emerald": {
+    "dark": {
+      "primary": "#00F5A0",
+      "background": "#060F0B",
+      "surface": "#0F1E14",
+      "text": "#FFFFFF",
+      "textSecondary": "#6B9E85",
+      "border": "#1A3326"
+    },
+    "light": {
+      "primary": "#00875A",
+      "background": "#F2F8F5",
+      "surface": "#FFFFFF",
+      "text": "#0A1710",
+      "textSecondary": "#4E7061",
+      "border": "#D3E5DB"
+    }
+  },
+  "ocean": {
+    "dark": {
+      "primary": "#4A9FFF",
+      "background": "#060B12",
+      "surface": "#0E1822",
+      "text": "#FFFFFF",
+      "textSecondary": "#6B8CAE",
+      "border": "#152336"
+    },
+    "light": {
+      "primary": "#1565C0",
+      "background": "#F1F6FC",
+      "surface": "#FFFFFF",
+      "text": "#0A1420",
+      "textSecondary": "#516983",
+      "border": "#D2E0EF"
+    }
+  },
+  "violet": {
+    "dark": {
+      "primary": "#A855F7",
+      "background": "#08060F",
+      "surface": "#130E1E",
+      "text": "#FFFFFF",
+      "textSecondary": "#8B72AE",
+      "border": "#1F1230"
+    },
+    "light": {
+      "primary": "#7A28C4",
+      "background": "#F6F3FC",
+      "surface": "#FFFFFF",
+      "text": "#150F20",
+      "textSecondary": "#6B5A85",
+      "border": "#E1D6F2"
+    }
+  },
+  "rose": {
+    "dark": {
+      "primary": "#F43F5E",
+      "background": "#0F060A",
+      "surface": "#1E0E14",
+      "text": "#FFFFFF",
+      "textSecondary": "#AE728A",
+      "border": "#33121C"
+    },
+    "light": {
+      "primary": "#C81E43",
+      "background": "#FDF2F5",
+      "surface": "#FFFFFF",
+      "text": "#200D13",
+      "textSecondary": "#8A5666",
+      "border": "#F3D5DD"
+    }
+  },
+  "amber": {
+    "dark": {
+      "primary": "#FCD34D",
+      "background": "#0F0C04",
+      "surface": "#1E1A0A",
+      "text": "#FFFFFF",
+      "textSecondary": "#AE9E6B",
+      "border": "#332E10"
+    },
+    "light": {
+      "primary": "#B45309",
+      "background": "#FDF8EC",
+      "surface": "#FFFFFF",
+      "text": "#1E1705",
+      "textSecondary": "#7D6A3D",
+      "border": "#EFE3C6"
+    }
+  },
+  "slate": {
+    "dark": {
+      "primary": "#94A3B8",
+      "background": "#070A0E",
+      "surface": "#0F1520",
+      "text": "#FFFFFF",
+      "textSecondary": "#7A8EAA",
+      "border": "#1A2336"
+    },
+    "light": {
+      "primary": "#465A73",
+      "background": "#F4F6F9",
+      "surface": "#FFFFFF",
+      "text": "#0D131C",
+      "textSecondary": "#5B6779",
+      "border": "#DCE2EA"
+    }
+  }
+}

@@ -12,10 +12,14 @@ export const TEST_USER: Student = {
 };
 
 const theme: ThemeContextType = {
-  currentTheme: THEMES.emerald,
+  currentTheme: THEMES.emerald.dark,
   themeName: 'emerald',
   availableThemes: Object.keys(THEMES),
   setTheme: jest.fn(async () => {}),
+  appearance: 'dark',
+  availableAppearances: ['system', 'light', 'dark'],
+  setAppearance: jest.fn(async () => {}),
+  scheme: 'dark',
 };
 
 export const auth: AuthContextType = {

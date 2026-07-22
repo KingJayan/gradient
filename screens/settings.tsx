@@ -10,6 +10,7 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { setAlternateAppIcon, supportsAlternateIcons } from 'expo-alternate-app-icons';
 import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
 import { useAppLock } from '../context/app-lock-context';
@@ -20,7 +21,7 @@ import { districtName } from '../utils/district';
 import { APP_VERSION, BUILD_NUMBER, PRIVACY_URL, SUPPORT_URL } from '../utils/links';
 import { logWarning } from '../utils/error-logger';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, ScreenHeader } from '../components/screen';
+import { Screen, ScreenHeader, Card } from '../components/screen';
 
 const UPDATE_MESSAGES = {
   downloaded: 'An update is ready. Restart Gradient to apply it.',
@@ -31,7 +32,8 @@ const UPDATE_MESSAGES = {
 
 export default function SettingsScreen() {
   const authContext = useContext(AuthContext);
-  const { currentTheme, themeName, setTheme, availableThemes } = useTheme();
+  const { currentTheme, themeName, setTheme, availableThemes, appearance, availableAppearances, setAppearance, scheme } =
+    useTheme();
   const { enabled: appLockEnabled, setEnabled: setAppLockEnabled, isSupported } = useAppLock();
 
   if (!authContext) return null;
@@ -68,6 +70,12 @@ export default function SettingsScreen() {
 
   const handleThemeChange = async (name: string) => {
     await setTheme(name);
+    if (!supportsAlternateIcons) return;
+    try {
+      await setAlternateAppIcon(name.charAt(0).toUpperCase() + name.slice(1));
+    } catch (e) {
+      logWarning('app icon change failed', { themeName: name, error: e instanceof Error ? e.message : String(e) });
+    }
   };
 
   const openLink = async (url: string) => {
@@ -97,9 +105,37 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             Appearance
           </Text>
+          <View style={styles.appearanceRow} accessibilityRole="radiogroup">
+            {availableAppearances.map((option) => {
+              const selected = option === appearance;
+              const preview = THEMES[themeName][option === 'system' ? scheme : option];
+              return (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.appearanceChip,
+                    {
+                      backgroundColor: preview.background,
+                      borderColor: selected ? preview.primary : preview.border,
+                      borderWidth: selected ? 2 : 1,
+                    },
+                  ]}
+                  onPress={() => setAppearance(option)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${option.charAt(0).toUpperCase() + option.slice(1)} appearance`}
+                  accessibilityState={{ checked: selected }}
+                >
+                  <View style={[styles.appearanceSwatch, { backgroundColor: preview.primary }]} />
+                  <Text style={[styles.appearanceChipText, { color: preview.text }]} maxFontSizeMultiplier={1.6}>
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
           <View style={styles.themeGrid}>
             {availableThemes.map((theme) => {
-              const themeColor = THEMES[theme]?.primary ?? currentTheme.primary;
+              const themeColor = THEMES[theme][scheme].primary;
               return (
                 <TouchableOpacity
                   key={theme}
@@ -129,7 +165,7 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             Account
           </Text>
-          <View style={[styles.accountCard, { backgroundColor: currentTheme.surface }]}>
+          <Card style={styles.accountCard}>
             <View style={[styles.accountAvatar, { backgroundColor: currentTheme.primary }]}>
               <Ionicons name="person" size={32} color={onPrimary(currentTheme.primary)} />
             </View>
@@ -144,14 +180,14 @@ export default function SettingsScreen() {
                 {districtName(state.user?.hacUrl)}
               </Text>
             </View>
-          </View>
+          </Card>
         </View>
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             Security
           </Text>
-          <View style={[styles.lockRow, { backgroundColor: currentTheme.surface }]}>
+          <Card style={styles.lockRow}>
             <View style={styles.lockInfo}>
               <Ionicons name="finger-print" size={22} color={currentTheme.primary} />
               <View style={styles.lockText}>
@@ -167,62 +203,62 @@ export default function SettingsScreen() {
               trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
               accessibilityLabel="Require Face ID to open the app"
             />
-          </View>
+          </Card>
         </View>
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             Support
           </Text>
-          <TouchableOpacity
-            style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}
+          <Card
+            style={styles.infoItem}
             onPress={() => openLink(SUPPORT_URL)}
             accessibilityRole="link"
             accessibilityLabel="Get help and report a problem"
           >
             <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Get Help</Text>
             <Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}
+          </Card>
+          <Card
+            style={styles.infoItem}
             onPress={() => openLink(PRIVACY_URL)}
             accessibilityRole="link"
             accessibilityLabel="Read the privacy policy"
           >
             <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Privacy Policy</Text>
             <Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}
+          </Card>
+          <Card
+            style={styles.infoItem}
             onPress={handleCheckForUpdates}
             accessibilityRole="button"
             accessibilityLabel="Check for updates"
           >
             <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Check for Updates</Text>
             <Ionicons name="refresh" size={18} color={currentTheme.textSecondary} />
-          </TouchableOpacity>
+          </Card>
         </View>
 
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
             About
           </Text>
-          <View style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}>
+          <Card style={styles.infoItem}>
             <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Version</Text>
             <Text style={[styles.infoValue, { color: currentTheme.text }]}>
               {APP_VERSION} ({BUILD_NUMBER})
             </Text>
-          </View>
+          </Card>
           {OTA_ENABLED && (
-            <View style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}>
+            <Card style={styles.infoItem}>
               <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Update</Text>
               <Text style={[styles.infoValue, { color: currentTheme.text }]}>{currentUpdateLabel()}</Text>
-            </View>
+            </Card>
           )}
-          <View style={[styles.infoItem, { backgroundColor: currentTheme.surface }]}>
+          <Card style={styles.infoItem}>
             <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Powered by</Text>
             <Text style={[styles.infoValue, { color: currentTheme.text }]}>HAC API</Text>
-          </View>
+          </Card>
         </View>
 
         <View style={styles.section}>
@@ -268,7 +304,6 @@ const styles = StyleSheet.create({
   },
   accountCard: {
     alignItems: 'center',
-    borderRadius: RADIUS.md,
     flexDirection: 'row',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.lg,
@@ -289,6 +324,17 @@ const styles = StyleSheet.create({
     fontSize: FONT.lg,
     fontWeight: '600',
   },
+  appearanceChip: {
+    alignItems: 'center',
+    borderRadius: RADIUS.md,
+    flex: 1,
+    gap: SPACING.xs,
+    justifyContent: 'center',
+    minHeight: TOUCH_TARGET * 1.4,
+  },
+  appearanceChipText: { fontSize: FONT.xs, fontWeight: '600' },
+  appearanceRow: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md },
+  appearanceSwatch: { borderRadius: RADIUS.pill, height: SPACING.lg, width: SPACING.xxxl },
   deleteButton: {
     alignItems: 'center',
     borderRadius: RADIUS.md,
@@ -319,7 +365,6 @@ const styles = StyleSheet.create({
   },
   infoItem: {
     alignItems: 'center',
-    borderRadius: RADIUS.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: SPACING.sm,
@@ -337,7 +382,6 @@ const styles = StyleSheet.create({
   lockInfo: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: SPACING.md },
   lockRow: {
     alignItems: 'center',
-    borderRadius: RADIUS.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.lg,

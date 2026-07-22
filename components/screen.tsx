@@ -7,14 +7,16 @@ import {
   Animated,
   Easing,
   TouchableOpacity,
+  Pressable,
   StyleProp,
   ViewStyle,
+  AccessibilityRole,
   AccessibilityState,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { UI_COLORS, onPrimary } from '../utils/colors';
-import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { ELEVATION, FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 
 export function Screen({
   header,
@@ -101,6 +103,55 @@ export function IconButton({
   );
 }
 
+export function Card({
+  onPress,
+  style,
+  children,
+  ...a11y
+}: {
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
+  children: React.ReactNode;
+  accessible?: boolean;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  accessibilityState?: AccessibilityState;
+}) {
+  const { currentTheme, scheme } = useTheme();
+  const base: ViewStyle = {
+    backgroundColor: currentTheme.surface,
+    borderColor: currentTheme.border,
+    shadowColor: UI_COLORS.black,
+  };
+
+  if (!onPress) {
+    return (
+      <View style={[styles.card, base, { shadowOpacity: ELEVATION.opacity[scheme] }, style]} {...a11y}>
+        {children}
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.card,
+        base,
+        {
+          shadowOpacity: pressed ? ELEVATION.pressedOpacity[scheme] : ELEVATION.opacity[scheme],
+          transform: [{ scale: pressed ? ELEVATION.pressedScale : 1 }],
+        },
+        style,
+      ]}
+      {...a11y}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
 export function Skeleton({ style }: { style?: StyleProp<ViewStyle> }) {
   const { currentTheme } = useTheme();
   const opacity = useRef(new Animated.Value(0.4)).current;
@@ -173,6 +224,13 @@ export function AsyncContent({
 }
 
 const styles = StyleSheet.create({
+  card: {
+    borderRadius: RADIUS.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    elevation: ELEVATION.android,
+    shadowOffset: ELEVATION.offset,
+    shadowRadius: ELEVATION.radius,
+  },
   center: { alignItems: 'center', flex: 1, gap: SPACING.lg, justifyContent: 'center' },
   errorText: { fontSize: FONT.base, paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
   header: {

@@ -19,7 +19,7 @@ import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { logWarning } from '../utils/error-logger';
-import { Screen, AsyncContent, IconButton } from '../components/screen';
+import { Screen, AsyncContent, IconButton, Card } from '../components/screen';
 import { LOCAL_KEYS } from '../utils/storage';
 
 type Row = { type: 'header'; key: string; date: string } | { type: 'task'; key: string; task: Assignment };
@@ -407,7 +407,7 @@ const TaskItem = React.memo(function TaskItem({ task, onToggle, isOverdue, curre
       : currentTheme.primary;
 
   return (
-    <View style={[styles.taskItem, { backgroundColor: currentTheme.surface }, task.completed && styles.taskItemCompleted, isOverdue && styles.taskItemOverdue]}>
+    <Card style={[styles.taskItem, task.completed && styles.taskItemCompleted, isOverdue && styles.taskItemOverdue]}>
       <TouchableOpacity
         onPress={() => onToggle(task.id)}
         style={styles.checkbox}
@@ -440,7 +440,7 @@ const TaskItem = React.memo(function TaskItem({ task, onToggle, isOverdue, curre
       <Text style={[styles.taskDate, { color: currentTheme.textSecondary }]}>
         {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
       </Text>
-    </View>
+    </Card>
   );
 });
 
@@ -561,7 +561,6 @@ const styles = StyleSheet.create({
   taskDate: { fontSize: FONT.sm, marginLeft: SPACING.md },
   taskItem: {
     alignItems: 'center',
-    borderRadius: RADIUS.md,
     flexDirection: 'row',
     marginBottom: SPACING.sm,
     paddingHorizontal: SPACING.md,

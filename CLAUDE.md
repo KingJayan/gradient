@@ -12,6 +12,7 @@ pnpm run lint                 # ESLint
 pnpm run type-check           # tsc --noEmit
 pnpm test                     # Jest unit + component tests
 pnpm run precommit            # type-check + lint + test
+pnpm run assets               # regenerate app icons + splashes from assets/themes.json
 pnpm run prebuild             # Expo prebuild (native code)
 pnpm run build:ios            # EAS build for App Store
 pnpm run build:ios-simulator  # EAS build for simulator
@@ -116,15 +117,23 @@ Implementation details:
   through the same `schema.ts` validators and `parsers.ts` as real responses.
 - Any other username always takes the network path.
 
-### Themes (context/theme-context.ts)
-- 6 themes: emerald (default), ocean, violet, rose, amber, slate.
-- Each theme: `{ primary, background, surface, text, textSecondary, border }` — dark UI with vibrant primaries.
-- Persisted to SecureStore key `appTheme`.
-- `useTheme()` → `{ currentTheme, themeName, availableThemes, setTheme }`.
+### Themes (context/theme-context.ts + assets/themes.json)
+- 6 accent themes: emerald (default), ocean, violet, rose, amber, slate — each with a
+  `light` and a `dark` palette of `{ primary, background, surface, text, textSecondary, border }`.
+- All theme hex lives in `assets/themes.json`; it is the single source shared by the app
+  and `scripts/generate-assets.mjs`, which is why `theme-context.ts` holds no colors.
+- Appearance (`system` | `light` | `dark`) is independent of the accent and resolves
+  through `useColorScheme()` when set to `system`.
+- Persisted to SecureStore keys `appTheme` and `appAppearance`.
+- `useTheme()` → `{ currentTheme, themeName, availableThemes, setTheme, appearance,
+  availableAppearances, setAppearance, scheme }`.
+- Selecting a theme also swaps the iOS app icon via `expo-alternate-app-icons`.
 
 ### Design tokens (utils/tokens.ts + utils/colors.ts)
 - `SPACING`, `RADIUS`, `FONT`, `TOUCH_TARGET` — every padding, margin, gap,
   border radius, and font size in the UI comes from these.
+- `ELEVATION` carries the card shadow geometry plus per-scheme shadow opacities and the
+  pressed-state scale; only `Card` reads it.
 - `utils/colors.ts` holds the color tokens (`UI_COLORS`, `BRAND`, `FALLBACK`) and
   the canonical grade scale: `gradeLetter(avg)` → letter, `gradeColorFromLetter`
   → color, `gradeColor(avg)` delegating through both, `onPrimary(hex)` for
@@ -133,10 +142,12 @@ Implementation details:
   are `no-restricted-syntax` errors outside the token modules.
 
 ### Screen scaffolding (components/screen.tsx)
-`Screen`, `ScreenHeader`, `AsyncContent`, `RetryButton`, `IconButton`, `Skeleton`.
+`Screen`, `ScreenHeader`, `AsyncContent`, `RetryButton`, `IconButton`, `Card`, `Skeleton`.
 `AsyncContent` owns the loading/error/empty/retry switch and keeps stale content
 on screen while refetching. `IconButton` is the only way icon-only controls are
-built — it guarantees a label and a 44pt target.
+built — it guarantees a label and a 44pt target. `Card` is every raised surface: it
+fills the themed background, applies the `ELEVATION` shadow at the current scheme's
+strength, and renders a `Pressable` with scale + shadow feedback when given `onPress`.
 
 ### Accessibility
 - Every touchable carries `accessibilityRole` + `accessibilityLabel`, and
@@ -169,7 +180,9 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 | `hooks/use-network.ts` | Offline probe for the banner |
 | `hooks/use-theme.ts` | Theme accessor |
 | `services/api/` | Proxy client + per-endpoint fetchers |
-| `utils/tokens.ts` | Spacing, radius, type scale, touch target |
+| `utils/tokens.ts` | Spacing, radius, type scale, touch target, elevation |
+| `assets/themes.json` | Light + dark palettes for all 6 accent themes |
+| `scripts/generate-assets.mjs` | Renders app icons + splashes from the palettes |
 | `utils/colors.ts` | Color tokens + grade letter/color scale |
 | `utils/gpa-calculator.ts` | Weighted/unweighted GPA, what-if scenarios, `predictedGradeNeeded` target solver |
 | `utils/task-manager.ts` | HAC + personal task merge |
@@ -212,6 +225,9 @@ All `Animated.Value` instances are wrapped in `useRef` to survive re-renders. Us
 ## Deployment
 
 Typical flow: `pnpm run prebuild && pnpm run build:ios && eas submit --platform ios`.
+`pnpm run assets` rasterises `assets/icons/<theme>.png` and `assets/splash-{light,dark}.png`
+from `assets/themes.json` via `sharp`; the outputs are committed. Alternate app icons and
+the splash are native — they need a rebuild and cannot ship over the air.
 `app.json` carries `extra.eas.projectId`, `extra.apiBaseUrl`, and `extra.demoMode`.
 
 ## Security
@@ -234,6 +250,7 @@ in `__tests__/` subdirectories next to the modules they cover. Run with `pnpm te
 | `hooks/__tests__/use-creds.test.tsx` | on-demand password read, stable object identity, logout on keychain failure |
 | `hooks/__tests__/use-hac-query.test.tsx` | TTL, disabled key, per-key invalidation, cache + persistence cleared and requests aborted on logout |
 | `context/__tests__/data-context.test.tsx` | dashboard fetch once credentials resolve; cache cleared when the user logs out |
+| `context/__tests__/theme-context.test.tsx` | system appearance follows `useColorScheme`, explicit override, persistence, unknown-value fallback |
 | `screens/__tests__/dashboard-screens.test.tsx` | loading / error+retry / empty / data for Home, Grades, GPA, Schedule, Planner |
 | `screens/__tests__/transcript.test.tsx` | the same four states for the transcript modal |
 | `services/api/__tests__/fetchers.test.ts` | `fetchGrades`, `fetchCourses`, `fetchAssignments`, `fetchTranscript` — fetch is mocked |
@@ -260,7 +277,7 @@ weekly via `.github/dependabot.yml`.
 
 ## Known Limitations
 
-- iOS-only target; dark UI only (6 themes, all dark-background).
+- iOS-only target; 6 accent themes, each in light and dark.
 - HAC responses are inconsistent — the `services/api/` adapters normalise field names.
 - Bell times not exposed by HAC API; the user enters them in the Schedule screen.
 - Attendance and teacher emails are not available via the proxy.
