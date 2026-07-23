@@ -10,6 +10,7 @@ jobs:
   build-image:
     name: Build CI image
     runs-on: ubuntu-latest
+    timeout-minutes: 8
     permissions:
       contents: read
       packages: write
@@ -29,6 +30,7 @@ jobs:
           tags: ghcr.io/kingjayan/gradient-ci:latest
           cache-from: type=registry,ref=ghcr.io/kingjayan/gradient-ci:latest
           cache-to: type=inline
+          provenance: false
 
   check:
     name: Type-check, lint & test
