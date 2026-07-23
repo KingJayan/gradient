@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
-  Linking,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { setAlternateAppIcon, supportsAlternateIcons } from 'expo-alternate-app-icons';
+import * as StoreReview from 'expo-store-review';
 import { AuthContext } from '../context/auth-context';
 import { useTheme } from '../hooks/use-theme';
 import { useAppLock } from '../context/app-lock-context';
@@ -18,7 +19,7 @@ import { THEMES } from '../context/theme-context';
 import { applyUpdate, currentUpdateLabel, fetchUpdate, OTA_ENABLED } from '../hooks/use-updates';
 import { UI_COLORS, onPrimary } from '../utils/colors';
 import { districtName } from '../utils/district';
-import { APP_VERSION, BUILD_NUMBER, PRIVACY_URL, SUPPORT_URL } from '../utils/links';
+import { APP_VERSION, BUILD_NUMBER, SUPPORT_URL, openLink } from '../utils/links';
 import { logWarning } from '../utils/error-logger';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, ScreenHeader, Card } from '../components/screen';
@@ -35,6 +36,7 @@ const UPDATE_MESSAGES = {
 
 export default function SettingsScreen() {
   const authContext = useContext(AuthContext);
+  const navigation = useNavigation();
   const { currentTheme, themeName, setTheme, availableThemes, appearance, availableAppearances, setAppearance, scheme } =
     useTheme();
   const { enabled: appLockEnabled, setEnabled: setAppLockEnabled, isSupported } = useAppLock();
@@ -94,13 +96,13 @@ export default function SettingsScreen() {
     }
   };
 
-  const openLink = async (url: string) => {
-    try {
-      await Linking.openURL(url);
-    } catch (e) {
-      logWarning('Failed to open link', { url, error: e instanceof Error ? e.message : String(e) });
-      Alert.alert('Unable to Open Link', url);
+  const handleRate = async () => {
+    if (await StoreReview.isAvailableAsync()) {
+      await StoreReview.requestReview();
+      return;
     }
+    const url = StoreReview.storeUrl();
+    if (url) openLink(url);
   };
 
   const handleCheckForUpdates = async () => {
@@ -310,12 +312,21 @@ export default function SettingsScreen() {
           </Card>
           <Card
             style={styles.infoItem}
-            onPress={() => openLink(PRIVACY_URL)}
-            accessibilityRole="link"
+            onPress={handleRate}
+            accessibilityRole="button"
+            accessibilityLabel="Rate Gradient on the App Store"
+          >
+            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Rate Gradient</Text>
+            <Ionicons name="star-outline" size={18} color={currentTheme.textSecondary} />
+          </Card>
+          <Card
+            style={styles.infoItem}
+            onPress={() => navigation.navigate('Privacy' as never)}
+            accessibilityRole="button"
             accessibilityLabel="Read the privacy policy"
           >
             <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Privacy Policy</Text>
-            <Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />
+            <Ionicons name="chevron-forward" size={18} color={currentTheme.textSecondary} />
           </Card>
           <Card
             style={styles.infoItem}

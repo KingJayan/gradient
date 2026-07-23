@@ -42,6 +42,12 @@ jest.mock('expo-notifications', () => ({
   scheduleNotificationAsync: jest.fn(async () => 'id'),
 }));
 
+jest.mock('expo-store-review', () => ({
+  isAvailableAsync: jest.fn(async () => true),
+  requestReview: jest.fn(async () => {}),
+  storeUrl: jest.fn(() => null),
+}));
+
 jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(async () => {}),
   NotificationFeedbackType: { Success: 'success' },

@@ -37,6 +37,7 @@ import GPACalculatorScreen from './screens/gpa-calc';
 import ScheduleScreen from './screens/schedule';
 import TranscriptScreen from './screens/transcript';
 import NotificationsScreen from './screens/notifications';
+import PrivacyScreen from './screens/privacy';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -59,6 +60,7 @@ const Planner = withBoundary(PlannerScreen);
 const Settings = withBoundary(SettingsScreen);
 const Transcript = withBoundary(TranscriptScreen);
 const Notifications = withBoundary(NotificationsScreen);
+const Privacy = withBoundary(PrivacyScreen);
 
 function AuthStack() {
   const { currentTheme } = useTheme();
@@ -128,6 +130,7 @@ function AppStack() {
       <Stack.Screen name="Schedule" component={Schedule} options={{ presentation: 'modal' }} />
       <Stack.Screen name="Transcript" component={Transcript} options={{ presentation: 'modal' }} />
       <Stack.Screen name="Notifications" component={Notifications} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="Privacy" component={Privacy} options={{ presentation: 'modal' }} />
     </Stack.Navigator>
   );
 }

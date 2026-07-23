@@ -112,7 +112,6 @@
       "apiBaseUrl": "https://gradient-hac-api.vercel.app",
       "demoMode": true,
       "supportUrl": "https://github.com/KingJayan/gradient/issues",
-      "privacyUrl": "https://github.com/KingJayan/gradient#security",
       "eas": {
         "projectId": "774b8478-2c1e-428b-a313-462ed7638fb1"
       }
