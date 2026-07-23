@@ -45,7 +45,7 @@ const cases = [
     loaded: { grades },
     emptyLoaded: { grades: [] },
     dataText: 'Algebra II',
-    emptyText: 'No grades available yet.',
+    emptyText: 'No grades have been posted yet.',
   },
   {
     name: 'GPA',

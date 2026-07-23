@@ -21,7 +21,7 @@ import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { logWarning } from '../utils/error-logger';
-import { Screen, AsyncContent, IconButton, Card } from '../components/screen';
+import { Screen, AsyncContent, IconButton, Card, Freshness } from '../components/screen';
 import { LOCAL_KEYS } from '../utils/storage';
 
 type Row = { type: 'header'; key: string; date: string } | { type: 'task'; key: string; task: Assignment };
@@ -249,6 +249,7 @@ export default function PlannerScreen() {
           <Text style={[styles.taskCount, { color: currentTheme.text }]}>
             {allTasks.filter((t) => !t.completed).length} tasks due
           </Text>
+          <Freshness updatedAt={cache.updatedAt} />
         </View>
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: currentTheme.primary }]}

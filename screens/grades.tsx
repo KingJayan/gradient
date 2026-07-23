@@ -8,6 +8,7 @@ import { GradeEntry } from '../services/api/grades';
 import { gradeLetter, gradeColor } from '../utils/colors';
 import { FONT, RADIUS, SPACING } from '../utils/tokens';
 import { Screen, ScreenHeader, AsyncContent, Card } from '../components/screen';
+import { refreshCompleteHaptic } from '../utils/haptics';
 
 interface GradeRow extends GradeEntry {
   categories: { name: string; grade: string }[];
@@ -99,6 +100,7 @@ export default function GradesScreen() {
     clearCache();
     await loadGradesAndCourses();
     setRefreshing(false);
+    refreshCompleteHaptic();
   };
 
   const toggleClass = useCallback((className: string) => {
@@ -156,7 +158,7 @@ export default function GradesScreen() {
   );
 
   return (
-    <Screen header={<ScreenHeader title="Your Grades" subtitle="Current marking period overview" />}>
+    <Screen header={<ScreenHeader title="Your Grades" subtitle="Current marking period overview" updatedAt={cache.updatedAt} />}>
       <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh} hasData={cache.grades != null}>
         <FlatList
           style={styles.list}
@@ -174,7 +176,7 @@ export default function GradesScreen() {
             />
           )}
           ListEmptyComponent={
-            <Text style={[styles.emptyText, { color: currentTheme.textSecondary }]}>No grades available yet.</Text>
+            <Text style={[styles.emptyText, { color: currentTheme.textSecondary }]}>No grades have been posted yet.</Text>
           }
           ListFooterComponent={
             <>

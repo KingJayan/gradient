@@ -24,6 +24,7 @@ export interface DataCache {
   schedule: ClassPeriod[] | null;
   loading: boolean;
   error: string | null;
+  updatedAt: number;
 }
 
 interface DataContextType {
@@ -32,7 +33,9 @@ interface DataContextType {
   clearCache: () => void;
 }
 
-async function fetchDashboard(creds: Creds, signal?: AbortSignal): Promise<Dashboard> {
+export const DASHBOARD_QUERY_KEY = DASHBOARD_KEY;
+
+export async function fetchDashboard(creds: Creds, signal?: AbortSignal): Promise<Dashboard> {
   mark('dashboard:start');
   const [grades, assignments, schedule] = await Promise.all([
     fetchGrades(creds.hacUrl, creds.username, creds.password, signal),
@@ -64,6 +67,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     schedule: query.data?.schedule ?? null,
     loading: query.loading,
     error: query.error,
+    updatedAt: query.updatedAt,
   };
 
   const clearCache = useCallback(() => {

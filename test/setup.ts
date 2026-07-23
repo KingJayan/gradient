@@ -35,6 +35,11 @@ jest.mock('expo-updates', () => ({
   reloadAsync: jest.fn(async () => {}),
 }));
 
+jest.mock('expo-haptics', () => ({
+  notificationAsync: jest.fn(async () => {}),
+  NotificationFeedbackType: { Success: 'success' },
+}));
+
 jest.mock('expo-local-authentication', () => ({
   hasHardwareAsync: jest.fn(async () => true),
   isEnrolledAsync: jest.fn(async () => true),

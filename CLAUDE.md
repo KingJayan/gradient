@@ -26,6 +26,9 @@ pnpm run build:ios-simulator  # EAS build for simulator
 - `expo-secure-store` (iOS Keychain) for credentials and prefs
 - `@react-native-async-storage/async-storage` for non-secret local data (query cache, bell times, personal tasks)
 - `expo-local-authentication` for the optional Face ID app lock
+- `expo-background-task` + `expo-task-manager` for periodic dashboard refresh (gated by the
+  OS Background App Refresh setting)
+- `expo-haptics` for pull-to-refresh completion feedback
 - `@expo/vector-icons` Ionicons only
 
 ## Architecture
@@ -73,7 +76,17 @@ ErrorBoundary
 - Passing a `null` key disables the query (used for the credentials guard).
 - Results are mirrored to AsyncStorage (`hacQueryCache`) so a cold start renders
   stale data immediately; `invalidateAllQueries()` clears both on logout.
+- Every query exposes `updatedAt`; the `Freshness` primitive renders it as an
+  "Updated X min ago" label in each screen header.
 - `useScreenData(key, fetcher)` wraps the `useCreds` + `useHacQuery` pairing.
+
+### Background refresh (services/background-refresh.ts)
+- A single `expo-background-task` (`dashboard-refresh`) refetches the dashboard headless
+  and writes it into the same `hacQueryCache`, so re-opening the app already shows fresh
+  data. `registerBackgroundRefresh()` runs once per login from `app.tsx`.
+- The task reads creds from SecureStore and no-ops when signed out. It is gated by the OS
+  Background App Refresh toggle — disabling that in iOS Settings turns it off. Requires a
+  native rebuild (config plugin + `UIBackgroundModes`).
 
 ### Shared cache (context/data-context.tsx)
 - `DataProvider` exposes `{ cache: { grades, courses, assignments, schedule, loading, error }, loadGradesAndCourses, clearCache }`.
@@ -142,7 +155,7 @@ Implementation details:
   are `no-restricted-syntax` errors outside the token modules.
 
 ### Screen scaffolding (components/screen.tsx)
-`Screen`, `ScreenHeader`, `AsyncContent`, `RetryButton`, `IconButton`, `Card`, `Skeleton`.
+`Screen`, `ScreenHeader`, `AsyncContent`, `RetryButton`, `IconButton`, `Card`, `Skeleton`, `Freshness`.
 `AsyncContent` owns the loading/error/empty/retry switch and keeps stale content
 on screen while refetching. `IconButton` is the only way icon-only controls are
 built — it guarantees a label and a 44pt target. `Card` is every raised surface: it

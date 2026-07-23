@@ -51,6 +51,7 @@ export function dataContext(cache: Partial<Cache> = {}) {
     schedule: null,
     loading: false,
     error: null,
+    updatedAt: 0,
     ...cache,
   };
   return {

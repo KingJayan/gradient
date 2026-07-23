@@ -109,6 +109,7 @@ export interface HacQuery<T> {
   data: T | null;
   error: string | null;
   loading: boolean;
+  updatedAt: number;
   refetch: () => Promise<void>;
 }
 
@@ -161,6 +162,7 @@ export function useHacQuery<T>(
     data,
     error,
     loading: active && data === null && error === null && (entry ? entry.loading : true),
+    updatedAt: entry?.updatedAt ?? 0,
     refetch,
   };
 }

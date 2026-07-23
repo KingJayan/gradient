@@ -13,7 +13,7 @@ const entries: TranscriptEntry[] = [
 ];
 
 function query(overrides: Partial<ReturnType<typeof useScreenData>>) {
-  return { data: null, error: null, loading: false, refetch: jest.fn(async () => {}), ...overrides };
+  return { data: null, error: null, loading: false, updatedAt: 0, refetch: jest.fn(async () => {}), ...overrides };
 }
 
 afterEach(() => jest.clearAllMocks());

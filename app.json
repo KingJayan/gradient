@@ -102,6 +102,7 @@
       ],
       "expo-secure-store",
       "expo-local-authentication",
+      "expo-background-task",
       "expo-asset",
       "expo-font"
     ],

@@ -23,6 +23,7 @@ import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { Screen, ScreenHeader, AsyncContent, IconButton, Card } from '../components/screen';
+import { refreshCompleteHaptic } from '../utils/haptics';
 
 const TARGET_GPAS = [3.0, 3.5, 4.0];
 
@@ -36,6 +37,7 @@ export default function GPACalculatorScreen() {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [mockGradeInput, setMockGradeInput] = useState('');
   const [targetGPA, setTargetGPA] = useState(TARGET_GPAS[1]);
+  const [showFormula, setShowFormula] = useState(false);
 
   useEffect(() => {
     if (cache.courses) setCourses(cache.courses);
@@ -74,6 +76,7 @@ export default function GPACalculatorScreen() {
     clearCache();
     await loadGradesAndCourses();
     setRefreshing(false);
+    refreshCompleteHaptic();
   };
 
   const handleToggleWeight = (courseId: string) => {
@@ -101,7 +104,7 @@ export default function GPACalculatorScreen() {
   };
 
   return (
-    <Screen header={<ScreenHeader title="GPA Calculator" />}>
+    <Screen header={<ScreenHeader title="GPA Calculator" updatedAt={cache.updatedAt} />}>
       <AsyncContent
         loading={cache.loading}
         error={cache.error}
@@ -122,7 +125,16 @@ export default function GPACalculatorScreen() {
       }
     >
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Current GPA</Text>
+        <View style={styles.currentGpaHeader}>
+          <Text style={[styles.sectionTitleFlush, { color: currentTheme.text }]}>Current GPA</Text>
+          <IconButton
+            name="information-circle-outline"
+            size={22}
+            color={currentTheme.textSecondary}
+            label="How is GPA calculated?"
+            onPress={() => setShowFormula(true)}
+          />
+        </View>
         <View style={styles.gpaGrid}>
           <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
             <Text style={[styles.gpaLabel, { color: onPrimary(currentTheme.primary) }]}>Weighted</Text>
@@ -307,6 +319,42 @@ export default function GPACalculatorScreen() {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={showFormula}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowFormula(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]} accessibilityRole="header">How GPA is calculated</Text>
+              <IconButton
+                name="close"
+                color={currentTheme.text}
+                label="Close GPA explanation"
+                onPress={() => setShowFormula(false)}
+              />
+            </View>
+            <Text style={[styles.formulaText, { color: currentTheme.textSecondary }]}>
+              Each class average maps to grade points on a 4.0 scale (A = 4.0, B = 3.0, C = 2.0, D = 1.0, F = 0.0).
+            </Text>
+            <Text style={[styles.formulaText, { color: currentTheme.textSecondary }]}>
+              The unweighted GPA is the plain average of those points across your courses.
+            </Text>
+            <Text style={[styles.formulaText, { color: currentTheme.textSecondary }]}>
+              The weighted GPA adds a bonus per course before averaging by credits — +1.0 for AP and +0.5 for Honors:
+            </Text>
+            <Text style={[styles.formulaEquation, { color: currentTheme.text }]}>
+              weighted = Σ (points + weight) × credits ÷ Σ credits
+            </Text>
+            <Text style={[styles.formulaText, { color: currentTheme.textSecondary }]}>
+              Tap a course&apos;s badge to switch it between AP, Honors, and Regular, or the eye icon to exclude it.
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
     )}
       </AsyncContent>
@@ -333,8 +381,11 @@ const styles = StyleSheet.create({
   },
   courseInfo: { flex: 1 },
   courseName: { fontSize: FONT.lg, fontWeight: '600' },
+  currentGpaHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
   emptyState: { alignItems: 'center', paddingTop: SPACING.giant },
   emptyText: { fontSize: FONT.lg, fontWeight: '600', marginTop: SPACING.md },
+  formulaEquation: { fontSize: FONT.base, fontWeight: '700', marginBottom: SPACING.md },
+  formulaText: { fontSize: FONT.base, lineHeight: 20, marginBottom: SPACING.md },
   gpaCard: {
     alignItems: 'center',
     borderRadius: RADIUS.md,

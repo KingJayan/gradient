@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,6 +10,7 @@ import {
   Pressable,
   StyleProp,
   ViewStyle,
+  TextStyle,
   AccessibilityRole,
   AccessibilityState,
 } from 'react-native';
@@ -39,10 +40,12 @@ export function Screen({
 export function ScreenHeader({
   title,
   subtitle,
+  updatedAt,
   right,
 }: {
   title: string;
   subtitle?: string;
+  updatedAt?: number;
   right?: React.ReactNode;
 }) {
   const { currentTheme } = useTheme();
@@ -53,10 +56,36 @@ export function ScreenHeader({
         {subtitle ? (
           <Text style={[styles.headerSubtitle, { color: currentTheme.textSecondary }]}>{subtitle}</Text>
         ) : null}
+        {updatedAt !== undefined ? <Freshness updatedAt={updatedAt} /> : null}
       </View>
       {right}
     </View>
   );
+}
+
+function relativeAge(updatedAt: number, now: number): string {
+  if (!updatedAt) return '';
+  const mins = Math.floor((now - updatedAt) / 60000);
+  if (mins < 1) return 'Updated just now';
+  if (mins < 60) return `Updated ${mins} min ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `Updated ${hrs} hr ago`;
+  const days = Math.floor(hrs / 24);
+  return `Updated ${days} day${days === 1 ? '' : 's'} ago`;
+}
+
+export function Freshness({ updatedAt, style }: { updatedAt: number; style?: StyleProp<TextStyle> }) {
+  const { currentTheme } = useTheme();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const label = relativeAge(updatedAt, now);
+  if (!label) return null;
+  return <Text style={[styles.freshness, { color: currentTheme.textSecondary }, style]}>{label}</Text>;
 }
 
 export function RetryButton({ onPress, style }: { onPress: () => void; style?: StyleProp<ViewStyle> }) {
@@ -233,6 +262,7 @@ const styles = StyleSheet.create({
   },
   center: { alignItems: 'center', flex: 1, gap: SPACING.lg, justifyContent: 'center' },
   errorText: { fontSize: FONT.base, paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
+  freshness: { fontSize: FONT.sm, marginTop: SPACING.xs },
   header: {
     alignItems: 'center',
     borderBottomWidth: 1,

@@ -16,7 +16,8 @@ import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { calculateGPA } from '../utils/gpa-calculator';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, AsyncContent, Card } from '../components/screen';
+import { Screen, AsyncContent, Card, Freshness } from '../components/screen';
+import { refreshCompleteHaptic } from '../utils/haptics';
 
 const LINK_CARDS: {
   route: string;
@@ -75,6 +76,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
     clearCache();
     await loadGradesAndCourses();
     setRefreshing(false);
+    refreshCompleteHaptic();
   };
 
   if (!authContext) return null;
@@ -94,6 +96,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
           <View>
             <Text style={[styles.dateText, { color: currentTheme.textSecondary }]}>{currentDate}</Text>
             <Text style={[styles.name, { color: currentTheme.text }]} accessibilityRole="header">{state.user?.name || 'Welcome'}</Text>
+            <Freshness updatedAt={cache.updatedAt} />
           </View>
           <TouchableOpacity
             style={[styles.profileButton, { backgroundColor: currentTheme.primary + '20' }]}

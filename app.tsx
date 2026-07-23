@@ -18,6 +18,7 @@ import { ServiceStatus } from './services/api/health';
 import { districtName } from './utils/district';
 import { UI_COLORS } from './utils/colors';
 import { initMonitoring, wrapRoot } from './utils/monitoring';
+import { registerBackgroundRefresh } from './services/background-refresh';
 import { FONT, RADIUS, SPACING } from './utils/tokens';
 import { mark, measure } from './utils/perf';
 
@@ -141,6 +142,10 @@ function RootNavigatorContent() {
   useEffect(() => {
     if (isBootstrapped) measure('coldStart', 'coldStart:start');
   }, [isBootstrapped]);
+
+  useEffect(() => {
+    if (isBootstrapped && !state.isLoggedOut) registerBackgroundRefresh();
+  }, [isBootstrapped, state.isLoggedOut]);
 
   if (!isBootstrapped || !currentTheme) return <LoadingScreen />;
 

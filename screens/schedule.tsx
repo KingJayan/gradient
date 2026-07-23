@@ -17,6 +17,7 @@ import { useDataCache } from '../context/data-context';
 import { onPrimary } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, ScreenHeader, AsyncContent, RetryButton, IconButton, Card } from '../components/screen';
+import { refreshCompleteHaptic } from '../utils/haptics';
 import { LOCAL_KEYS } from '../utils/storage';
 
 type BellSchedule = Record<string, { start: string; end: string }>;
@@ -50,6 +51,7 @@ export default function ScheduleScreen() {
     clearCache();
     await loadGradesAndCourses();
     setRefreshing(false);
+    refreshCompleteHaptic();
   };
 
   const openBellEditor = () => {
@@ -75,6 +77,7 @@ export default function ScheduleScreen() {
   const header = (
     <ScreenHeader
       title="Your Schedule"
+      updatedAt={cache.updatedAt}
       right={
         <TouchableOpacity
           onPress={openBellEditor}
