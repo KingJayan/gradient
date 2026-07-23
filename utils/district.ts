@@ -3,26 +3,10 @@ const GENERIC_HOST_PARTS = new Set(['www', 'homeaccess', 'hac', 'com', 'net', 'o
 export type District = { id: string; name: string; url: string };
 
 export const DISTRICTS: District[] = [
-  { id: 'frisco', name: 'Frisco ISD', url: 'https://homeaccess.friscoisd.org/' },
-  { id: 'cfisd', name: 'Cypress-Fairbanks ISD', url: 'https://homeaccess.cfisd.net/' },
-  { id: 'rrisd', name: 'Round Rock ISD', url: 'https://homeaccess.roundrockisd.org/' },
-  { id: 'austin', name: 'Austin ISD', url: 'https://homeaccess.austinisd.org/' },
-  { id: 'plano', name: 'Plano ISD', url: 'https://hac.pisd.edu/' },
-  { id: 'katy', name: 'Katy ISD', url: 'https://homeaccess.katyisd.org/' },
-  { id: 'fortbend', name: 'Fort Bend ISD', url: 'https://homeaccess.fortbendisd.com/' },
-  { id: 'nisd', name: 'Northside ISD', url: 'https://hac.nisd.net/' },
-  { id: 'klein', name: 'Klein ISD', url: 'https://homeaccess.kleinisd.net/' },
-  { id: 'humble', name: 'Humble ISD', url: 'https://hac.humbleisd.net/' },
-  { id: 'conroe', name: 'Conroe ISD', url: 'https://hac.conroeisd.net/' },
-  { id: 'mansfield', name: 'Mansfield ISD', url: 'https://hac.misdmail.org/' },
-  { id: 'keller', name: 'Keller ISD', url: 'https://homeaccess.kellerisd.net/' },
-  { id: 'prosper', name: 'Prosper ISD', url: 'https://homeaccess.prosper-isd.net/' },
-  { id: 'mckinney', name: 'McKinney ISD', url: 'https://hac.mckinneyisd.net/' },
-  { id: 'allen', name: 'Allen ISD', url: 'https://hac.allenisd.org/' },
-  { id: 'richardson', name: 'Richardson ISD', url: 'https://hac.risd.org/' },
-  { id: 'lewisville', name: 'Lewisville ISD', url: 'https://hac.lisd.net/' },
-  { id: 'garland', name: 'Garland ISD', url: 'https://hac.garlandisd.net/' },
-  { id: 'springbranch', name: 'Spring Branch ISD', url: 'https://hac.springbranchisd.com/' },
+  { id: 'frisco', name: 'Frisco ISD', url: 'https://hac.friscoisd.org/' },
+  { id: 'rrisd', name: 'Round Rock ISD', url: 'https://accesscenter.roundrockisd.org/' },
+  { id: 'coppell', name: 'Coppell ISD', url: 'https://hac.coppellisd.com/HomeAccess/' },
+  { id: 'aldine', name: 'Aldine ISD', url: 'https://hac.aldineisd.org/HomeAccess/' }
 ];
 
 export function searchDistricts(query: string): District[] {
