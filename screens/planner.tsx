@@ -20,7 +20,7 @@ import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { logWarning } from '../utils/error-logger';
-import { Screen, AsyncContent, IconButton, Card, Freshness, EmptyState, StatBadge, Button } from '../components/screen';
+import { Screen, AsyncContent, IconButton, Card, Freshness, EmptyState, StatBadge, Button, Chip } from '../components/screen';
 import { Text } from '../components/typography';
 import { selectionHaptic } from '../utils/haptics';
 import { LOCAL_KEYS } from '../utils/storage';
@@ -274,18 +274,16 @@ export default function PlannerScreen() {
 
       <View style={[styles.filterBar, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
         {(['all', 'hac', 'personal'] as const).map((src) => (
-          <TouchableOpacity
+          <Chip
             key={src}
-            style={[styles.filterButton, { borderColor: currentTheme.border }, filterSource === src && [styles.filterButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
-            onPress={() => { selectionHaptic(); setFilterSource(src); }}
+            label={src.charAt(0).toUpperCase() + src.slice(1)}
+            selected={filterSource === src}
+            variant="subhead"
+            weight="500"
+            onPress={() => setFilterSource(src)}
             accessibilityRole="button"
             accessibilityLabel={`Show ${src === 'hac' ? 'HAC' : src} tasks`}
-            accessibilityState={{ selected: filterSource === src }}
-          >
-            <Text variant="subhead" weight="500" color={filterSource === src ? onPrimary(currentTheme.primary) : currentTheme.textSecondary}>
-              {src.charAt(0).toUpperCase() + src.slice(1)}
-            </Text>
-          </TouchableOpacity>
+          />
         ))}
         <View style={styles.completedToggle}>
           <Text variant="subhead" weight="500" color={currentTheme.textSecondary}>Completed</Text>
@@ -390,18 +388,16 @@ export default function PlannerScreen() {
                 <Text variant="body" weight="600" color={currentTheme.text} style={styles.modalLabel}>Priority</Text>
                 <View style={styles.priorityRow}>
                   {(['low', 'medium', 'high'] as const).map((p) => (
-                    <TouchableOpacity
+                    <Chip
                       key={p}
-                      style={[styles.priorityButton, { borderColor: currentTheme.border }, newTaskPriority === p && [styles.priorityButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
-                      onPress={() => { selectionHaptic(); setNewTaskPriority(p); }}
+                      label={p.charAt(0).toUpperCase() + p.slice(1)}
+                      selected={newTaskPriority === p}
+                      variant="subhead"
+                      onPress={() => setNewTaskPriority(p)}
                       accessibilityRole="button"
                       accessibilityLabel={`${p.charAt(0).toUpperCase() + p.slice(1)} priority`}
-                      accessibilityState={{ selected: newTaskPriority === p }}
-                    >
-                      <Text variant="subhead" weight="600" color={newTaskPriority === p ? onPrimary(currentTheme.primary) : currentTheme.textSecondary}>
-                        {p.charAt(0).toUpperCase() + p.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
+                      style={styles.priorityButton}
+                    />
                   ))}
                 </View>
                 <Button title="Create Task" onPress={handleAddTask} />
@@ -546,15 +542,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
   },
-  filterButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
-    minHeight: TOUCH_TARGET,
-    paddingHorizontal: SPACING.md,
-  },
-  filterButtonActive: { borderColor: 'transparent' },
   header: {
     alignItems: 'center',
     borderBottomWidth: 1,
@@ -597,15 +584,7 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   overdueTitle: { marginLeft: SPACING.sm },
-  priorityButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: TOUCH_TARGET,
-  },
-  priorityButtonActive: { borderColor: 'transparent' },
+  priorityButton: { flex: 1 },
   priorityRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.xl },
   swipeAction: { paddingHorizontal: SPACING.xl },
   swipeActions: {

@@ -1,7 +1,7 @@
 import { fireEvent } from '@testing-library/react-native';
 import * as Haptics from 'expo-haptics';
 import { renderScreen } from '../../test/render';
-import { Button, StatBadge } from '../screen';
+import { Button, StatBadge, Chip } from '../screen';
 
 afterEach(() => jest.clearAllMocks());
 
@@ -37,5 +37,22 @@ describe('StatBadge', () => {
     fireEvent.press(getByLabelText('Cycle weight'));
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Chip', () => {
+  it('renders its label and fires onPress with a haptic', () => {
+    const onPress = jest.fn();
+    const { getByText } = renderScreen(<Chip label="4.0" selected={false} onPress={onPress} />);
+    fireEvent.press(getByText('4.0'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
+  });
+
+  it('reflects selection in its accessibility state', () => {
+    const { getByLabelText } = renderScreen(
+      <Chip label="High" selected onPress={jest.fn()} accessibilityLabel="High priority" />
+    );
+    expect(getByLabelText('High priority').props.accessibilityState).toMatchObject({ checked: true });
   });
 });

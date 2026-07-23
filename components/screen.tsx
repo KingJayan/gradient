@@ -238,6 +238,58 @@ export function StatBadge({
   );
 }
 
+export function Chip({
+  label,
+  selected,
+  onPress,
+  background,
+  variant = 'body',
+  weight = '600',
+  tabular,
+  accessibilityLabel,
+  accessibilityRole = 'radio',
+  style,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  background?: string;
+  variant?: 'body' | 'subhead';
+  weight?: TextStyle['fontWeight'];
+  tabular?: boolean;
+  accessibilityLabel?: string;
+  accessibilityRole?: 'radio' | 'button';
+  style?: StyleProp<ViewStyle>;
+}) {
+  const { currentTheme } = useTheme();
+  const fg = selected ? onPrimary(currentTheme.primary) : currentTheme.text;
+
+  const handlePress = () => {
+    selectionHaptic();
+    onPress();
+  };
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => [
+        styles.chip,
+        {
+          backgroundColor: selected ? currentTheme.primary : background ?? 'transparent',
+          borderColor: selected ? currentTheme.primary : currentTheme.border,
+        },
+        pressed && styles.pressed,
+        style,
+      ]}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel ?? label}
+      accessibilityState={accessibilityRole === 'radio' ? { checked: selected } : { selected }}
+    >
+      <Text variant={variant} weight={weight} tabular={tabular} color={fg}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export function ProgressBar({
   value,
   color,
@@ -489,6 +541,14 @@ const styles = StyleSheet.create({
   },
   center: { alignItems: 'center', flex: 1, gap: SPACING.lg, justifyContent: 'center' },
   centerText: { textAlign: 'center' },
+  chip: {
+    alignItems: 'center',
+    borderRadius: RADIUS.pill,
+    borderWidth: 1,
+    justifyContent: 'center',
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.lg,
+  },
   disabled: { opacity: 0.4 },
   emptyAction: { marginTop: SPACING.xl },
   emptyIcon: {

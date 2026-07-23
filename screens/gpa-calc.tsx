@@ -21,7 +21,7 @@ import { UI_COLORS, onPrimary, gradeLetter } from '../utils/colors';
 import { RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState, StatBadge, Button } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState, StatBadge, Button, Chip } from '../components/screen';
 import { Text } from '../components/typography';
 import { TrendChart } from '../components/charts';
 import { gpaSeries, loadGradeHistory, GradeSnapshot } from '../utils/grade-history';
@@ -188,29 +188,19 @@ export default function GPACalculatorScreen() {
           )}
         </View>
         <View style={styles.targetRow} accessibilityRole="radiogroup">
-          {TARGET_GPAS.map((target) => {
-            const selected = target === targetGPA;
-            return (
-              <TouchableOpacity
-                key={target}
-                style={[
-                  styles.targetChip,
-                  {
-                    backgroundColor: selected ? currentTheme.primary : currentTheme.surface,
-                    borderColor: selected ? currentTheme.primary : currentTheme.border,
-                  },
-                ]}
-                onPress={() => { selectionHaptic(); setTargetGPA(target); }}
-                accessibilityRole="radio"
-                accessibilityLabel={`Target GPA ${target.toFixed(1)}`}
-                accessibilityState={{ checked: selected }}
-              >
-                <Text variant="body" weight="700" tabular color={selected ? onPrimary(currentTheme.primary) : currentTheme.text}>
-                  {target.toFixed(1)}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          {TARGET_GPAS.map((target) => (
+            <Chip
+              key={target}
+              label={target.toFixed(1)}
+              selected={target === targetGPA}
+              background={currentTheme.surface}
+              weight="700"
+              tabular
+              onPress={() => setTargetGPA(target)}
+              accessibilityLabel={`Target GPA ${target.toFixed(1)}`}
+              style={styles.targetChip}
+            />
+          ))}
         </View>
         <Text variant="body" color={currentTheme.textSecondary} style={styles.targetResult}>{gradeNeededText}</Text>
         {scenarioGPA && (
@@ -443,14 +433,7 @@ const styles = StyleSheet.create({
   scenarioValue: { marginTop: SPACING.sm },
   section: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.lg },
   sectionTitle: { marginBottom: SPACING.md },
-  targetChip: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: TOUCH_TARGET,
-  },
+  targetChip: { flex: 1 },
   targetResult: { lineHeight: 20, marginTop: SPACING.md },
   targetRow: { flexDirection: 'row', gap: SPACING.md },
   trendCard: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.lg },

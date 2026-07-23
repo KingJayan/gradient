@@ -21,7 +21,7 @@ import { districtName } from '../utils/district';
 import { APP_VERSION, BUILD_NUMBER, SUPPORT_URL, openLink } from '../utils/links';
 import { logWarning } from '../utils/error-logger';
 import { RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, ScreenHeader, Card, ListRow, Button } from '../components/screen';
+import { Screen, ScreenHeader, Card, ListRow, Button, Chip } from '../components/screen';
 import { Text } from '../components/typography';
 import { selectionHaptic } from '../utils/haptics';
 import { DEFAULT_PREFS, NotifPrefs, loadPrefs, savePrefs } from '../services/notifications';
@@ -250,29 +250,17 @@ export default function SettingsScreen() {
             }
           />
           <View style={styles.thresholdRow} accessibilityRole="radiogroup">
-            {THRESHOLDS.map((pts) => {
-              const selected = notifPrefs.threshold === pts;
-              return (
-                <TouchableOpacity
-                  key={pts}
-                  style={[
-                    styles.thresholdChip,
-                    {
-                      backgroundColor: selected ? currentTheme.primary : currentTheme.surface,
-                      borderColor: selected ? currentTheme.primary : currentTheme.border,
-                    },
-                  ]}
-                  onPress={() => { selectionHaptic(); updateNotifPrefs({ threshold: pts }); }}
-                  accessibilityRole="radio"
-                  accessibilityLabel={`Notify on changes of at least ${pts} point${pts === 1 ? '' : 's'}`}
-                  accessibilityState={{ checked: selected }}
-                >
-                  <Text variant="body" weight="600" color={selected ? onPrimary(currentTheme.primary) : currentTheme.text}>
-                    ≥ {pts} pt{pts === 1 ? '' : 's'}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            {THRESHOLDS.map((pts) => (
+              <Chip
+                key={pts}
+                label={`≥ ${pts} pt${pts === 1 ? '' : 's'}`}
+                selected={notifPrefs.threshold === pts}
+                background={currentTheme.surface}
+                onPress={() => updateNotifPrefs({ threshold: pts })}
+                accessibilityLabel={`Notify on changes of at least ${pts} point${pts === 1 ? '' : 's'}`}
+                style={styles.thresholdChip}
+              />
+            ))}
           </View>
           <ListRow
             title="System Settings"
@@ -433,13 +421,6 @@ const styles = StyleSheet.create({
     minHeight: TOUCH_TARGET,
     minWidth: '30%',
   },
-  thresholdChip: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: TOUCH_TARGET,
-  },
+  thresholdChip: { flex: 1 },
   thresholdRow: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.sm, marginTop: SPACING.md },
 });
