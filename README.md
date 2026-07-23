@@ -4,7 +4,7 @@
 </div>
 
 > [!IMPORTANT]
-> project & api still in early development, not expected to work
+> project & api still in early beta, not expected to work
 
 ## features
 
@@ -24,7 +24,7 @@ pnpm install
 pnpm start         # press `i` for ios simulator
 ```
 
-sign in with your district's HAC url, username, and password. four districts are preset; add more in [screens/login.tsx](screens/login.tsx).
+sign in with your district's HAC url, username, and password. search the built-in district directory, or tap "my district isn't listed" to enter and validate a custom HAC url. the directory lives in [utils/district.ts](utils/district.ts).
 
 no HAC account? tap **explore the demo account** on the login screen (or sign in as `demo` / `demo`) — every screen renders from fixtures in [services/api/demo.ts](services/api/demo.ts), no network. turn it off with `extra.demoMode: false` in [app.json](app.json).
 

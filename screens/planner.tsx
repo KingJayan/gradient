@@ -9,6 +9,8 @@ import {
   Modal,
   Switch,
   Alert,
+  Animated,
+  PanResponder,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -201,6 +203,17 @@ export default function PlannerScreen() {
     [persistTasks]
   );
 
+  const handleDeleteTask = useCallback(
+    (taskId: string) => {
+      const prev = tasksRef.current;
+      if (!prev.some((t) => t.id === taskId)) return;
+      const updated = prev.filter((t) => t.id !== taskId);
+      setPersonalTasks(updated);
+      persistTasks(updated, prev);
+    },
+    [persistTasks]
+  );
+
   const filteredTasks = useMemo(
     () =>
       allTasks.filter((task) => {
@@ -294,6 +307,13 @@ export default function PlannerScreen() {
         renderItem={({ item }) =>
           item.type === 'header' ? (
             <Text style={[styles.dateHeader, { color: currentTheme.text }]} accessibilityRole="header">{item.date}</Text>
+          ) : item.task.source === 'personal' ? (
+            <SwipeableTaskRow
+              task={item.task}
+              onToggle={handleToggleTask}
+              onDelete={handleDeleteTask}
+              currentTheme={currentTheme}
+            />
           ) : (
             <TaskItem task={item.task} onToggle={handleToggleTask} currentTheme={currentTheme} />
           )
@@ -400,7 +420,60 @@ export default function PlannerScreen() {
   );
 }
 
-const TaskItem = React.memo(function TaskItem({ task, onToggle, isOverdue, currentTheme }: { task: Assignment; onToggle: (id: string) => void; isOverdue?: boolean; currentTheme: Theme }) {
+const SWIPE_THRESHOLD = 72;
+
+const SwipeableTaskRow = React.memo(function SwipeableTaskRow({ task, onToggle, onDelete, currentTheme }: {
+  task: Assignment;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+  currentTheme: Theme;
+}) {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const toggleRef = useRef(onToggle);
+  const deleteRef = useRef(onDelete);
+  const idRef = useRef(task.id);
+  toggleRef.current = onToggle;
+  deleteRef.current = onDelete;
+  idRef.current = task.id;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy),
+      onPanResponderMove: (_, g) => translateX.setValue(g.dx),
+      onPanResponderRelease: (_, g) => {
+        if (g.dx <= -SWIPE_THRESHOLD) {
+          Animated.timing(translateX, { toValue: -500, duration: 180, useNativeDriver: true }).start(() =>
+            deleteRef.current(idRef.current)
+          );
+        } else {
+          if (g.dx >= SWIPE_THRESHOLD) toggleRef.current(idRef.current);
+          Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start();
+        }
+      },
+    })
+  ).current;
+
+  const completeOpacity = translateX.interpolate({ inputRange: [0, SWIPE_THRESHOLD], outputRange: [0, 1], extrapolate: 'clamp' });
+  const deleteOpacity = translateX.interpolate({ inputRange: [-SWIPE_THRESHOLD, 0], outputRange: [1, 0], extrapolate: 'clamp' });
+
+  return (
+    <View style={styles.swipeRoot}>
+      <View style={styles.swipeActions} pointerEvents="none">
+        <Animated.View style={[styles.swipeAction, { opacity: completeOpacity }]}>
+          <Ionicons name="checkmark-circle" size={24} color={currentTheme.primary} />
+        </Animated.View>
+        <Animated.View style={[styles.swipeAction, { opacity: deleteOpacity }]}>
+          <Ionicons name="trash" size={22} color={UI_COLORS.danger} />
+        </Animated.View>
+      </View>
+      <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
+        <TaskItem task={task} onToggle={onToggle} onDelete={onDelete} currentTheme={currentTheme} />
+      </Animated.View>
+    </View>
+  );
+});
+
+const TaskItem = React.memo(function TaskItem({ task, onToggle, onDelete, isOverdue, currentTheme }: { task: Assignment; onToggle: (id: string) => void; onDelete?: (id: string) => void; isOverdue?: boolean; currentTheme: Theme }) {
   const priorityColor =
     task.source === 'personal'
       ? task.priority === 'high' ? UI_COLORS.danger : task.priority === 'medium' ? UI_COLORS.warning : currentTheme.textSecondary
@@ -413,7 +486,10 @@ const TaskItem = React.memo(function TaskItem({ task, onToggle, isOverdue, curre
         style={styles.checkbox}
         accessibilityRole="checkbox"
         accessibilityLabel={`${task.title}${task.priority ? `, ${task.priority} priority` : ''}${isOverdue ? ', overdue' : ''}`}
+        accessibilityHint={onDelete ? 'Swipe right to complete, swipe left to delete' : undefined}
         accessibilityState={{ checked: task.completed }}
+        accessibilityActions={onDelete ? [{ name: 'delete', label: 'Delete task' }] : undefined}
+        onAccessibilityAction={onDelete ? (e) => { if (e.nativeEvent.actionName === 'delete') onDelete(task.id); } : undefined}
       >
         <Ionicons
           name={task.completed ? 'checkmark-circle' : 'ellipse-outline'}
@@ -555,6 +631,18 @@ const styles = StyleSheet.create({
   priorityRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.xl },
   sourceBadge: { borderRadius: RADIUS.xs, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xxs },
   sourceBadgeText: { color: UI_COLORS.white, fontSize: FONT.xs, fontWeight: '600' },
+  swipeAction: { paddingHorizontal: SPACING.xl },
+  swipeActions: {
+    alignItems: 'center',
+    bottom: SPACING.sm,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  swipeRoot: { position: 'relative' },
   taskClass: { fontSize: FONT.sm, fontWeight: '500' },
   taskContent: { flex: 1 },
   taskCount: { fontSize: FONT.xl, fontWeight: '700', marginTop: SPACING.xs },

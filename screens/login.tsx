@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef, useEffect } from 'react';
+import React, { useState, useContext, useRef, useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -18,27 +18,25 @@ import { DEMO_CREDENTIALS, DEMO_MODE } from '../services/api/demo';
 import { useTheme } from '../hooks/use-theme';
 import { UI_COLORS } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { DISTRICTS, isValidHacUrl, normalizeHacUrl, searchDistricts } from '../utils/district';
 
-const DISTRICTS = [
-  { id: 'frisco', name: 'Frisco ISD', url: 'https://homeaccess.friscoisd.org/' },
-  { id: 'cfisd', name: 'Cypress ISD', url: 'https://homeaccess.cfisd.net/' },
-  { id: 'rrisd', name: 'Round Rock ISD', url: 'https://homeaccess.rrisd.org/' },
-  { id: 'austin', name: 'Austin ISD', url: 'https://homeaccess.austinisd.org/' },
-  { id: 'other', name: 'Other District', url: '' },
-];
+const MAX_RESULTS = 8;
 
 export default function LoginScreen() {
   const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedDistrictId, setSelectedDistrictId] = useState(DISTRICTS[0].id);
+  const [query, setQuery] = useState('');
+  const [selectedDistrictId, setSelectedDistrictId] = useState<string | null>(DISTRICTS[0].id);
+  const [manual, setManual] = useState(false);
   const [customUrl, setCustomUrl] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const hacUrl = selectedDistrictId === 'other'
-    ? customUrl.trim()
-    : DISTRICTS.find((d) => d.id === selectedDistrictId)!.url;
+  const results = useMemo(() => searchDistricts(query).slice(0, MAX_RESULTS), [query]);
+  const selectedDistrict = DISTRICTS.find((d) => d.id === selectedDistrictId);
+  const customValid = isValidHacUrl(customUrl);
+  const hacUrl = manual ? normalizeHacUrl(customUrl) : selectedDistrict?.url ?? '';
   // useRef keeps the same Animated.Value across renders
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -69,8 +67,13 @@ export default function LoginScreen() {
       Alert.alert('Missing Details', 'Enter the username and password you use for Home Access Center.');
       return;
     }
-    if (!hacUrl) {
-      Alert.alert('Missing District', "Enter your district's Home Access Center URL.");
+    if (manual) {
+      if (!customValid) {
+        Alert.alert('Check the URL', "Enter a valid https:// address for your district's Home Access Center.");
+        return;
+      }
+    } else if (!hacUrl) {
+      Alert.alert('Missing District', 'Search for your district or enter its Home Access Center URL.');
       return;
     }
     signIn(username, password, hacUrl);
@@ -98,52 +101,94 @@ export default function LoginScreen() {
 
         <Animated.View style={[styles.form, { opacity: fadeAnim }]}>
           <Text style={[styles.label, { color: currentTheme.text }]}>School District</Text>
-          <View style={styles.districtContainer} accessibilityRole="radiogroup">
-            {DISTRICTS.map((district) => (
-              <TouchableOpacity
-                key={district.id}
-                style={[
-                  styles.districtButton,
-                  {
-                    borderColor: currentTheme.border,
-                    backgroundColor: selectedDistrictId === district.id ? currentTheme.primary : currentTheme.surface,
-                  }
-                ]}
-                onPress={() => setSelectedDistrictId(district.id)}
-                accessibilityRole="radio"
-                accessibilityLabel={district.name}
-                accessibilityState={{ checked: selectedDistrictId === district.id }}
-              >
-                <Ionicons
-                  name={selectedDistrictId === district.id ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={20}
-                  color={selectedDistrictId === district.id ? UI_COLORS.white : currentTheme.textSecondary}
-                />
-                <Text
-                  style={[
-                    styles.districtButtonText,
-                    { color: selectedDistrictId === district.id ? UI_COLORS.white : currentTheme.text }
-                  ]}
+          <View style={styles.districtContainer}>
+            {manual ? (
+              <>
+                <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: customUrl && !customValid ? UI_COLORS.danger : currentTheme.border }]}>
+                  <Ionicons name="globe" size={20} color={currentTheme.textSecondary} />
+                  <TextInput
+                    style={[styles.input, { color: currentTheme.text }]}
+                    placeholder="https://homeaccess.yourisd.org/"
+                    placeholderTextColor={currentTheme.textSecondary}
+                    value={customUrl}
+                    onChangeText={setCustomUrl}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    editable={!loading}
+                    accessibilityLabel="District home access URL"
+                  />
+                </View>
+                {customUrl.length > 0 && !customValid && (
+                  <Text style={[styles.hintText, { color: UI_COLORS.danger }]}>
+                    Enter a full https:// web address.
+                  </Text>
+                )}
+                <TouchableOpacity
+                  style={styles.linkRow}
+                  onPress={() => setManual(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Back to district search"
                 >
-                  {district.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-            {selectedDistrictId === 'other' && (
-              <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: currentTheme.border, marginTop: SPACING.sm }]}>
-                <Ionicons name="globe" size={20} color={currentTheme.textSecondary} />
-                <TextInput
-                  style={[styles.input, { color: currentTheme.text }]}
-                  placeholder="https://homeaccess.yourisd.org/"
-                  placeholderTextColor={currentTheme.textSecondary}
-                  value={customUrl}
-                  onChangeText={setCustomUrl}
-                  autoCapitalize="none"
-                  keyboardType="url"
-                  editable={!loading}
-                  accessibilityLabel="District home access URL"
-                />
-              </View>
+                  <Ionicons name="chevron-back" size={16} color={currentTheme.primary} />
+                  <Text style={[styles.linkText, { color: currentTheme.primary }]}>Search districts instead</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: currentTheme.border }]}>
+                  <Ionicons name="search" size={20} color={currentTheme.textSecondary} />
+                  <TextInput
+                    style={[styles.input, { color: currentTheme.text }]}
+                    placeholder="Search your district"
+                    placeholderTextColor={currentTheme.textSecondary}
+                    value={query}
+                    onChangeText={setQuery}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    editable={!loading}
+                    accessibilityLabel="Search districts"
+                  />
+                </View>
+                <View accessibilityRole="radiogroup">
+                  {results.map((district) => {
+                    const checked = selectedDistrictId === district.id;
+                    return (
+                      <TouchableOpacity
+                        key={district.id}
+                        style={[styles.districtButton, { borderColor: currentTheme.border, backgroundColor: checked ? currentTheme.primary : currentTheme.surface }]}
+                        onPress={() => setSelectedDistrictId(district.id)}
+                        accessibilityRole="radio"
+                        accessibilityLabel={district.name}
+                        accessibilityState={{ checked }}
+                      >
+                        <Ionicons
+                          name={checked ? 'checkmark-circle' : 'ellipse-outline'}
+                          size={20}
+                          color={checked ? UI_COLORS.white : currentTheme.textSecondary}
+                        />
+                        <Text style={[styles.districtButtonText, { color: checked ? UI_COLORS.white : currentTheme.text }]}>
+                          {district.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  {results.length === 0 && (
+                    <Text style={[styles.hintText, { color: currentTheme.textSecondary }]}>
+                      No matches. Enter your district URL manually.
+                    </Text>
+                  )}
+                </View>
+                <TouchableOpacity
+                  style={styles.linkRow}
+                  onPress={() => { setManual(true); setSelectedDistrictId(null); }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Enter district URL manually"
+                >
+                  <Ionicons name="globe-outline" size={16} color={currentTheme.primary} />
+                  <Text style={[styles.linkText, { color: currentTheme.primary }]}>My district isn&apos;t listed</Text>
+                </TouchableOpacity>
+              </>
             )}
           </View>
 
@@ -271,6 +316,11 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.huge,
     marginTop: SPACING.giant,
   },
+  hintText: {
+    fontSize: FONT.sm,
+    marginBottom: SPACING.sm,
+    marginLeft: SPACING.xs,
+  },
   input: {
     flex: 1,
     fontSize: FONT.lg,
@@ -289,6 +339,16 @@ const styles = StyleSheet.create({
     fontSize: FONT.base,
     fontWeight: '600',
     marginBottom: SPACING.sm,
+  },
+  linkRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: SPACING.xs,
+    minHeight: TOUCH_TARGET,
+  },
+  linkText: {
+    fontSize: FONT.base,
+    fontWeight: '600',
   },
   loginButton: {
     alignItems: 'center',
