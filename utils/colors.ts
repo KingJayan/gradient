@@ -1,8 +1,17 @@
-export const UI_COLORS = {
+export const STATUS = {
+  positive: '#22C55E',
   info: '#3B82F6',
   warning: '#F59E0B',
+  caution: '#FF8844',
   danger: '#EF4444',
   dangerMuted: '#F87171',
+} as const;
+
+export const UI_COLORS = {
+  info: STATUS.info,
+  warning: STATUS.warning,
+  danger: STATUS.danger,
+  dangerMuted: STATUS.dangerMuted,
   white: '#FFFFFF',
   black: '#000000',
 } as const;
@@ -29,11 +38,11 @@ export function gradeLetter(avg: number): string {
 }
 
 export function gradeColorFromLetter(grade: string): string {
-  if (grade.startsWith('A')) return '#22C55E';
-  if (grade.startsWith('B')) return '#3B82F6';
-  if (grade.startsWith('C')) return '#F59E0B';
-  if (grade.startsWith('D')) return '#FF8844';
-  return '#EF4444';
+  if (grade.startsWith('A')) return STATUS.positive;
+  if (grade.startsWith('B')) return STATUS.info;
+  if (grade.startsWith('C')) return STATUS.warning;
+  if (grade.startsWith('D')) return STATUS.caution;
+  return STATUS.danger;
 }
 
 export function gradeColor(avg: number): string {
