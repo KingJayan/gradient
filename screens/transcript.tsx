@@ -5,7 +5,7 @@ import { TranscriptEntry, fetchTranscript } from '../services/api/transcript';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useScreenData } from '../hooks/use-screen-data';
-import { Screen, AsyncContent } from '../components/screen';
+import { Screen, AsyncContent, EmptyState } from '../components/screen';
 import { gradeColorFromLetter, onPrimary } from '../utils/colors';
 import { FONT, RADIUS, SPACING } from '../utils/tokens';
 
@@ -117,6 +117,7 @@ export default function TranscriptScreen() {
           keyExtractor={(year) => year}
           extraData={selectedYear}
           contentContainerStyle={styles.yearsContainer}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <YearSection
               year={item}
@@ -127,7 +128,13 @@ export default function TranscriptScreen() {
             />
           )}
           ListEmptyComponent={
-            <Text style={[styles.emptyText, { color: currentTheme.textSecondary }]}>No transcript data available.</Text>
+            <EmptyState
+              icon="document-outline"
+              title="No transcript data"
+              message="Your transcript will appear here once your school posts it."
+              actionLabel="Refresh"
+              onAction={refetch}
+            />
           }
         />
       </AsyncContent>
@@ -148,7 +155,6 @@ const styles = StyleSheet.create({
   },
   courseSemester: { fontSize: FONT.sm, marginTop: SPACING.xxs },
   coursesContainer: { paddingVertical: SPACING.sm },
-  emptyText: { marginTop: SPACING.huge, textAlign: 'center' },
   gpaCard: {
     alignItems: 'center',
     borderRadius: RADIUS.sm,

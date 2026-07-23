@@ -38,7 +38,7 @@ describe('Transcript screen', () => {
   it('renders the empty state when the transcript resolves with no entries', () => {
     mockUseScreenData.mockReturnValue(query({ data: [] }));
     renderScreen(<TranscriptScreen />);
-    expect(screen.getByText('No transcript data available.')).toBeTruthy();
+    expect(screen.getByText('No transcript data')).toBeTruthy();
     expect(screen.getByText('—')).toBeTruthy();
   });
 

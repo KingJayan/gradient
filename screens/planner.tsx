@@ -21,7 +21,7 @@ import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { logWarning } from '../utils/error-logger';
-import { Screen, AsyncContent, IconButton, Card, Freshness } from '../components/screen';
+import { Screen, AsyncContent, IconButton, Card, Freshness, EmptyState } from '../components/screen';
 import { LOCAL_KEYS } from '../utils/storage';
 
 type Row = { type: 'header'; key: string; date: string } | { type: 'task'; key: string; task: Assignment };
@@ -303,6 +303,7 @@ export default function PlannerScreen() {
       <FlatList
         style={styles.taskList}
         contentContainerStyle={styles.taskListContent}
+        showsVerticalScrollIndicator={false}
         data={rows}
         keyExtractor={(item) => item.key}
         renderItem={({ item }) =>
@@ -320,10 +321,11 @@ export default function PlannerScreen() {
           )
         }
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="checkmark-circle" size={48} color={currentTheme.primary} />
-            <Text style={[styles.emptyStateText, { color: currentTheme.textSecondary }]}>All caught up!</Text>
-          </View>
+          <EmptyState
+            icon="checkmark-circle-outline"
+            title="All caught up!"
+            message="You have no tasks due. Tap the plus button to add your own."
+          />
         }
       />
 
@@ -548,8 +550,6 @@ const styles = StyleSheet.create({
   dateHeader: { fontSize: FONT.base, fontWeight: '700', marginBottom: SPACING.sm, marginTop: SPACING.md },
   datePickerButton: { alignItems: 'center', flexDirection: 'row', gap: SPACING.md, minHeight: TOUCH_TARGET },
   datePickerText: { fontSize: FONT.lg },
-  emptyState: { alignItems: 'center', marginTop: SPACING.giant },
-  emptyStateText: { fontSize: FONT.lg, marginTop: SPACING.md },
   filterBar: {
     alignItems: 'center',
     borderBottomWidth: 1,

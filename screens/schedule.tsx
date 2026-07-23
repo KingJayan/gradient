@@ -16,7 +16,7 @@ import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { onPrimary } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, ScreenHeader, AsyncContent, RetryButton, IconButton, Card } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState } from '../components/screen';
 import { refreshCompleteHaptic } from '../utils/haptics';
 import { LOCAL_KEYS } from '../utils/storage';
 
@@ -96,20 +96,20 @@ export default function ScheduleScreen() {
     <Screen header={header}>
       <AsyncContent loading={cache.loading} error={cache.error} onRetry={onRefresh} hasData={cache.schedule != null}>
         <ScrollView
+          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
           }
         >
           <View style={styles.periodList}>
             {schedule.length === 0 ? (
-              <View style={styles.emptyState}>
-                <Ionicons name="calendar-outline" size={48} color={currentTheme.textSecondary} />
-                <Text style={[styles.emptyText, { color: currentTheme.text }]}>No schedule data available</Text>
-                <Text style={[styles.emptySubtext, { color: currentTheme.textSecondary }]}>
-                  Pull down to refresh or check your HAC portal.
-                </Text>
-                <RetryButton onPress={onRefresh} style={styles.emptyRetry} />
-              </View>
+              <EmptyState
+                icon="calendar-outline"
+                title="No schedule data"
+                message="Pull down to refresh, or check your HAC portal."
+                actionLabel="Refresh"
+                onAction={onRefresh}
+              />
             ) : (
               schedule.map((period: ClassPeriod) => {
                 const bt = bellTimes[period.id];
@@ -251,10 +251,6 @@ const styles = StyleSheet.create({
   },
   bellPeriodLabel: { fontSize: FONT.base, fontWeight: '700', marginRight: SPACING.sm, width: 28 },
   bellRow: { alignItems: 'center', flexDirection: 'row', marginBottom: SPACING.md },
-  emptyRetry: { marginTop: SPACING.lg },
-  emptyState: { alignItems: 'center', paddingTop: SPACING.giant },
-  emptySubtext: { fontSize: FONT.md, marginTop: SPACING.sm, paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
-  emptyText: { fontSize: FONT.lg, fontWeight: '600', marginTop: SPACING.md },
   modalContent: {
     borderTopLeftRadius: RADIUS.lg,
     borderTopRightRadius: RADIUS.lg,

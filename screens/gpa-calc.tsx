@@ -22,7 +22,7 @@ import { UI_COLORS, onPrimary, gradeLetter } from '../utils/colors';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { Screen, ScreenHeader, AsyncContent, IconButton, Card } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState } from '../components/screen';
 import { TrendChart } from '../components/charts';
 import { gpaSeries, loadGradeHistory, GradeSnapshot } from '../utils/grade-history';
 import { refreshCompleteHaptic } from '../utils/haptics';
@@ -124,14 +124,16 @@ export default function GPACalculatorScreen() {
         hasData={!!gpaResult}
         isEmpty={!gpaResult}
         empty={
-          <View style={styles.emptyState}>
-            <Ionicons name="calculator-outline" size={48} color={currentTheme.textSecondary} />
-            <Text style={[styles.emptyText, { color: currentTheme.text }]}>No courses to calculate</Text>
-          </View>
+          <EmptyState
+            icon="calculator-outline"
+            title="No courses to calculate"
+            message="Your GPA appears here once your grades have loaded."
+          />
         }
       >
     {gpaResult && (
     <ScrollView
+      showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
       }
@@ -403,8 +405,6 @@ const styles = StyleSheet.create({
   courseInfo: { flex: 1 },
   courseName: { fontSize: FONT.lg, fontWeight: '600' },
   currentGpaHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
-  emptyState: { alignItems: 'center', paddingTop: SPACING.giant },
-  emptyText: { fontSize: FONT.lg, fontWeight: '600', marginTop: SPACING.md },
   formulaEquation: { fontSize: FONT.base, fontWeight: '700', marginBottom: SPACING.md },
   formulaText: { fontSize: FONT.base, lineHeight: 20, marginBottom: SPACING.md },
   gpaCard: {

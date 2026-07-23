@@ -45,7 +45,7 @@ const cases = [
     loaded: { grades },
     emptyLoaded: { grades: [] },
     dataText: 'Algebra II',
-    emptyText: 'No grades have been posted yet.',
+    emptyText: 'No grades yet',
   },
   {
     name: 'GPA',
@@ -61,7 +61,7 @@ const cases = [
     loaded: { schedule },
     emptyLoaded: { schedule: [] },
     dataText: 'Algebra II',
-    emptyText: 'No schedule data available',
+    emptyText: 'No schedule data',
   },
   {
     name: 'Planner',

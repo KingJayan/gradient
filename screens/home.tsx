@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: SPACING.sm,
-    paddingHorizontal: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.xxl,
   },
   headerActions: { alignItems: 'center', flexDirection: 'row', gap: SPACING.sm },
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   name: { fontSize: FONT.display, fontWeight: '700', marginTop: SPACING.xs },
   profileButton: { borderRadius: RADIUS.pill, padding: SPACING.sm },
   scrollView: { flex: 1 },
-  section: { marginBottom: SPACING.lg, paddingHorizontal: SPACING.xl },
+  section: { marginBottom: SPACING.lg, paddingHorizontal: SPACING.lg },
   spacer: { height: 40 },
   statCard: {
     flex: 1,
@@ -241,5 +241,5 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: FONT.sm, fontWeight: '600', letterSpacing: 0.3 },
   statTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
   statValue: { fontSize: FONT.hero, fontWeight: '800' },
-  statsContainer: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.xxl, paddingHorizontal: SPACING.xl },
+  statsContainer: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.xxl, paddingHorizontal: SPACING.lg },
 });

@@ -5,7 +5,7 @@ import { useTheme } from '../hooks/use-theme';
 import { useNotifications } from '../hooks/use-notifications';
 import { AppNotification } from '../services/notifications';
 import { FONT, RADIUS, SPACING } from '../utils/tokens';
-import { Screen, ScreenHeader, Card, IconButton } from '../components/screen';
+import { Screen, ScreenHeader, Card, IconButton, EmptyState } from '../components/screen';
 
 function relativeTime(at: number): string {
   const mins = Math.floor((Date.now() - at) / 60000);
@@ -58,15 +58,14 @@ export default function NotificationsScreen() {
         data={notifications}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
         renderItem={renderItem}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="notifications-off-outline" size={48} color={currentTheme.textSecondary} />
-            <Text style={[styles.emptyText, { color: currentTheme.text }]}>No notifications yet</Text>
-            <Text style={[styles.emptySubtext, { color: currentTheme.textSecondary }]}>
-              You&apos;ll hear from us when a class average changes.
-            </Text>
-          </View>
+          <EmptyState
+            icon="notifications-off-outline"
+            title="No notifications yet"
+            message="You'll hear from us when a class average changes."
+          />
         }
       />
     </Screen>
@@ -75,9 +74,6 @@ export default function NotificationsScreen() {
 
 const styles = StyleSheet.create({
   card: { alignItems: 'center', flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md, padding: SPACING.lg },
-  empty: { alignItems: 'center', paddingTop: SPACING.giant },
-  emptySubtext: { fontSize: FONT.md, marginTop: SPACING.sm, paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
-  emptyText: { fontSize: FONT.lg, fontWeight: '600', marginTop: SPACING.md },
   iconWrap: { alignItems: 'center', borderRadius: RADIUS.md, height: 40, justifyContent: 'center', width: 40 },
   list: { padding: SPACING.lg },
   textWrap: { flex: 1 },

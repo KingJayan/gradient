@@ -181,6 +181,45 @@ export function Card({
   );
 }
 
+export function EmptyState({
+  icon,
+  title,
+  message,
+  actionLabel,
+  onAction,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  message?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  const { currentTheme } = useTheme();
+  return (
+    <View style={styles.emptyState}>
+      <View style={[styles.emptyIcon, { backgroundColor: currentTheme.primary + '18' }]}>
+        <Ionicons name={icon} size={40} color={currentTheme.primary} />
+      </View>
+      <Text style={[styles.emptyTitle, { color: currentTheme.text }]} accessibilityRole="header">
+        {title}
+      </Text>
+      {message ? (
+        <Text style={[styles.emptyMessage, { color: currentTheme.textSecondary }]}>{message}</Text>
+      ) : null}
+      {actionLabel && onAction ? (
+        <TouchableOpacity
+          style={[styles.emptyAction, { backgroundColor: currentTheme.primary }]}
+          onPress={onAction}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+        >
+          <Text style={[styles.emptyActionText, { color: onPrimary(currentTheme.primary) }]}>{actionLabel}</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+}
+
 export function Skeleton({ style }: { style?: StyleProp<ViewStyle> }) {
   const { currentTheme } = useTheme();
   const opacity = useRef(new Animated.Value(0.4)).current;
@@ -261,6 +300,32 @@ const styles = StyleSheet.create({
     shadowRadius: ELEVATION.radius,
   },
   center: { alignItems: 'center', flex: 1, gap: SPACING.lg, justifyContent: 'center' },
+  emptyAction: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    justifyContent: 'center',
+    marginTop: SPACING.xl,
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.xxl,
+  },
+  emptyActionText: { fontSize: FONT.base, fontWeight: '600' },
+  emptyIcon: {
+    alignItems: 'center',
+    borderRadius: RADIUS.pill,
+    height: 72,
+    justifyContent: 'center',
+    marginBottom: SPACING.lg,
+    width: 72,
+  },
+  emptyMessage: {
+    fontSize: FONT.base,
+    lineHeight: 20,
+    marginTop: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
+    textAlign: 'center',
+  },
+  emptyState: { alignItems: 'center', paddingHorizontal: SPACING.xxl, paddingTop: SPACING.giant },
+  emptyTitle: { fontSize: FONT.xl, fontWeight: '700', textAlign: 'center' },
   errorText: { fontSize: FONT.base, paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
   freshness: { fontSize: FONT.sm, marginTop: SPACING.xs },
   header: {

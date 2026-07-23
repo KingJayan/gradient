@@ -7,7 +7,7 @@ import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/api/grades';
 import { gradeLetter, gradeColor } from '../utils/colors';
 import { FONT, RADIUS, SPACING } from '../utils/tokens';
-import { Screen, ScreenHeader, AsyncContent, Card } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, Card, EmptyState } from '../components/screen';
 import { Sparkline } from '../components/charts';
 import { classTrend, loadGradeHistory, GradeSnapshot } from '../utils/grade-history';
 import { refreshCompleteHaptic } from '../utils/haptics';
@@ -189,7 +189,11 @@ export default function GradesScreen() {
             />
           )}
           ListEmptyComponent={
-            <Text style={[styles.emptyText, { color: currentTheme.textSecondary }]}>No grades have been posted yet.</Text>
+            <EmptyState
+              icon="document-text-outline"
+              title="No grades yet"
+              message="Grades show up here as soon as your teachers post them."
+            />
           }
           ListFooterComponent={
             <>
@@ -226,7 +230,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   classIndicator: { borderRadius: RADIUS.pill, height: 45, marginRight: SPACING.lg, width: 5 },
-  emptyText: { fontSize: FONT.base, marginTop: SPACING.huge, textAlign: 'center' },
   expandedContent: { borderTopWidth: 1, marginTop: SPACING.lg, paddingTop: SPACING.lg },
   flex1: { flex: 1 },
   gradeCard: {
