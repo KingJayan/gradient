@@ -10,17 +10,13 @@ jobs:
   check:
     name: Type-check, lint & test
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/jayanp/gradient-ci:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v7
-
-      - uses: pnpm/action-setup@v6
-        with:
-          version: 11
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
