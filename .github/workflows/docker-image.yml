@@ -31,4 +31,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/jayanp/gradient-ci:latest
+          tags: ghcr.io/kingjayan/gradient-ci:latest

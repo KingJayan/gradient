@@ -11,7 +11,7 @@ jobs:
     name: Type-check, lint & test
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/jayanp/gradient-ci:latest
+      image: ghcr.io/kingjayan/gradient-ci:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GHCR_TOKEN }}
