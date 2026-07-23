@@ -21,7 +21,7 @@ import { UI_COLORS, onPrimary, gradeLetter } from '../utils/colors';
 import { RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState, StatBadge, Button, Chip } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState, StatBadge, Button, Chip, CountUp } from '../components/screen';
 import { Text } from '../components/typography';
 import { TrendChart } from '../components/charts';
 import { gpaSeries, loadGradeHistory, GradeSnapshot } from '../utils/grade-history';
@@ -152,11 +152,11 @@ export default function GPACalculatorScreen() {
         <View style={styles.gpaGrid}>
           <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
             <Text variant="subhead" weight="600" color={onPrimary(currentTheme.primary)}>Weighted</Text>
-            <Text variant="hero" weight="700" tabular color={onPrimary(currentTheme.primary)} style={styles.gpaValue}>{gpaResult.weighted}</Text>
+            <CountUp value={gpaResult.weighted} weight="700" color={onPrimary(currentTheme.primary)} style={styles.gpaValue} />
           </View>
           <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
             <Text variant="subhead" weight="600" color={onPrimary(currentTheme.primary)}>Unweighted</Text>
-            <Text variant="hero" weight="700" tabular color={onPrimary(currentTheme.primary)} style={styles.gpaValue}>{gpaResult.unweighted}</Text>
+            <CountUp value={gpaResult.unweighted} weight="700" color={onPrimary(currentTheme.primary)} style={styles.gpaValue} />
           </View>
         </View>
         <Text variant="subhead" tabular color={currentTheme.textSecondary} style={styles.courseCount}>

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Animated } from 'react-native';
 import { Text } from './components/typography';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +21,7 @@ import { UI_COLORS } from './utils/colors';
 import { initMonitoring, wrapRoot } from './utils/monitoring';
 import { registerBackgroundRefresh } from './services/background-refresh';
 import { ensureNotificationPermission } from './services/notifications';
-import { RADIUS, SPACING } from './utils/tokens';
+import { MOTION, RADIUS, SPACING } from './utils/tokens';
 import { mark, measure } from './utils/perf';
 
 mark('coldStart:start');
@@ -53,12 +53,33 @@ function withBoundary<P extends object>(Component: React.ComponentType<P>) {
   };
 }
 
-const Home = withBoundary(HomeScreen);
-const Grades = withBoundary(GradesScreen);
-const GPA = withBoundary(GPACalculatorScreen);
+function withFade<P extends object>(Component: React.ComponentType<P>) {
+  return function FadedScreen(props: P) {
+    const focused = useIsFocused();
+    const opacity = useRef(new Animated.Value(0)).current;
+    useEffect(() => {
+      const anim = Animated.timing(opacity, {
+        toValue: focused ? 1 : 0,
+        duration: MOTION.base,
+        useNativeDriver: true,
+      });
+      anim.start();
+      return () => anim.stop();
+    }, [focused, opacity]);
+    return (
+      <Animated.View style={[styles.root, { opacity }]}>
+        <Component {...props} />
+      </Animated.View>
+    );
+  };
+}
+
+const Home = withBoundary(withFade(HomeScreen));
+const Grades = withBoundary(withFade(GradesScreen));
+const GPA = withBoundary(withFade(GPACalculatorScreen));
 const Schedule = withBoundary(ScheduleScreen);
-const Planner = withBoundary(PlannerScreen);
-const Settings = withBoundary(SettingsScreen);
+const Planner = withBoundary(withFade(PlannerScreen));
+const Settings = withBoundary(withFade(SettingsScreen));
 const Transcript = withBoundary(TranscriptScreen);
 const Notifications = withBoundary(NotificationsScreen);
 const Privacy = withBoundary(PrivacyScreen);

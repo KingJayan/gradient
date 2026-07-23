@@ -1,7 +1,7 @@
 import { fireEvent } from '@testing-library/react-native';
 import * as Haptics from 'expo-haptics';
 import { renderScreen } from '../../test/render';
-import { Button, StatBadge, Chip } from '../screen';
+import { Button, StatBadge, Chip, CountUp } from '../screen';
 
 afterEach(() => jest.clearAllMocks());
 
@@ -37,6 +37,13 @@ describe('StatBadge', () => {
     fireEvent.press(getByLabelText('Cycle weight'));
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(Haptics.selectionAsync).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('CountUp', () => {
+  it('renders its value with the given decimals', () => {
+    const { getByText } = renderScreen(<CountUp value={3.8} color="#000000" />);
+    expect(getByText('3.80')).toBeTruthy();
   });
 });
 

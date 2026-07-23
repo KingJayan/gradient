@@ -16,7 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { UI_COLORS, onPrimary } from '../utils/colors';
-import { ELEVATION, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { ELEVATION, MOTION, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { selectionHaptic } from '../utils/haptics';
 import { Text } from './typography';
 
@@ -294,23 +294,84 @@ export function ProgressBar({
   value,
   color,
   trackColor,
+  animated,
   style,
 }: {
   value: number;
   color: string;
   trackColor?: string;
+  animated?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   const { currentTheme } = useTheme();
   const pct = Math.max(0, Math.min(100, value));
+  const progress = useRef(new Animated.Value(animated ? 0 : pct)).current;
+
+  useEffect(() => {
+    if (!animated) {
+      progress.setValue(pct);
+      return;
+    }
+    const anim = Animated.timing(progress, {
+      toValue: pct,
+      duration: MOTION.base,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    });
+    anim.start();
+    return () => anim.stop();
+  }, [pct, animated, progress]);
+
+  const width = progress.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] });
+
   return (
     <View
       style={[styles.progressTrack, { backgroundColor: trackColor ?? currentTheme.border }, style]}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
-      <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: color }]} />
+      <Animated.View style={[styles.progressFill, { width, backgroundColor: color }]} />
     </View>
+  );
+}
+
+export function CountUp({
+  value,
+  decimals = 2,
+  variant = 'hero',
+  weight,
+  color,
+  style,
+}: {
+  value: number;
+  decimals?: number;
+  variant?: 'hero' | 'title' | 'heading';
+  weight?: TextStyle['fontWeight'];
+  color: string;
+  style?: StyleProp<TextStyle>;
+}) {
+  const anim = useRef(new Animated.Value(value)).current;
+  const [display, setDisplay] = useState(value);
+
+  useEffect(() => {
+    const id = anim.addListener(({ value: v }) => setDisplay(v));
+    const a = Animated.timing(anim, {
+      toValue: value,
+      duration: MOTION.slow,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    });
+    a.start();
+    return () => {
+      a.stop();
+      anim.removeListener(id);
+    };
+  }, [value, anim]);
+
+  return (
+    <Text variant={variant} weight={weight} tabular color={color} style={style}>
+      {display.toFixed(decimals)}
+    </Text>
   );
 }
 

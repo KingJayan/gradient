@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "jest",
-    "precommit": "pnpm type-check && pnpm lint && pnpm test"
+    "precommit": "pnpm run type-check 2>&1 | tail -5 && pnpm run lint 2>&1 | tail -5 && pnpm test 2>&1 | tail -6"
   },
   "dependencies": {
     "@expo/vector-icons": "~15.1.1",

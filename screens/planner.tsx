@@ -10,12 +10,14 @@ import {
   Alert,
   Animated,
   PanResponder,
+  LayoutAnimation,
+  LayoutAnimationConfig,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Assignment, PersonalTask, mergeTasks, groupByDate, getOverdueTasks } from '../utils/task-manager';
 import { UI_COLORS, onPrimary } from '../utils/colors';
-import { RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
+import { MOTION, RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
@@ -30,6 +32,12 @@ type Row = { type: 'header'; key: string; date: string } | { type: 'task'; key: 
 function formatDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+const TASK_LAYOUT_ANIM: LayoutAnimationConfig = {
+  duration: MOTION.base,
+  update: { type: LayoutAnimation.Types.easeInEaseOut },
+  delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+};
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DOW_LABELS = ['S','M','T','W','T','F','S'];
@@ -196,6 +204,7 @@ export default function PlannerScreen() {
       const prev = tasksRef.current;
       if (!prev.some((t) => t.id === taskId)) return;
       const updated = prev.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t));
+      LayoutAnimation.configureNext(TASK_LAYOUT_ANIM);
       setPersonalTasks(updated);
       persistTasks(updated, prev);
     },

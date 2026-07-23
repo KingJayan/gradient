@@ -30,6 +30,12 @@ export const TYPE = {
 
 export const TOUCH_TARGET = 44;
 
+export const MOTION = {
+  fast: 180,
+  base: 260,
+  slow: 420,
+} as const;
+
 export const ELEVATION = {
   offset: { width: 0, height: 4 },
   radius: 8,

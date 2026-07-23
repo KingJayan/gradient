@@ -59,7 +59,7 @@ const GradeCard = React.memo(function GradeCard({
       </View>
 
       <View style={styles.trendRow}>
-        <ProgressBar value={grade.average} color={color} style={styles.progressBar} />
+        <ProgressBar value={grade.average} color={color} animated style={styles.progressBar} />
         <Sparkline values={trend} color={color} style={styles.sparkline} />
       </View>
 
