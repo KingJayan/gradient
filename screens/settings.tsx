@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -22,6 +22,9 @@ import { APP_VERSION, BUILD_NUMBER, PRIVACY_URL, SUPPORT_URL } from '../utils/li
 import { logWarning } from '../utils/error-logger';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, ScreenHeader, Card } from '../components/screen';
+import { DEFAULT_PREFS, NotifPrefs, loadPrefs, savePrefs } from '../services/notifications';
+
+const THRESHOLDS = [1, 3, 5];
 
 const UPDATE_MESSAGES = {
   downloaded: 'An update is ready. Restart Gradient to apply it.',
@@ -35,6 +38,19 @@ export default function SettingsScreen() {
   const { currentTheme, themeName, setTheme, availableThemes, appearance, availableAppearances, setAppearance, scheme } =
     useTheme();
   const { enabled: appLockEnabled, setEnabled: setAppLockEnabled, isSupported } = useAppLock();
+  const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>(DEFAULT_PREFS);
+
+  useEffect(() => {
+    loadPrefs().then(setNotifPrefs);
+  }, []);
+
+  const updateNotifPrefs = (patch: Partial<NotifPrefs>) => {
+    setNotifPrefs((prev) => {
+      const next = { ...prev, ...patch };
+      savePrefs(next);
+      return next;
+    });
+  };
 
   if (!authContext) return null;
   const { state, logout, deleteAccount } = authContext;
@@ -204,6 +220,79 @@ export default function SettingsScreen() {
               accessibilityLabel="Require Face ID to open the app"
             />
           </Card>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
+            Notifications
+          </Text>
+          <Card style={styles.lockRow}>
+            <View style={styles.lockText}>
+              <Text style={[styles.lockTitle, { color: currentTheme.text }]}>Grade increases</Text>
+              <Text style={[styles.lockSubtitle, { color: currentTheme.textSecondary }]}>
+                Alert me when an average goes up
+              </Text>
+            </View>
+            <Switch
+              value={notifPrefs.increases}
+              onValueChange={(v) => updateNotifPrefs({ increases: v })}
+              trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
+              accessibilityLabel="Notify on grade increases"
+            />
+          </Card>
+          <Card style={styles.lockRow}>
+            <View style={styles.lockText}>
+              <Text style={[styles.lockTitle, { color: currentTheme.text }]}>Grade drops</Text>
+              <Text style={[styles.lockSubtitle, { color: currentTheme.textSecondary }]}>
+                Alert me when an average goes down
+              </Text>
+            </View>
+            <Switch
+              value={notifPrefs.drops}
+              onValueChange={(v) => updateNotifPrefs({ drops: v })}
+              trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
+              accessibilityLabel="Notify on grade drops"
+            />
+          </Card>
+          <View style={styles.thresholdRow} accessibilityRole="radiogroup">
+            {THRESHOLDS.map((pts) => {
+              const selected = notifPrefs.threshold === pts;
+              return (
+                <TouchableOpacity
+                  key={pts}
+                  style={[
+                    styles.thresholdChip,
+                    {
+                      backgroundColor: selected ? currentTheme.primary : currentTheme.surface,
+                      borderColor: selected ? currentTheme.primary : currentTheme.border,
+                    },
+                  ]}
+                  onPress={() => updateNotifPrefs({ threshold: pts })}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`Notify on changes of at least ${pts} point${pts === 1 ? '' : 's'}`}
+                  accessibilityState={{ checked: selected }}
+                >
+                  <Text
+                    style={[styles.thresholdText, { color: selected ? onPrimary(currentTheme.primary) : currentTheme.text }]}
+                  >
+                    ≥ {pts} pt{pts === 1 ? '' : 's'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <Card
+            style={styles.infoItem}
+            onPress={() => openLink('app-settings:')}
+            accessibilityRole="link"
+            accessibilityLabel="Open system notification settings"
+          >
+            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>System Settings</Text>
+            <Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />
+          </Card>
+          <Text style={[styles.notifNote, { color: currentTheme.textSecondary }]}>
+            Turn notifications on or off and choose how they&apos;re delivered in iOS Settings.
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -403,6 +492,7 @@ const styles = StyleSheet.create({
     fontSize: FONT.lg,
     fontWeight: '600',
   },
+  notifNote: { fontSize: FONT.sm, lineHeight: 18, marginTop: SPACING.sm },
   section: {
     borderBottomWidth: 8,
     paddingHorizontal: SPACING.lg,
@@ -432,4 +522,14 @@ const styles = StyleSheet.create({
     fontSize: FONT.xs,
     fontWeight: '600',
   },
+  thresholdChip: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    flex: 1,
+    justifyContent: 'center',
+    minHeight: TOUCH_TARGET,
+  },
+  thresholdRow: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.sm, marginTop: SPACING.md },
+  thresholdText: { fontSize: FONT.base, fontWeight: '600' },
 });

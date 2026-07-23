@@ -6,6 +6,7 @@ import { fetchAssignments } from '../services/api/assignments';
 import { fetchSchedule, ClassPeriod } from '../services/api/schedule';
 import { Course } from '../utils/gpa-calculator';
 import { Assignment } from '../utils/task-manager';
+import { syncGradeNotifications } from '../services/notifications';
 import { mark, measure } from '../utils/perf';
 
 const DASHBOARD_KEY = 'dashboard';
@@ -59,6 +60,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!creds) invalidateAllQueries();
   }, [creds]);
+
+  const grades = query.data?.grades;
+  useEffect(() => {
+    if (grades) syncGradeNotifications(grades);
+  }, [grades]);
 
   const cache: DataCache = {
     grades: query.data?.grades ?? null,

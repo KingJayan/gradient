@@ -11,6 +11,8 @@
 - grades, GPA (weighted + unweighted), schedule, planner, transcript
 - "what if?" — pick a target GPA to see the average you need, or mock a grade to see where it lands you
 - personal tasks merged with HAC assignments
+- grade-change notifications ("your chemistry average changed 84 → 88"), with an in-app notification center — one tap from the home bell; what counts as a change is yours to tune, everything else lives in iOS Settings
+- per-class grade trend sparklines and a GPA-over-time chart
 - 6 themes, each in light and dark; matching app icon and splash; optional face id lock
 - offline-friendly: last fetch is cached and shown instantly on cold start, refreshed in the background (respects iOS background app refresh), with an "updated X min ago" label on every screen
 - creds stored in ios keychain, never on a server

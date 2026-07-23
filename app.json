@@ -103,6 +103,7 @@
       "expo-secure-store",
       "expo-local-authentication",
       "expo-background-task",
+      "expo-notifications",
       "expo-asset",
       "expo-font"
     ],

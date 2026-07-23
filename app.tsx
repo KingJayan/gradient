@@ -19,6 +19,7 @@ import { districtName } from './utils/district';
 import { UI_COLORS } from './utils/colors';
 import { initMonitoring, wrapRoot } from './utils/monitoring';
 import { registerBackgroundRefresh } from './services/background-refresh';
+import { ensureNotificationPermission } from './services/notifications';
 import { FONT, RADIUS, SPACING } from './utils/tokens';
 import { mark, measure } from './utils/perf';
 
@@ -35,6 +36,7 @@ import SettingsScreen from './screens/settings';
 import GPACalculatorScreen from './screens/gpa-calc';
 import ScheduleScreen from './screens/schedule';
 import TranscriptScreen from './screens/transcript';
+import NotificationsScreen from './screens/notifications';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -56,6 +58,7 @@ const Schedule = withBoundary(ScheduleScreen);
 const Planner = withBoundary(PlannerScreen);
 const Settings = withBoundary(SettingsScreen);
 const Transcript = withBoundary(TranscriptScreen);
+const Notifications = withBoundary(NotificationsScreen);
 
 function AuthStack() {
   const { currentTheme } = useTheme();
@@ -124,6 +127,7 @@ function AppStack() {
       <Stack.Screen name="Tabs" component={AppTabs} />
       <Stack.Screen name="Schedule" component={Schedule} options={{ presentation: 'modal' }} />
       <Stack.Screen name="Transcript" component={Transcript} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="Notifications" component={Notifications} options={{ presentation: 'modal' }} />
     </Stack.Navigator>
   );
 }
@@ -144,7 +148,10 @@ function RootNavigatorContent() {
   }, [isBootstrapped]);
 
   useEffect(() => {
-    if (isBootstrapped && !state.isLoggedOut) registerBackgroundRefresh();
+    if (isBootstrapped && !state.isLoggedOut) {
+      registerBackgroundRefresh();
+      ensureNotificationPermission();
+    }
   }, [isBootstrapped, state.isLoggedOut]);
 
   if (!isBootstrapped || !currentTheme) return <LoadingScreen />;

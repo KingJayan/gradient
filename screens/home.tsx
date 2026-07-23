@@ -17,6 +17,8 @@ import { useDataCache } from '../context/data-context';
 import { calculateGPA } from '../utils/gpa-calculator';
 import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { Screen, AsyncContent, Card, Freshness } from '../components/screen';
+import { useNotifications } from '../hooks/use-notifications';
+import { UI_COLORS, onPrimary } from '../utils/colors';
 import { refreshCompleteHaptic } from '../utils/haptics';
 
 const LINK_CARDS: {
@@ -43,6 +45,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
   const authContext = useContext(AuthContext);
   const { currentTheme } = useTheme();
   const { cache, clearCache, loadGradesAndCourses } = useDataCache();
+  const { unread } = useNotifications();
   const gpaResult = useMemo(
     () => (cache.courses && cache.courses.length > 0 ? calculateGPA(cache.courses) : null),
     [cache.courses]
@@ -98,14 +101,31 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
             <Text style={[styles.name, { color: currentTheme.text }]} accessibilityRole="header">{state.user?.name || 'Welcome'}</Text>
             <Freshness updatedAt={cache.updatedAt} />
           </View>
-          <TouchableOpacity
-            style={[styles.profileButton, { backgroundColor: currentTheme.primary + '20' }]}
-            onPress={() => navigation.navigate('Settings')}
-            accessibilityRole="button"
-            accessibilityLabel="Open settings"
-          >
-            <Ionicons name="person-circle" size={48} color={currentTheme.primary} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={[styles.bellButton, { backgroundColor: currentTheme.primary + '20' }]}
+              onPress={() => navigation.navigate('Notifications')}
+              accessibilityRole="button"
+              accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+            >
+              <Ionicons name="notifications" size={24} color={currentTheme.primary} />
+              {unread > 0 && (
+                <View style={[styles.badge, { backgroundColor: UI_COLORS.danger }]}>
+                  <Text style={[styles.badgeText, { color: onPrimary(UI_COLORS.danger) }]} maxFontSizeMultiplier={1.2}>
+                    {unread > 9 ? '9+' : unread}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.profileButton, { backgroundColor: currentTheme.primary + '20' }]}
+              onPress={() => navigation.navigate('Settings')}
+              accessibilityRole="button"
+              accessibilityLabel="Open settings"
+            >
+              <Ionicons name="person-circle" size={48} color={currentTheme.primary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.statsContainer}>
@@ -162,6 +182,24 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 }
 
 const styles = StyleSheet.create({
+  badge: {
+    alignItems: 'center',
+    borderRadius: RADIUS.pill,
+    justifyContent: 'center',
+    minWidth: 18,
+    paddingHorizontal: SPACING.xs,
+    position: 'absolute',
+    right: 2,
+    top: 2,
+  },
+  badgeText: { fontSize: FONT.xs, fontWeight: '700' },
+  bellButton: {
+    alignItems: 'center',
+    borderRadius: RADIUS.pill,
+    height: TOUCH_TARGET,
+    justifyContent: 'center',
+    width: TOUCH_TARGET,
+  },
   dateText: { fontSize: FONT.md, letterSpacing: 0.5, marginBottom: SPACING.xxs, textTransform: 'uppercase' },
   flex1: { flex: 1 },
   header: {
@@ -172,6 +210,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xl,
     paddingVertical: SPACING.xxl,
   },
+  headerActions: { alignItems: 'center', flexDirection: 'row', gap: SPACING.sm },
   linkCard: {
     alignItems: 'center',
     flexDirection: 'row',

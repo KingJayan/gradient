@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { StyleSheet, View, FlatList, Text, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
@@ -8,6 +8,8 @@ import { GradeEntry } from '../services/api/grades';
 import { gradeLetter, gradeColor } from '../utils/colors';
 import { FONT, RADIUS, SPACING } from '../utils/tokens';
 import { Screen, ScreenHeader, AsyncContent, Card } from '../components/screen';
+import { Sparkline } from '../components/charts';
+import { classTrend, loadGradeHistory, GradeSnapshot } from '../utils/grade-history';
 import { refreshCompleteHaptic } from '../utils/haptics';
 
 interface GradeRow extends GradeEntry {
@@ -16,11 +18,13 @@ interface GradeRow extends GradeEntry {
 
 const GradeCard = React.memo(function GradeCard({
   grade,
+  trend,
   expanded,
   onToggle,
   currentTheme,
 }: {
   grade: GradeRow;
+  trend: number[];
   expanded: boolean;
   onToggle: (className: string) => void;
   currentTheme: Theme;
@@ -53,12 +57,15 @@ const GradeCard = React.memo(function GradeCard({
         </View>
       </View>
 
-      <View
-        style={[styles.progressBar, { backgroundColor: currentTheme.border }]}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-      >
-        <View style={[styles.progressFill, { width: `${grade.average}%`, backgroundColor: color }]} />
+      <View style={styles.trendRow}>
+        <View
+          style={[styles.progressBar, { backgroundColor: currentTheme.border }]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          <View style={[styles.progressFill, { width: `${grade.average}%`, backgroundColor: color }]} />
+        </View>
+        <Sparkline values={trend} color={color} style={styles.sparkline} />
       </View>
 
       {expanded && grade.categories.length > 0 && (
@@ -94,6 +101,11 @@ export default function GradesScreen() {
   const { cache, loadGradesAndCourses, clearCache } = useDataCache();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedClass, setExpandedClass] = useState<string | null>(null);
+  const [history, setHistory] = useState<GradeSnapshot[]>([]);
+
+  useEffect(() => {
+    loadGradeHistory().then(setHistory);
+  }, [cache.updatedAt]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -164,12 +176,13 @@ export default function GradesScreen() {
           style={styles.list}
           data={grades}
           keyExtractor={(item) => item.className}
-          extraData={expandedClass}
+          extraData={`${expandedClass}:${history.length}`}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.section}
           renderItem={({ item }) => (
             <GradeCard
               grade={item}
+              trend={classTrend(history, item.className)}
               expanded={expandedClass === item.className}
               onToggle={toggleClass}
               currentTheme={currentTheme}
@@ -248,8 +261,10 @@ const styles = StyleSheet.create({
   legendText: { fontSize: FONT.sm, fontWeight: '600' },
   legendTitle: { fontSize: FONT.base, fontWeight: '700', marginBottom: SPACING.lg },
   list: { flex: 1 },
-  progressBar: { borderRadius: RADIUS.xs, height: 8, marginBottom: SPACING.lg, overflow: 'hidden' },
+  progressBar: { borderRadius: RADIUS.xs, flex: 1, height: 8, overflow: 'hidden' },
   progressFill: { borderRadius: RADIUS.xs, height: '100%' },
   section: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.lg },
   spacer: { height: 40 },
+  sparkline: { width: 56 },
+  trendRow: { alignItems: 'center', flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.lg },
 });

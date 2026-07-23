@@ -23,6 +23,8 @@ import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { Screen, ScreenHeader, AsyncContent, IconButton, Card } from '../components/screen';
+import { TrendChart } from '../components/charts';
+import { gpaSeries, loadGradeHistory, GradeSnapshot } from '../utils/grade-history';
 import { refreshCompleteHaptic } from '../utils/haptics';
 
 const TARGET_GPAS = [3.0, 3.5, 4.0];
@@ -38,10 +40,20 @@ export default function GPACalculatorScreen() {
   const [mockGradeInput, setMockGradeInput] = useState('');
   const [targetGPA, setTargetGPA] = useState(TARGET_GPAS[1]);
   const [showFormula, setShowFormula] = useState(false);
+  const [history, setHistory] = useState<GradeSnapshot[]>([]);
 
   useEffect(() => {
     if (cache.courses) setCourses(cache.courses);
   }, [cache.courses]);
+
+  useEffect(() => {
+    loadGradeHistory().then(setHistory);
+  }, [cache.updatedAt]);
+
+  const gpaTrend = useMemo(
+    () => (courses.length > 0 ? gpaSeries(history, courses).map((p) => p.gpa) : []),
+    [history, courses]
+  );
 
   const gpaResult = useMemo(
     () => (courses.length > 0 ? calculateGPA(courses, DEFAULT_GRADE_SCALE) : null),
@@ -149,6 +161,15 @@ export default function GPACalculatorScreen() {
           {gpaResult.courseCount} courses · {gpaResult.totalCredits} credits
         </Text>
       </View>
+
+      {gpaTrend.length >= 2 && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>GPA Over Time</Text>
+          <Card style={styles.trendCard}>
+            <TrendChart values={gpaTrend} color={currentTheme.primary} format={(v) => v.toFixed(2)} />
+          </Card>
+        </View>
+      )}
 
       <View style={styles.section}>
         <View style={styles.scenarioHeader}>
@@ -462,6 +483,7 @@ const styles = StyleSheet.create({
   targetChipText: { fontSize: FONT.lg, fontWeight: '700' },
   targetResult: { fontSize: FONT.base, lineHeight: 20, marginTop: SPACING.md },
   targetRow: { flexDirection: 'row', gap: SPACING.md },
+  trendCard: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.lg },
   weightBadge: { borderRadius: RADIUS.xs, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs },
   weightBadgeText: { fontSize: FONT.xs, fontWeight: '700' },
 });

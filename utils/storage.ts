@@ -14,6 +14,9 @@ export const LOCAL_KEYS = {
   queryCache: 'hacQueryCache',
   personalTasks: 'personalTasks',
   bellSchedule: 'bellSchedule',
+  gradeHistory: 'gradeHistory',
+  notifications: 'notifications',
+  notifPrefs: 'notifPrefs',
 } as const;
 
 export async function wipeLocalData(): Promise<void> {

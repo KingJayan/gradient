@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DASHBOARD_QUERY_KEY, fetchDashboard } from '../context/data-context';
 import { SECURE_KEYS, LOCAL_KEYS } from '../utils/storage';
+import { syncGradeNotifications } from './notifications';
 import { logWarning } from '../utils/error-logger';
 
 const BACKGROUND_REFRESH_TASK = 'dashboard-refresh';
@@ -24,6 +25,8 @@ TaskManager.defineTask(BACKGROUND_REFRESH_TASK, async () => {
     const cache = raw ? JSON.parse(raw) : {};
     cache[DASHBOARD_QUERY_KEY] = { data, updatedAt: Date.now() };
     await AsyncStorage.setItem(LOCAL_KEYS.queryCache, JSON.stringify(cache));
+
+    await syncGradeNotifications(data.grades);
 
     return BackgroundTask.BackgroundTaskResult.Success;
   } catch (e) {
