@@ -95,7 +95,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={currentTheme.primary} />
         }
       >
-        <View style={[styles.header, { backgroundColor: currentTheme.surface }]}>
+        <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
           <View>
             <Text style={[styles.dateText, { color: currentTheme.textSecondary }]}>{currentDate}</Text>
             <Text style={[styles.name, { color: currentTheme.text }]} accessibilityRole="header">{state.user?.name || 'Welcome'}</Text>
@@ -204,9 +204,10 @@ const styles = StyleSheet.create({
   flex1: { flex: 1 },
   header: {
     alignItems: 'flex-start',
+    borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xl,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.xxl,
   },

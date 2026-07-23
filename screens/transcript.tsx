@@ -5,7 +5,7 @@ import { TranscriptEntry, fetchTranscript } from '../services/api/transcript';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useScreenData } from '../hooks/use-screen-data';
-import { Screen, AsyncContent, EmptyState } from '../components/screen';
+import { Screen, AsyncContent, Card, EmptyState } from '../components/screen';
 import { gradeColorFromLetter, onPrimary } from '../utils/colors';
 import { FONT, RADIUS, SPACING } from '../utils/tokens';
 
@@ -30,7 +30,7 @@ const YearSection = React.memo(function YearSection({
 }) {
   const gpa = yearGPA(entries);
   return (
-    <View style={[styles.yearSection, { backgroundColor: currentTheme.surface }]}>
+    <Card style={styles.yearSection}>
       <TouchableOpacity
         style={[styles.yearHeader, { borderBottomColor: currentTheme.border }]}
         onPress={() => onToggle(year)}
@@ -66,7 +66,7 @@ const YearSection = React.memo(function YearSection({
           ))}
         </View>
       )}
-    </View>
+    </Card>
   );
 });
 
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
   },
-  yearSection: { borderRadius: RADIUS.sm, marginBottom: SPACING.sm, overflow: 'hidden' },
+  yearSection: { marginBottom: SPACING.sm },
   yearTitle: { fontSize: FONT.lg, fontWeight: '700' },
   yearTitleContainer: { flex: 1 },
   yearsContainer: { paddingBottom: SPACING.md, paddingHorizontal: SPACING.lg },
