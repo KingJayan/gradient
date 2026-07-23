@@ -7,8 +7,32 @@ on:
     branches: [main]
 
 jobs:
+  build-image:
+    name: Build CI image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/kingjayan/gradient-ci:latest
+          cache-from: type=registry,ref=ghcr.io/kingjayan/gradient-ci:latest
+          cache-to: type=inline
+
   check:
     name: Type-check, lint & test
+    needs: [build-image]
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/kingjayan/gradient-ci:latest
@@ -27,4 +51,3 @@ jobs:
       - run: pnpm test
 
       - run: pnpm audit --audit-level high
-
