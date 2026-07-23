@@ -5,9 +5,7 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Text,
   Alert,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Animated,
@@ -17,7 +15,10 @@ import { AuthContext } from '../context/auth-context';
 import { DEMO_CREDENTIALS, DEMO_MODE } from '../services/api/demo';
 import { useTheme } from '../hooks/use-theme';
 import { UI_COLORS } from '../utils/colors';
-import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
+import { Button } from '../components/screen';
+import { Text } from '../components/typography';
+import { selectionHaptic } from '../utils/haptics';
 import { DISTRICTS, isValidHacUrl, normalizeHacUrl, searchDistricts } from '../utils/district';
 
 const MAX_RESULTS = 8;
@@ -95,12 +96,12 @@ export default function LoginScreen() {
           <View style={styles.logoContainer}>
             <Ionicons name="school" size={48} color={currentTheme.primary} />
           </View>
-          <Text style={[styles.title, { color: currentTheme.primary }]} accessibilityRole="header">Gradient</Text>
-          <Text style={[styles.subtitle, { color: currentTheme.textSecondary }]}>Your grades, visualized</Text>
+          <Text variant="hero" weight="700" color={currentTheme.primary} style={styles.title} accessibilityRole="header">Gradient</Text>
+          <Text variant="body" color={currentTheme.textSecondary}>Your grades, visualized</Text>
         </Animated.View>
 
         <Animated.View style={[styles.form, { opacity: fadeAnim }]}>
-          <Text style={[styles.label, { color: currentTheme.text }]}>School District</Text>
+          <Text variant="body" weight="600" color={currentTheme.text} style={styles.label}>School District</Text>
           <View style={styles.districtContainer}>
             {manual ? (
               <>
@@ -120,7 +121,7 @@ export default function LoginScreen() {
                   />
                 </View>
                 {customUrl.length > 0 && !customValid && (
-                  <Text style={[styles.hintText, { color: UI_COLORS.danger }]}>
+                  <Text variant="subhead" color={UI_COLORS.danger} style={styles.hintText}>
                     Enter a full https:// web address.
                   </Text>
                 )}
@@ -131,7 +132,7 @@ export default function LoginScreen() {
                   accessibilityLabel="Back to district search"
                 >
                   <Ionicons name="chevron-back" size={16} color={currentTheme.primary} />
-                  <Text style={[styles.linkText, { color: currentTheme.primary }]}>Search districts instead</Text>
+                  <Text variant="body" weight="600" color={currentTheme.primary}>Search districts instead</Text>
                 </TouchableOpacity>
               </>
             ) : (
@@ -157,7 +158,7 @@ export default function LoginScreen() {
                       <TouchableOpacity
                         key={district.id}
                         style={[styles.districtButton, { borderColor: currentTheme.border, backgroundColor: checked ? currentTheme.primary : currentTheme.surface }]}
-                        onPress={() => setSelectedDistrictId(district.id)}
+                        onPress={() => { selectionHaptic(); setSelectedDistrictId(district.id); }}
                         accessibilityRole="radio"
                         accessibilityLabel={district.name}
                         accessibilityState={{ checked }}
@@ -167,14 +168,14 @@ export default function LoginScreen() {
                           size={20}
                           color={checked ? UI_COLORS.white : currentTheme.textSecondary}
                         />
-                        <Text style={[styles.districtButtonText, { color: checked ? UI_COLORS.white : currentTheme.text }]}>
+                        <Text variant="body" weight="500" color={checked ? UI_COLORS.white : currentTheme.text} style={styles.districtButtonText}>
                           {district.name}
                         </Text>
                       </TouchableOpacity>
                     );
                   })}
                   {results.length === 0 && (
-                    <Text style={[styles.hintText, { color: currentTheme.textSecondary }]}>
+                    <Text variant="subhead" color={currentTheme.textSecondary} style={styles.hintText}>
                       No matches. Enter your district URL manually.
                     </Text>
                   )}
@@ -186,13 +187,13 @@ export default function LoginScreen() {
                   accessibilityLabel="Enter district URL manually"
                 >
                   <Ionicons name="globe-outline" size={16} color={currentTheme.primary} />
-                  <Text style={[styles.linkText, { color: currentTheme.primary }]}>My district isn&apos;t listed</Text>
+                  <Text variant="body" weight="600" color={currentTheme.primary}>My district isn&apos;t listed</Text>
                 </TouchableOpacity>
               </>
             )}
           </View>
 
-          <Text style={[styles.label, { color: currentTheme.text }]}>Username</Text>
+          <Text variant="body" weight="600" color={currentTheme.text} style={styles.label}>Username</Text>
           <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: currentTheme.border }]}>
             <Ionicons name="person" size={20} color={currentTheme.textSecondary} />
             <TextInput
@@ -207,7 +208,7 @@ export default function LoginScreen() {
             />
           </View>
 
-          <Text style={[styles.label, { color: currentTheme.text }]}>Password</Text>
+          <Text variant="body" weight="600" color={currentTheme.text} style={styles.label}>Password</Text>
           <View style={[styles.inputContainer, { backgroundColor: currentTheme.surface, borderColor: currentTheme.border }]}>
             <Ionicons name="lock-closed" size={20} color={currentTheme.textSecondary} />
             <TextInput
@@ -223,42 +224,29 @@ export default function LoginScreen() {
             />
           </View>
 
-          <TouchableOpacity
-            style={[styles.loginButton, { backgroundColor: currentTheme.primary }, loading && styles.loginButtonDisabled]}
+          <Button
+            title="Sign In"
+            icon="log-in"
             onPress={handleLogin}
-            disabled={loading}
-            accessibilityRole="button"
+            loading={loading}
+            style={styles.loginButton}
             accessibilityLabel={loading ? 'Signing in' : 'Sign in'}
-            accessibilityState={{ disabled: loading, busy: loading }}
-          >
-            {loading ? (
-              <ActivityIndicator color={UI_COLORS.white} />
-            ) : (
-              <>
-                <Ionicons name="log-in" size={20} color={UI_COLORS.white} />
-                <Text style={styles.loginButtonText}>Sign In</Text>
-              </>
-            )}
-          </TouchableOpacity>
+          />
 
           {DEMO_MODE && (
-            <TouchableOpacity
-              style={[styles.demoButton, { borderColor: currentTheme.border }]}
+            <Button
+              title="Explore the demo account"
+              variant="outline"
+              color={currentTheme.textSecondary}
               onPress={handleDemo}
               disabled={loading}
-              accessibilityRole="button"
-              accessibilityLabel="Explore the demo account"
-              accessibilityState={{ disabled: loading }}
-            >
-              <Text style={[styles.demoButtonText, { color: currentTheme.textSecondary }]}>
-                Explore the demo account
-              </Text>
-            </TouchableOpacity>
+              style={styles.demoButton}
+            />
           )}
         </Animated.View>
 
         <Animated.View style={[styles.footer, { opacity: fadeAnim }]}>
-          <Text style={[styles.footerText, { color: currentTheme.textSecondary }]}>
+          <Text variant="subhead" color={currentTheme.textSecondary} style={styles.footerText}>
             Your HAC credentials are stored on-device in iOS Keychain and sent over HTTPS to the Gradient API proxy to fetch your grades. They are not stored by the proxy.
           </Text>
         </Animated.View>
@@ -272,16 +260,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   demoButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    borderWidth: 1,
-    justifyContent: 'center',
     marginTop: SPACING.md,
-    minHeight: TOUCH_TARGET,
-  },
-  demoButtonText: {
-    fontSize: FONT.base,
-    fontWeight: '500',
   },
   districtButton: {
     alignItems: 'center',
@@ -294,8 +273,6 @@ const styles = StyleSheet.create({
   },
   districtButtonText: {
     flex: 1,
-    fontSize: FONT.base,
-    fontWeight: '500',
     marginLeft: SPACING.md,
   },
   districtContainer: {
@@ -305,7 +282,6 @@ const styles = StyleSheet.create({
     marginTop: SPACING.huge,
   },
   footerText: {
-    fontSize: FONT.sm,
     textAlign: 'center',
   },
   form: {
@@ -317,13 +293,12 @@ const styles = StyleSheet.create({
     marginTop: SPACING.giant,
   },
   hintText: {
-    fontSize: FONT.sm,
     marginBottom: SPACING.sm,
     marginLeft: SPACING.xs,
   },
   input: {
     flex: 1,
-    fontSize: FONT.lg,
+    fontSize: TYPE.body.size,
     marginLeft: SPACING.md,
     minHeight: TOUCH_TARGET,
   },
@@ -336,8 +311,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
   },
   label: {
-    fontSize: FONT.base,
-    fontWeight: '600',
     marginBottom: SPACING.sm,
   },
   linkRow: {
@@ -346,26 +319,8 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
     minHeight: TOUCH_TARGET,
   },
-  linkText: {
-    fontSize: FONT.base,
-    fontWeight: '600',
-  },
   loginButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    flexDirection: 'row',
-    justifyContent: 'center',
     marginTop: SPACING.xxl,
-    minHeight: TOUCH_TARGET,
-  },
-  loginButtonDisabled: {
-    opacity: 0.7,
-  },
-  loginButtonText: {
-    color: UI_COLORS.white,
-    fontSize: FONT.lg,
-    fontWeight: '600',
-    marginLeft: SPACING.sm,
   },
   logoContainer: {
     marginBottom: SPACING.lg,
@@ -375,12 +330,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: SPACING.xl,
   },
-  subtitle: {
-    fontSize: FONT.base,
-  },
   title: {
-    fontSize: FONT.hero,
-    fontWeight: '700',
     marginBottom: SPACING.xs,
   },
 });

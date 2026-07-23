@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { Text } from './components/typography';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -20,7 +21,7 @@ import { UI_COLORS } from './utils/colors';
 import { initMonitoring, wrapRoot } from './utils/monitoring';
 import { registerBackgroundRefresh } from './services/background-refresh';
 import { ensureNotificationPermission } from './services/notifications';
-import { FONT, RADIUS, SPACING } from './utils/tokens';
+import { RADIUS, SPACING } from './utils/tokens';
 import { mark, measure } from './utils/perf';
 
 mark('coldStart:start');
@@ -211,7 +212,7 @@ function AppShell({ isLoggedOut, hacUrl }: { isLoggedOut: boolean; hacUrl?: stri
           accessibilityLabel={banner.message}
         >
           <Ionicons name={banner.icon} size={12} color={UI_COLORS.dangerMuted} />
-          <Text style={styles.statusText}>{banner.message}</Text>
+          <Text variant="caption" weight="500" color={UI_COLORS.dangerMuted} style={styles.statusText}>{banner.message}</Text>
         </View>
       )}
     </View>
@@ -247,5 +248,5 @@ const styles = StyleSheet.create({
     right: 24,
     zIndex: 9999,
   },
-  statusText: { color: UI_COLORS.dangerMuted, flexShrink: 1, fontSize: FONT.sm, fontWeight: '500' },
+  statusText: { flexShrink: 1 },
 });

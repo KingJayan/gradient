@@ -2,12 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   StyleSheet,
   View,
-  Text,
   SafeAreaView,
   Animated,
   Easing,
-  TouchableOpacity,
   Pressable,
+  ActivityIndicator,
   StyleProp,
   ViewStyle,
   TextStyle,
@@ -17,7 +16,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { UI_COLORS, onPrimary } from '../utils/colors';
-import { ELEVATION, FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { ELEVATION, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { selectionHaptic } from '../utils/haptics';
+import { Text } from './typography';
 
 export function Screen({
   header,
@@ -52,9 +53,9 @@ export function ScreenHeader({
   return (
     <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
       <View style={styles.headerText}>
-        <Text style={[styles.headerTitle, { color: currentTheme.text }]} accessibilityRole="header">{title}</Text>
+        <Text variant="title" color={currentTheme.text} accessibilityRole="header">{title}</Text>
         {subtitle ? (
-          <Text style={[styles.headerSubtitle, { color: currentTheme.textSecondary }]}>{subtitle}</Text>
+          <Text variant="subhead" color={currentTheme.textSecondary} style={styles.headerSubtitle}>{subtitle}</Text>
         ) : null}
         {updatedAt !== undefined ? <Freshness updatedAt={updatedAt} /> : null}
       </View>
@@ -85,21 +86,75 @@ export function Freshness({ updatedAt, style }: { updatedAt: number; style?: Sty
 
   const label = relativeAge(updatedAt, now);
   if (!label) return null;
-  return <Text style={[styles.freshness, { color: currentTheme.textSecondary }, style]}>{label}</Text>;
+  return <Text variant="caption" color={currentTheme.textSecondary} style={[styles.freshness, style]}>{label}</Text>;
+}
+
+export function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  color,
+  icon,
+  disabled,
+  loading,
+  style,
+  accessibilityLabel,
+}: {
+  title: string;
+  onPress: () => void;
+  variant?: 'primary' | 'danger' | 'outline';
+  color?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
+  disabled?: boolean;
+  loading?: boolean;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
+}) {
+  const { currentTheme } = useTheme();
+  const fill = variant === 'primary' ? currentTheme.primary : variant === 'danger' ? UI_COLORS.danger : 'transparent';
+  const fg =
+    variant === 'outline'
+      ? color ?? currentTheme.text
+      : variant === 'danger'
+        ? UI_COLORS.white
+        : onPrimary(currentTheme.primary);
+  const inactive = disabled || loading;
+
+  const handlePress = () => {
+    if (inactive) return;
+    selectionHaptic();
+    onPress();
+  };
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      disabled={inactive}
+      style={({ pressed }) => [
+        styles.button,
+        { backgroundColor: fill, borderColor: variant === 'outline' ? color ?? currentTheme.border : 'transparent', borderWidth: variant === 'outline' ? 1 : 0 },
+        pressed && !inactive && styles.pressed,
+        inactive && styles.disabled,
+        style,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityState={{ disabled: !!disabled, busy: !!loading }}
+    >
+      {loading ? (
+        <ActivityIndicator color={fg} />
+      ) : (
+        <>
+          {icon ? <Ionicons name={icon} size={20} color={fg} /> : null}
+          <Text variant="body" weight="600" color={fg}>{title}</Text>
+        </>
+      )}
+    </Pressable>
+  );
 }
 
 export function RetryButton({ onPress, style }: { onPress: () => void; style?: StyleProp<ViewStyle> }) {
-  const { currentTheme } = useTheme();
-  return (
-    <TouchableOpacity
-      style={[styles.retryButton, { backgroundColor: currentTheme.primary }, style]}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel="Retry"
-    >
-      <Text style={[styles.retryButtonText, { color: onPrimary(currentTheme.primary) }]}>Retry</Text>
-    </TouchableOpacity>
-  );
+  return <Button title="Retry" onPress={onPress} style={style} />;
 }
 
 export function IconButton({
@@ -120,25 +175,102 @@ export function IconButton({
   style?: StyleProp<ViewStyle>;
 }) {
   return (
-    <TouchableOpacity
-      style={[styles.iconButton, style]}
+    <Pressable
       onPress={onPress}
+      style={({ pressed }) => [styles.iconButton, pressed && styles.pressed, style]}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={state}
     >
       <Ionicons name={name} size={size} color={color} />
-    </TouchableOpacity>
+    </Pressable>
+  );
+}
+
+export function StatBadge({
+  label,
+  background,
+  color,
+  onPress,
+  state,
+  style,
+  accessibilityLabel,
+  accessibilityHint,
+}: {
+  label: string;
+  background: string;
+  color?: string;
+  onPress?: () => void;
+  state?: AccessibilityState;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+}) {
+  const fg = color ?? onPrimary(background);
+  const content = (
+    <Text variant="caption" weight="700" color={fg}>{label}</Text>
+  );
+
+  if (!onPress) {
+    return (
+      <View style={[styles.badge, { backgroundColor: background }, style]} accessibilityLabel={accessibilityLabel}>
+        {content}
+      </View>
+    );
+  }
+
+  const handlePress = () => {
+    selectionHaptic();
+    onPress();
+  };
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => [styles.badge, { backgroundColor: background }, pressed && styles.pressed, style]}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={state}
+    >
+      {content}
+    </Pressable>
+  );
+}
+
+export function ProgressBar({
+  value,
+  color,
+  trackColor,
+  style,
+}: {
+  value: number;
+  color: string;
+  trackColor?: string;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const { currentTheme } = useTheme();
+  const pct = Math.max(0, Math.min(100, value));
+  return (
+    <View
+      style={[styles.progressTrack, { backgroundColor: trackColor ?? currentTheme.border }, style]}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: color }]} />
+    </View>
   );
 }
 
 export function Card({
   onPress,
+  haptic,
   style,
   children,
   ...a11y
 }: {
   onPress?: () => void;
+  haptic?: boolean;
   style?: StyleProp<ViewStyle>;
   children: React.ReactNode;
   accessible?: boolean;
@@ -162,9 +294,14 @@ export function Card({
     );
   }
 
+  const handlePress = () => {
+    if (haptic) selectionHaptic();
+    onPress();
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       style={({ pressed }) => [
         styles.card,
         base,
@@ -178,6 +315,48 @@ export function Card({
     >
       {children}
     </Pressable>
+  );
+}
+
+export function ListRow({
+  title,
+  subtitle,
+  titleColor,
+  leadingIcon,
+  leadingColor,
+  trailing,
+  onPress,
+  style,
+  accessibilityRole,
+  accessibilityLabel,
+}: {
+  title: string;
+  subtitle?: string;
+  titleColor?: string;
+  leadingIcon?: keyof typeof Ionicons.glyphMap;
+  leadingColor?: string;
+  trailing?: React.ReactNode;
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityLabel?: string;
+}) {
+  const { currentTheme } = useTheme();
+  return (
+    <Card
+      style={[styles.listRow, style]}
+      onPress={onPress}
+      haptic={!!onPress}
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
+    >
+      {leadingIcon ? <Ionicons name={leadingIcon} size={22} color={leadingColor ?? currentTheme.primary} /> : null}
+      <View style={styles.listRowText}>
+        <Text variant="body" weight="600" color={titleColor ?? currentTheme.text}>{title}</Text>
+        {subtitle ? <Text variant="subhead" color={currentTheme.textSecondary} style={styles.listRowSubtitle}>{subtitle}</Text> : null}
+      </View>
+      {trailing}
+    </Card>
   );
 }
 
@@ -200,21 +379,14 @@ export function EmptyState({
       <View style={[styles.emptyIcon, { backgroundColor: currentTheme.primary + '18' }]}>
         <Ionicons name={icon} size={40} color={currentTheme.primary} />
       </View>
-      <Text style={[styles.emptyTitle, { color: currentTheme.text }]} accessibilityRole="header">
+      <Text variant="heading" color={currentTheme.text} style={styles.centerText} accessibilityRole="header">
         {title}
       </Text>
       {message ? (
-        <Text style={[styles.emptyMessage, { color: currentTheme.textSecondary }]}>{message}</Text>
+        <Text variant="body" color={currentTheme.textSecondary} style={styles.emptyMessage}>{message}</Text>
       ) : null}
       {actionLabel && onAction ? (
-        <TouchableOpacity
-          style={[styles.emptyAction, { backgroundColor: currentTheme.primary }]}
-          onPress={onAction}
-          accessibilityRole="button"
-          accessibilityLabel={actionLabel}
-        >
-          <Text style={[styles.emptyActionText, { color: onPrimary(currentTheme.primary) }]}>{actionLabel}</Text>
-        </TouchableOpacity>
+        <Button title={actionLabel} onPress={onAction} style={styles.emptyAction} />
       ) : null}
     </View>
   );
@@ -277,7 +449,7 @@ export function AsyncContent({
       return (
         <View style={styles.center} accessibilityRole="alert" accessibilityLiveRegion="polite">
           <Ionicons name="alert-circle" size={48} color={UI_COLORS.danger} />
-          <Text style={[styles.errorText, { color: currentTheme.text }]}>{error}</Text>
+          <Text variant="body" color={currentTheme.text} style={styles.errorText}>{error}</Text>
           {onRetry ? <RetryButton onPress={onRetry} /> : null}
         </View>
       );
@@ -292,6 +464,22 @@ export function AsyncContent({
 }
 
 const styles = StyleSheet.create({
+  badge: {
+    alignItems: 'center',
+    borderRadius: RADIUS.xs,
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xxs,
+  },
+  button: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    flexDirection: 'row',
+    gap: SPACING.sm,
+    justifyContent: 'center',
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.xxl,
+  },
   card: {
     borderRadius: RADIUS.md,
     borderWidth: StyleSheet.hairlineWidth,
@@ -300,15 +488,9 @@ const styles = StyleSheet.create({
     shadowRadius: ELEVATION.radius,
   },
   center: { alignItems: 'center', flex: 1, gap: SPACING.lg, justifyContent: 'center' },
-  emptyAction: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    justifyContent: 'center',
-    marginTop: SPACING.xl,
-    minHeight: TOUCH_TARGET,
-    paddingHorizontal: SPACING.xxl,
-  },
-  emptyActionText: { fontSize: FONT.base, fontWeight: '600' },
+  centerText: { textAlign: 'center' },
+  disabled: { opacity: 0.4 },
+  emptyAction: { marginTop: SPACING.xl },
   emptyIcon: {
     alignItems: 'center',
     borderRadius: RADIUS.pill,
@@ -318,16 +500,13 @@ const styles = StyleSheet.create({
     width: 72,
   },
   emptyMessage: {
-    fontSize: FONT.base,
-    lineHeight: 20,
     marginTop: SPACING.sm,
     paddingHorizontal: SPACING.xl,
     textAlign: 'center',
   },
   emptyState: { alignItems: 'center', paddingHorizontal: SPACING.xxl, paddingTop: SPACING.giant },
-  emptyTitle: { fontSize: FONT.xl, fontWeight: '700', textAlign: 'center' },
-  errorText: { fontSize: FONT.base, paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
-  freshness: { fontSize: FONT.sm, marginTop: SPACING.xs },
+  errorText: { paddingHorizontal: SPACING.xxxl, textAlign: 'center' },
+  freshness: { marginTop: SPACING.xs },
   header: {
     alignItems: 'center',
     borderBottomWidth: 1,
@@ -336,18 +515,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.xxl,
   },
-  headerSubtitle: { fontSize: FONT.base, marginTop: SPACING.sm },
+  headerSubtitle: { marginTop: SPACING.sm },
   headerText: { flex: 1 },
-  headerTitle: { fontSize: FONT.display, fontWeight: '700' },
   iconButton: { alignItems: 'center', justifyContent: 'center', minHeight: TOUCH_TARGET, minWidth: TOUCH_TARGET },
-  retryButton: {
+  listRow: {
     alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    justifyContent: 'center',
-    minHeight: TOUCH_TARGET,
-    paddingHorizontal: SPACING.xxl,
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.sm,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
   },
-  retryButtonText: { fontSize: FONT.sm, fontWeight: '600' },
+  listRowSubtitle: { marginTop: SPACING.xxs },
+  listRowText: { flex: 1 },
+  pressed: { opacity: 0.85, transform: [{ scale: ELEVATION.pressedScale }] },
+  progressFill: { borderRadius: RADIUS.xs, height: '100%' },
+  progressTrack: { borderRadius: RADIUS.xs, height: 8, overflow: 'hidden' },
   screen: { flex: 1 },
   skeletonBlock: { borderRadius: RADIUS.sm },
   skeletonCard: { borderRadius: RADIUS.md, height: 76, marginBottom: SPACING.md },

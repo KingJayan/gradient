@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { useAppLock } from '../context/app-lock-context';
-import { onPrimary } from '../utils/colors';
-import { FONT, RADIUS, SPACING } from '../utils/tokens';
+import { RADIUS, SPACING } from '../utils/tokens';
+import { Button } from '../components/screen';
+import { Text } from '../components/typography';
 
 export default function LockScreen() {
   const { currentTheme } = useTheme();
@@ -19,33 +20,16 @@ export default function LockScreen() {
       <View style={[styles.iconCircle, { backgroundColor: currentTheme.primary + '22' }]}>
         <Ionicons name="lock-closed" size={40} color={currentTheme.primary} />
       </View>
-      <Text style={[styles.title, { color: currentTheme.text }]} accessibilityRole="header">Gradient is locked</Text>
-      <Text style={[styles.subtitle, { color: currentTheme.textSecondary }]}>
+      <Text variant="heading" color={currentTheme.text} style={styles.title} accessibilityRole="header">Gradient is locked</Text>
+      <Text variant="body" color={currentTheme.textSecondary} style={styles.subtitle}>
         Authenticate to view your grades.
       </Text>
-      <TouchableOpacity
-        style={[styles.button, { backgroundColor: currentTheme.primary }]}
-        onPress={authenticate}
-        accessibilityRole="button"
-        accessibilityLabel="Unlock with biometrics"
-      >
-        <Ionicons name="finger-print" size={20} color={onPrimary(currentTheme.primary)} />
-        <Text style={[styles.buttonText, { color: onPrimary(currentTheme.primary) }]}>Unlock</Text>
-      </TouchableOpacity>
+      <Button title="Unlock" icon="finger-print" onPress={authenticate} accessibilityLabel="Unlock with biometrics" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    paddingHorizontal: SPACING.xxl,
-    paddingVertical: SPACING.lg,
-  },
-  buttonText: { fontSize: FONT.lg, fontWeight: '600' },
   container: { alignItems: 'center', flex: 1, justifyContent: 'center', paddingHorizontal: SPACING.xxxl },
   iconCircle: {
     alignItems: 'center',
@@ -55,6 +39,6 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xxl,
     width: 96,
   },
-  subtitle: { fontSize: FONT.base, marginBottom: SPACING.xxxl, textAlign: 'center' },
-  title: { fontSize: FONT.xxl, fontWeight: '700', marginBottom: SPACING.sm },
+  subtitle: { marginBottom: SPACING.xxxl, textAlign: 'center' },
+  title: { marginBottom: SPACING.sm },
 });

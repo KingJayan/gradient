@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   FlatList,
-  Text,
   TouchableOpacity,
   TextInput,
   Modal,
@@ -16,12 +15,14 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Assignment, PersonalTask, mergeTasks, groupByDate, getOverdueTasks } from '../utils/task-manager';
 import { UI_COLORS, onPrimary } from '../utils/colors';
-import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { logWarning } from '../utils/error-logger';
-import { Screen, AsyncContent, IconButton, Card, Freshness, EmptyState } from '../components/screen';
+import { Screen, AsyncContent, IconButton, Card, Freshness, EmptyState, StatBadge, Button } from '../components/screen';
+import { Text } from '../components/typography';
+import { selectionHaptic } from '../utils/haptics';
 import { LOCAL_KEYS } from '../utils/storage';
 
 type Row = { type: 'header'; key: string; date: string } | { type: 'task'; key: string; task: Assignment };
@@ -72,7 +73,7 @@ function CalendarPicker({ value, onChange, currentTheme }: {
           label="Previous month"
           onPress={() => setViewMonth(new Date(year, month - 1, 1))}
         />
-        <Text style={[styles.calMonthLabel, { color: currentTheme.text }]} accessibilityRole="header">
+        <Text variant="body" weight="600" color={currentTheme.text} accessibilityRole="header">
           {MONTH_NAMES[month]} {year}
         </Text>
         <IconButton
@@ -85,7 +86,7 @@ function CalendarPicker({ value, onChange, currentTheme }: {
       </View>
       <View style={styles.calDowRow} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {DOW_LABELS.map((d, i) => (
-          <Text key={i} style={[styles.calDowLabel, { color: currentTheme.textSecondary }]}>{d}</Text>
+          <Text key={i} variant="caption" weight="600" color={currentTheme.textSecondary} style={styles.calDowLabel}>{d}</Text>
         ))}
       </View>
       {weeks.map((week, wi) => (
@@ -104,17 +105,15 @@ function CalendarPicker({ value, onChange, currentTheme }: {
                   isSelected && { backgroundColor: currentTheme.primary, borderRadius: RADIUS.lg },
                   isToday && !isSelected && { borderWidth: 1, borderColor: currentTheme.primary, borderRadius: RADIUS.lg },
                 ]}
-                onPress={() => onChange(d)}
+                onPress={() => { selectionHaptic(); onChange(d); }}
                 accessibilityRole="button"
                 accessibilityLabel={`${MONTH_NAMES[month]} ${day}, ${year}${isToday ? ', today' : ''}`}
                 accessibilityState={{ selected: isSelected }}
               >
                 <Text
-                  style={[
-                    styles.calDayText,
-                    { color: isSelected ? onPrimary(currentTheme.primary) : isToday ? currentTheme.primary : currentTheme.text },
-                  ]}
-                  maxFontSizeMultiplier={1.4}
+                  variant="body"
+                  tabular
+                  color={isSelected ? onPrimary(currentTheme.primary) : isToday ? currentTheme.primary : currentTheme.text}
                 >
                   {day}
                 </Text>
@@ -245,15 +244,15 @@ export default function PlannerScreen() {
       >
       <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
         <View>
-          <Text style={[styles.greeting, { color: currentTheme.textSecondary }]}>Planner</Text>
-          <Text style={[styles.taskCount, { color: currentTheme.text }]}>
+          <Text variant="body" color={currentTheme.textSecondary}>Planner</Text>
+          <Text variant="heading" color={currentTheme.text} style={styles.taskCount}>
             {allTasks.filter((t) => !t.completed).length} tasks due
           </Text>
           <Freshness updatedAt={cache.updatedAt} />
         </View>
         <TouchableOpacity
           style={[styles.addButton, { backgroundColor: currentTheme.primary }]}
-          onPress={() => setShowAddModal(true)}
+          onPress={() => { selectionHaptic(); setShowAddModal(true); }}
           accessibilityRole="button"
           accessibilityLabel="Add task"
         >
@@ -265,7 +264,7 @@ export default function PlannerScreen() {
         <View style={styles.overdueSection}>
           <View style={styles.overdueHeader}>
             <Ionicons name="alert-circle" size={20} color={UI_COLORS.danger} />
-            <Text style={styles.overdueTitle} accessibilityRole="header">Overdue ({overdueTasks.length})</Text>
+            <Text variant="body" weight="700" color={UI_COLORS.danger} style={styles.overdueTitle} accessibilityRole="header">Overdue ({overdueTasks.length})</Text>
           </View>
           {overdueTasks.slice(0, 2).map((task) => (
             <TaskItem key={task.id} task={task} onToggle={handleToggleTask} isOverdue currentTheme={currentTheme} />
@@ -278,18 +277,18 @@ export default function PlannerScreen() {
           <TouchableOpacity
             key={src}
             style={[styles.filterButton, { borderColor: currentTheme.border }, filterSource === src && [styles.filterButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
-            onPress={() => setFilterSource(src)}
+            onPress={() => { selectionHaptic(); setFilterSource(src); }}
             accessibilityRole="button"
             accessibilityLabel={`Show ${src === 'hac' ? 'HAC' : src} tasks`}
             accessibilityState={{ selected: filterSource === src }}
           >
-            <Text style={[styles.filterButtonText, { color: filterSource === src ? onPrimary(currentTheme.primary) : currentTheme.textSecondary }]}>
+            <Text variant="subhead" weight="500" color={filterSource === src ? onPrimary(currentTheme.primary) : currentTheme.textSecondary}>
               {src.charAt(0).toUpperCase() + src.slice(1)}
             </Text>
           </TouchableOpacity>
         ))}
         <View style={styles.completedToggle}>
-          <Text style={[styles.completedToggleText, { color: currentTheme.textSecondary }]}>Completed</Text>
+          <Text variant="subhead" weight="500" color={currentTheme.textSecondary}>Completed</Text>
           <Switch
             value={showCompleted}
             onValueChange={setShowCompleted}
@@ -308,7 +307,7 @@ export default function PlannerScreen() {
         keyExtractor={(item) => item.key}
         renderItem={({ item }) =>
           item.type === 'header' ? (
-            <Text style={[styles.dateHeader, { color: currentTheme.text }]} accessibilityRole="header">{item.date}</Text>
+            <Text variant="body" weight="700" color={currentTheme.text} style={styles.dateHeader} accessibilityRole="header">{item.date}</Text>
           ) : item.task.source === 'personal' ? (
             <SwipeableTaskRow
               task={item.task}
@@ -346,7 +345,7 @@ export default function PlannerScreen() {
                     label="Back to task details"
                     onPress={() => setShowCalendar(false)}
                   />
-                  <Text style={[styles.modalTitle, { color: currentTheme.text }]} accessibilityRole="header">Select Date</Text>
+                  <Text variant="heading" color={currentTheme.text} accessibilityRole="header">Select Date</Text>
                   <View style={styles.modalHeaderSpacer} />
                 </View>
                 <CalendarPicker
@@ -358,7 +357,7 @@ export default function PlannerScreen() {
             ) : (
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: currentTheme.text }]} accessibilityRole="header">Add Task</Text>
+                  <Text variant="heading" color={currentTheme.text} accessibilityRole="header">Add Task</Text>
                   <IconButton
                     name="close"
                     color={currentTheme.text}
@@ -366,7 +365,7 @@ export default function PlannerScreen() {
                     onPress={() => setShowAddModal(false)}
                   />
                 </View>
-                <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Task Title</Text>
+                <Text variant="body" weight="600" color={currentTheme.text} style={styles.modalLabel}>Task Title</Text>
                 <TextInput
                   style={[styles.modalInput, { backgroundColor: currentTheme.background, color: currentTheme.text }]}
                   placeholder="Enter task title"
@@ -375,44 +374,37 @@ export default function PlannerScreen() {
                   onChangeText={setNewTaskTitle}
                   accessibilityLabel="Task title"
                 />
-                <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Due Date</Text>
+                <Text variant="body" weight="600" color={currentTheme.text} style={styles.modalLabel}>Due Date</Text>
                 <TouchableOpacity
                   style={[styles.modalInput, styles.datePickerButton, { backgroundColor: currentTheme.background }]}
-                  onPress={() => setShowCalendar(true)}
+                  onPress={() => { selectionHaptic(); setShowCalendar(true); }}
                   accessibilityRole="button"
                   accessibilityLabel={`Due date: ${newTaskDate ? formatDate(newTaskDate) : 'not set'}`}
                   accessibilityHint="Opens the date picker"
                 >
                   <Ionicons name="calendar-outline" size={18} color={newTaskDate ? currentTheme.primary : currentTheme.textSecondary} />
-                  <Text style={[styles.datePickerText, { color: newTaskDate ? currentTheme.text : currentTheme.textSecondary }]}>
+                  <Text variant="body" color={newTaskDate ? currentTheme.text : currentTheme.textSecondary}>
                     {newTaskDate ? formatDate(newTaskDate) : 'Select a date'}
                   </Text>
                 </TouchableOpacity>
-                <Text style={[styles.modalLabel, { color: currentTheme.text }]}>Priority</Text>
+                <Text variant="body" weight="600" color={currentTheme.text} style={styles.modalLabel}>Priority</Text>
                 <View style={styles.priorityRow}>
                   {(['low', 'medium', 'high'] as const).map((p) => (
                     <TouchableOpacity
                       key={p}
                       style={[styles.priorityButton, { borderColor: currentTheme.border }, newTaskPriority === p && [styles.priorityButtonActive, { backgroundColor: currentTheme.primary, borderColor: currentTheme.primary }]]}
-                      onPress={() => setNewTaskPriority(p)}
+                      onPress={() => { selectionHaptic(); setNewTaskPriority(p); }}
                       accessibilityRole="button"
                       accessibilityLabel={`${p.charAt(0).toUpperCase() + p.slice(1)} priority`}
                       accessibilityState={{ selected: newTaskPriority === p }}
                     >
-                      <Text style={[styles.priorityButtonText, { color: newTaskPriority === p ? onPrimary(currentTheme.primary) : currentTheme.textSecondary }]}>
+                      <Text variant="subhead" weight="600" color={newTaskPriority === p ? onPrimary(currentTheme.primary) : currentTheme.textSecondary}>
                         {p.charAt(0).toUpperCase() + p.slice(1)}
                       </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
-                <TouchableOpacity
-                  style={[styles.modalButton, { backgroundColor: currentTheme.primary }]}
-                  onPress={handleAddTask}
-                  accessibilityRole="button"
-                  accessibilityLabel="Create task"
-                >
-                  <Text style={[styles.modalButtonText, { color: onPrimary(currentTheme.primary) }]}>Create Task</Text>
-                </TouchableOpacity>
+                <Button title="Create Task" onPress={handleAddTask} />
               </>
             )}
           </View>
@@ -501,22 +493,22 @@ const TaskItem = React.memo(function TaskItem({ task, onToggle, onDelete, isOver
         />
       </TouchableOpacity>
       <View style={styles.taskContent}>
-        <Text style={[styles.taskTitle, { color: currentTheme.text }, task.completed && styles.taskTitleCompleted]}>{task.title}</Text>
+        <Text variant="body" weight="600" color={currentTheme.text} style={task.completed ? styles.taskTitleCompleted : undefined}>{task.title}</Text>
         <View style={styles.taskMeta}>
-          <Text style={[styles.taskClass, { color: currentTheme.textSecondary }]}>{task.class}</Text>
+          <Text variant="subhead" weight="500" color={currentTheme.textSecondary}>{task.class}</Text>
           {task.source === 'hac' && task.points && (
-            <Text style={[styles.taskPoints, { backgroundColor: currentTheme.primary + '20', color: currentTheme.primary }]} maxFontSizeMultiplier={1.4}>{task.points} pts</Text>
+            <StatBadge label={`${task.points} pts`} background={currentTheme.primary + '20'} color={currentTheme.primary} />
           )}
           {task.source === 'personal' && (
-            <View style={[styles.sourceBadge, { backgroundColor: priorityColor }]}>
-              <Text style={styles.sourceBadgeText} maxFontSizeMultiplier={1.4}>
-                {task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'Personal'}
-              </Text>
-            </View>
+            <StatBadge
+              label={task.priority ? task.priority.charAt(0).toUpperCase() + task.priority.slice(1) : 'Personal'}
+              background={priorityColor}
+              color={UI_COLORS.white}
+            />
           )}
         </View>
       </View>
-      <Text style={[styles.taskDate, { color: currentTheme.textSecondary }]}>
+      <Text variant="subhead" color={currentTheme.textSecondary} style={styles.taskDate}>
         {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
       </Text>
     </Card>
@@ -526,8 +518,7 @@ const TaskItem = React.memo(function TaskItem({ task, onToggle, onDelete, isOver
 const styles = StyleSheet.create({
   addButton: { alignItems: 'center', borderRadius: RADIUS.pill, height: 48, justifyContent: 'center', width: 48 },
   calCell: { alignItems: 'center', flex: 1, justifyContent: 'center', minHeight: TOUCH_TARGET },
-  calDayText: { fontSize: FONT.base },
-  calDowLabel: { flex: 1, fontSize: FONT.sm, fontWeight: '600', textAlign: 'center' },
+  calDowLabel: { flex: 1, textAlign: 'center' },
   calDowRow: { flexDirection: 'row', marginBottom: SPACING.xs },
   calHeader: {
     alignItems: 'center',
@@ -536,7 +527,6 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.md,
     paddingHorizontal: SPACING.xs,
   },
-  calMonthLabel: { fontSize: FONT.lg, fontWeight: '600' },
   calWeekRow: { flexDirection: 'row', marginBottom: SPACING.xxs },
   checkbox: {
     alignItems: 'center',
@@ -546,10 +536,8 @@ const styles = StyleSheet.create({
     minWidth: TOUCH_TARGET,
   },
   completedToggle: { alignItems: 'center', flexDirection: 'row', gap: SPACING.sm, marginLeft: 'auto' },
-  completedToggleText: { fontSize: FONT.sm, fontWeight: '500' },
-  dateHeader: { fontSize: FONT.base, fontWeight: '700', marginBottom: SPACING.sm, marginTop: SPACING.md },
+  dateHeader: { marginBottom: SPACING.sm, marginTop: SPACING.md },
   datePickerButton: { alignItems: 'center', flexDirection: 'row', gap: SPACING.md, minHeight: TOUCH_TARGET },
-  datePickerText: { fontSize: FONT.lg },
   filterBar: {
     alignItems: 'center',
     borderBottomWidth: 1,
@@ -567,8 +555,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
   },
   filterButtonActive: { borderColor: 'transparent' },
-  filterButtonText: { fontSize: FONT.sm, fontWeight: '500' },
-  greeting: { fontSize: FONT.base },
   header: {
     alignItems: 'center',
     borderBottomWidth: 1,
@@ -577,13 +563,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.lg,
   },
-  modalButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    justifyContent: 'center',
-    minHeight: TOUCH_TARGET,
-  },
-  modalButtonText: { fontSize: FONT.lg, fontWeight: '600' },
   modalContent: {
     borderTopLeftRadius: RADIUS.lg,
     borderTopRightRadius: RADIUS.lg,
@@ -599,14 +578,13 @@ const styles = StyleSheet.create({
   modalHeaderSpacer: { width: 24 },
   modalInput: {
     borderRadius: RADIUS.sm,
-    fontSize: FONT.lg,
+    fontSize: TYPE.body.size,
     marginBottom: SPACING.lg,
     minHeight: TOUCH_TARGET,
     paddingHorizontal: SPACING.md,
   },
-  modalLabel: { fontSize: FONT.base, fontWeight: '600', marginBottom: SPACING.sm },
+  modalLabel: { marginBottom: SPACING.sm },
   modalOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', flex: 1, justifyContent: 'flex-end' },
-  modalTitle: { fontSize: FONT.xl, fontWeight: '700' },
   overdueHeader: { alignItems: 'center', flexDirection: 'row', marginBottom: SPACING.sm },
   overdueSection: {
     backgroundColor: 'rgba(239,68,68,0.12)',
@@ -618,7 +596,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
   },
-  overdueTitle: { color: UI_COLORS.danger, fontSize: FONT.base, fontWeight: '700', marginLeft: SPACING.sm },
+  overdueTitle: { marginLeft: SPACING.sm },
   priorityButton: {
     alignItems: 'center',
     borderRadius: RADIUS.sm,
@@ -628,10 +606,7 @@ const styles = StyleSheet.create({
     minHeight: TOUCH_TARGET,
   },
   priorityButtonActive: { borderColor: 'transparent' },
-  priorityButtonText: { fontSize: FONT.sm, fontWeight: '600' },
   priorityRow: { flexDirection: 'row', gap: SPACING.sm, marginBottom: SPACING.xl },
-  sourceBadge: { borderRadius: RADIUS.xs, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xxs },
-  sourceBadgeText: { color: UI_COLORS.white, fontSize: FONT.xs, fontWeight: '600' },
   swipeAction: { paddingHorizontal: SPACING.xl },
   swipeActions: {
     alignItems: 'center',
@@ -644,10 +619,9 @@ const styles = StyleSheet.create({
     top: 0,
   },
   swipeRoot: { position: 'relative' },
-  taskClass: { fontSize: FONT.sm, fontWeight: '500' },
   taskContent: { flex: 1 },
-  taskCount: { fontSize: FONT.xl, fontWeight: '700', marginTop: SPACING.xs },
-  taskDate: { fontSize: FONT.sm, marginLeft: SPACING.md },
+  taskCount: { marginTop: SPACING.xs },
+  taskDate: { marginLeft: SPACING.md },
   taskItem: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -660,13 +634,5 @@ const styles = StyleSheet.create({
   taskList: { flex: 1 },
   taskListContent: { paddingBottom: SPACING.xxl, paddingHorizontal: SPACING.lg, paddingTop: SPACING.md },
   taskMeta: { alignItems: 'center', flexDirection: 'row', gap: SPACING.sm, marginTop: SPACING.xs },
-  taskPoints: {
-    borderRadius: RADIUS.xs,
-    fontSize: FONT.xs,
-    fontWeight: '600',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xxs,
-  },
-  taskTitle: { fontSize: FONT.lg, fontWeight: '600' },
   taskTitleCompleted: { textDecorationLine: 'line-through' },
 });

@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   ScrollView,
-  Text,
   TouchableOpacity,
   TextInput,
   Modal,
@@ -14,10 +13,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ClassPeriod } from '../services/api/schedule';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { onPrimary } from '../utils/colors';
-import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState } from '../components/screen';
-import { refreshCompleteHaptic } from '../utils/haptics';
+import { RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
+import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState, StatBadge, Button } from '../components/screen';
+import { Text } from '../components/typography';
+import { refreshCompleteHaptic, selectionHaptic } from '../utils/haptics';
 import { LOCAL_KEYS } from '../utils/storage';
 
 type BellSchedule = Record<string, { start: string; end: string }>;
@@ -80,13 +79,13 @@ export default function ScheduleScreen() {
       updatedAt={cache.updatedAt}
       right={
         <TouchableOpacity
-          onPress={openBellEditor}
+          onPress={() => { selectionHaptic(); openBellEditor(); }}
           style={[styles.bellButton, { backgroundColor: currentTheme.background }]}
           accessibilityRole="button"
           accessibilityLabel="Edit bell times"
         >
           <Ionicons name="time-outline" size={18} color={currentTheme.primary} />
-          <Text style={[styles.bellButtonText, { color: currentTheme.primary }]}>Bell Times</Text>
+          <Text variant="subhead" weight="600" color={currentTheme.primary}>Bell Times</Text>
         </TouchableOpacity>
       }
     />
@@ -115,19 +114,17 @@ export default function ScheduleScreen() {
                 const bt = bellTimes[period.id];
                 return (
                   <Card key={period.id} style={styles.periodCard}>
-                    <View style={[styles.periodBadge, { backgroundColor: currentTheme.primary + '22' }]}>
-                      <Text
-                        style={[styles.periodBadgeText, { color: currentTheme.primary }]}
-                        accessibilityLabel={`Period ${period.id}`}
-                        maxFontSizeMultiplier={1.3}
-                      >
-                        P{period.id}
-                      </Text>
-                    </View>
+                    <StatBadge
+                      label={`P${period.id}`}
+                      background={currentTheme.primary + '22'}
+                      color={currentTheme.primary}
+                      style={styles.periodBadge}
+                      accessibilityLabel={`Period ${period.id}`}
+                    />
                     <View style={styles.periodInfo}>
-                      <Text style={[styles.periodName, { color: currentTheme.text }]}>{period.name}</Text>
+                      <Text variant="body" weight="600" color={currentTheme.text}>{period.name}</Text>
                       {bt && (
-                        <Text style={[styles.periodTime, { color: currentTheme.primary }]}>
+                        <Text variant="subhead" weight="600" tabular color={currentTheme.primary} style={styles.periodTime}>
                           {formatBellTime(bt.start)} – {formatBellTime(bt.end)}
                         </Text>
                       )}
@@ -135,13 +132,13 @@ export default function ScheduleScreen() {
                         {period.teacher ? (
                           <>
                             <Ionicons name="person" size={13} color={currentTheme.textSecondary} />
-                            <Text style={[styles.periodMetaText, { color: currentTheme.textSecondary }]}>{period.teacher}</Text>
+                            <Text variant="subhead" color={currentTheme.textSecondary} style={styles.periodMetaText}>{period.teacher}</Text>
                           </>
                         ) : null}
                         {period.room ? (
                           <>
                             <Ionicons name="location" size={13} color={currentTheme.textSecondary} />
-                            <Text style={[styles.periodMetaText, { color: currentTheme.textSecondary }]}>Room {period.room}</Text>
+                            <Text variant="subhead" color={currentTheme.textSecondary} style={styles.periodMetaText}>Room {period.room}</Text>
                           </>
                         ) : null}
                       </View>
@@ -163,7 +160,7 @@ export default function ScheduleScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: currentTheme.text }]} accessibilityRole="header">Bell Schedule</Text>
+              <Text variant="heading" color={currentTheme.text} accessibilityRole="header">Bell Schedule</Text>
               <IconButton
                 name="close"
                 color={currentTheme.text}
@@ -171,21 +168,23 @@ export default function ScheduleScreen() {
                 onPress={() => setShowBellEditor(false)}
               />
             </View>
-            <Text style={[styles.modalSubtitle, { color: currentTheme.textSecondary }]}>
+            <Text variant="subhead" color={currentTheme.textSecondary} style={styles.modalSubtitle}>
               Enter start and end times for each period (HH:MM, 24-hour).
             </Text>
             <ScrollView style={styles.bellEditorScroll} showsVerticalScrollIndicator={false}>
               {schedule.length === 0 ? (
-                <Text style={[styles.modalSubtitle, { color: currentTheme.textSecondary, marginTop: SPACING.md }]}>
+                <Text variant="subhead" color={currentTheme.textSecondary} style={[styles.modalSubtitle, styles.bellEmptyNote]}>
                   Load your schedule first to configure bell times.
                 </Text>
               ) : (
                 schedule.map((period) => (
                   <View key={period.id} style={styles.bellRow}>
                     <Text
-                      style={[styles.bellPeriodLabel, { color: currentTheme.text }]}
+                      variant="body"
+                      weight="700"
+                      color={currentTheme.text}
+                      style={styles.bellPeriodLabel}
                       accessibilityLabel={`Period ${period.id}`}
-                      maxFontSizeMultiplier={1.3}
                     >
                       P{period.id}
                     </Text>
@@ -199,7 +198,7 @@ export default function ScheduleScreen() {
                       maxLength={5}
                       accessibilityLabel={`Period ${period.id} start time, 24-hour`}
                     />
-                    <Text style={[styles.bellDash, { color: currentTheme.textSecondary }]}>–</Text>
+                    <Text variant="body" color={currentTheme.textSecondary} style={styles.bellDash}>–</Text>
                     <TextInput
                       style={[styles.bellInput, { backgroundColor: currentTheme.background, color: currentTheme.text }]}
                       placeholder="08:50"
@@ -214,14 +213,7 @@ export default function ScheduleScreen() {
                 ))
               )}
             </ScrollView>
-            <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: currentTheme.primary }]}
-              onPress={saveBellTimes}
-              accessibilityRole="button"
-              accessibilityLabel="Save bell times"
-            >
-              <Text style={[styles.saveButtonText, { color: onPrimary(currentTheme.primary) }]}>Save</Text>
-            </TouchableOpacity>
+            <Button title="Save" onPress={saveBellTimes} style={styles.saveButton} accessibilityLabel="Save bell times" />
           </View>
         </View>
       </Modal>
@@ -238,18 +230,18 @@ const styles = StyleSheet.create({
     minHeight: TOUCH_TARGET,
     paddingHorizontal: SPACING.md,
   },
-  bellButtonText: { fontSize: FONT.md, fontWeight: '600' },
-  bellDash: { fontSize: FONT.lg, marginHorizontal: SPACING.xs },
+  bellDash: { marginHorizontal: SPACING.xs },
   bellEditorScroll: { maxHeight: 320 },
+  bellEmptyNote: { marginTop: SPACING.md },
   bellInput: {
     borderRadius: RADIUS.sm,
     flex: 1,
-    fontSize: FONT.base,
+    fontSize: TYPE.body.size,
     minHeight: TOUCH_TARGET,
     paddingHorizontal: SPACING.md,
     textAlign: 'center',
   },
-  bellPeriodLabel: { fontSize: FONT.base, fontWeight: '700', marginRight: SPACING.sm, width: 28 },
+  bellPeriodLabel: { marginRight: SPACING.sm, width: 28 },
   bellRow: { alignItems: 'center', flexDirection: 'row', marginBottom: SPACING.md },
   modalContent: {
     borderTopLeftRadius: RADIUS.lg,
@@ -259,16 +251,11 @@ const styles = StyleSheet.create({
   },
   modalHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.sm },
   modalOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', flex: 1, justifyContent: 'flex-end' },
-  modalSubtitle: { fontSize: FONT.sm, lineHeight: 18, marginBottom: SPACING.lg },
-  modalTitle: { fontSize: FONT.xl, fontWeight: '700' },
+  modalSubtitle: { lineHeight: 18, marginBottom: SPACING.lg },
   periodBadge: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
     height: TOUCH_TARGET,
-    justifyContent: 'center',
     width: TOUCH_TARGET,
   },
-  periodBadgeText: { fontSize: FONT.base, fontWeight: '700' },
   periodCard: {
     flexDirection: 'row',
     gap: SPACING.md,
@@ -285,15 +272,7 @@ const styles = StyleSheet.create({
     gap: SPACING.xs,
     marginTop: SPACING.xs,
   },
-  periodMetaText: { fontSize: FONT.sm, marginRight: SPACING.sm },
-  periodName: { fontSize: FONT.lg, fontWeight: '600' },
-  periodTime: { fontSize: FONT.sm, fontWeight: '600', marginTop: SPACING.xxs },
-  saveButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    justifyContent: 'center',
-    marginTop: SPACING.lg,
-    minHeight: TOUCH_TARGET,
-  },
-  saveButtonText: { fontSize: FONT.lg, fontWeight: '600' },
+  periodMetaText: { marginRight: SPACING.sm },
+  periodTime: { marginTop: SPACING.xxs },
+  saveButton: { marginTop: SPACING.lg },
 });

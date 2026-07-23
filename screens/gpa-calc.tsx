@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   ScrollView,
-  Text,
   TouchableOpacity,
   TextInput,
   Modal,
@@ -19,13 +18,14 @@ import {
   whatIfScenario,
 } from '../utils/gpa-calculator';
 import { UI_COLORS, onPrimary, gradeLetter } from '../utils/colors';
-import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
-import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState } from '../components/screen';
+import { Screen, ScreenHeader, AsyncContent, IconButton, Card, EmptyState, StatBadge, Button } from '../components/screen';
+import { Text } from '../components/typography';
 import { TrendChart } from '../components/charts';
 import { gpaSeries, loadGradeHistory, GradeSnapshot } from '../utils/grade-history';
-import { refreshCompleteHaptic } from '../utils/haptics';
+import { refreshCompleteHaptic, selectionHaptic } from '../utils/haptics';
 
 const TARGET_GPAS = [3.0, 3.5, 4.0];
 
@@ -140,7 +140,7 @@ export default function GPACalculatorScreen() {
     >
       <View style={styles.section}>
         <View style={styles.currentGpaHeader}>
-          <Text style={[styles.sectionTitleFlush, { color: currentTheme.text }]}>Current GPA</Text>
+          <Text variant="heading" color={currentTheme.text}>Current GPA</Text>
           <IconButton
             name="information-circle-outline"
             size={22}
@@ -151,22 +151,22 @@ export default function GPACalculatorScreen() {
         </View>
         <View style={styles.gpaGrid}>
           <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
-            <Text style={[styles.gpaLabel, { color: onPrimary(currentTheme.primary) }]}>Weighted</Text>
-            <Text style={[styles.gpaValue, { color: onPrimary(currentTheme.primary) }]}>{gpaResult.weighted}</Text>
+            <Text variant="subhead" weight="600" color={onPrimary(currentTheme.primary)}>Weighted</Text>
+            <Text variant="hero" weight="700" tabular color={onPrimary(currentTheme.primary)} style={styles.gpaValue}>{gpaResult.weighted}</Text>
           </View>
           <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
-            <Text style={[styles.gpaLabel, { color: onPrimary(currentTheme.primary) }]}>Unweighted</Text>
-            <Text style={[styles.gpaValue, { color: onPrimary(currentTheme.primary) }]}>{gpaResult.unweighted}</Text>
+            <Text variant="subhead" weight="600" color={onPrimary(currentTheme.primary)}>Unweighted</Text>
+            <Text variant="hero" weight="700" tabular color={onPrimary(currentTheme.primary)} style={styles.gpaValue}>{gpaResult.unweighted}</Text>
           </View>
         </View>
-        <Text style={[styles.courseCount, { color: currentTheme.textSecondary }]}>
+        <Text variant="subhead" tabular color={currentTheme.textSecondary} style={styles.courseCount}>
           {gpaResult.courseCount} courses · {gpaResult.totalCredits} credits
         </Text>
       </View>
 
       {gpaTrend.length >= 2 && (
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>GPA Over Time</Text>
+          <Text variant="heading" color={currentTheme.text} style={styles.sectionTitle}>GPA Over Time</Text>
           <Card style={styles.trendCard}>
             <TrendChart values={gpaTrend} color={currentTheme.primary} format={(v) => v.toFixed(2)} />
           </Card>
@@ -175,15 +175,15 @@ export default function GPACalculatorScreen() {
 
       <View style={styles.section}>
         <View style={styles.scenarioHeader}>
-          <Text style={[styles.sectionTitleFlush, { color: currentTheme.text }]}>What If?</Text>
+          <Text variant="heading" color={currentTheme.text}>What If?</Text>
           {scenarioGPA && (
             <TouchableOpacity
               style={styles.clearButtonHit}
-              onPress={() => setMockScenario([])}
+              onPress={() => { selectionHaptic(); setMockScenario([]); }}
               accessibilityRole="button"
               accessibilityLabel="Clear all mock grades"
             >
-              <Text style={styles.clearButton}>Clear All</Text>
+              <Text variant="subhead" weight="600" color={UI_COLORS.danger}>Clear All</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -200,24 +200,19 @@ export default function GPACalculatorScreen() {
                     borderColor: selected ? currentTheme.primary : currentTheme.border,
                   },
                 ]}
-                onPress={() => setTargetGPA(target)}
+                onPress={() => { selectionHaptic(); setTargetGPA(target); }}
                 accessibilityRole="radio"
                 accessibilityLabel={`Target GPA ${target.toFixed(1)}`}
                 accessibilityState={{ checked: selected }}
               >
-                <Text
-                  style={[
-                    styles.targetChipText,
-                    { color: selected ? onPrimary(currentTheme.primary) : currentTheme.text },
-                  ]}
-                >
+                <Text variant="body" weight="700" tabular color={selected ? onPrimary(currentTheme.primary) : currentTheme.text}>
                   {target.toFixed(1)}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
-        <Text style={[styles.targetResult, { color: currentTheme.textSecondary }]}>{gradeNeededText}</Text>
+        <Text variant="body" color={currentTheme.textSecondary} style={styles.targetResult}>{gradeNeededText}</Text>
         {scenarioGPA && (
           <View style={styles.scenarioGrid}>
             {[
@@ -225,9 +220,9 @@ export default function GPACalculatorScreen() {
               { label: 'Unweighted', current: gpaResult.unweighted, scenario: scenarioGPA.unweighted },
             ].map((item) => (
               <View key={item.label} style={[styles.scenarioCard, { backgroundColor: currentTheme.surface, borderColor: currentTheme.primary }]}>
-                <Text style={[styles.scenarioLabel, { color: currentTheme.textSecondary }]}>{item.label}</Text>
-                <Text style={[styles.scenarioValue, { color: currentTheme.primary }]}>{item.scenario}</Text>
-                <Text style={[styles.scenarioDelta, { color: currentTheme.text }]}>
+                <Text variant="subhead" weight="600" color={currentTheme.textSecondary}>{item.label}</Text>
+                <Text variant="title" weight="700" tabular color={currentTheme.primary} style={styles.scenarioValue}>{item.scenario}</Text>
+                <Text variant="subhead" weight="600" tabular color={currentTheme.text} style={styles.scenarioDelta}>
                   {item.scenario > item.current ? '+' : ''}{(item.scenario - item.current).toFixed(2)}
                 </Text>
               </View>
@@ -237,31 +232,26 @@ export default function GPACalculatorScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Your Courses</Text>
+        <Text variant="heading" color={currentTheme.text} style={styles.sectionTitle}>Your Courses</Text>
         {courses.map((course) => {
           const mockGrade = mockScenario.find((m) => m.courseId === course.id)?.mockGrade;
           return (
             <Card key={course.id} style={styles.courseCard}>
               <View style={styles.courseHeader}>
                 <View style={styles.courseInfo}>
-                  <Text style={[styles.courseName, { color: currentTheme.text }]}>{course.name}</Text>
-                  <Text style={[styles.courseCredits, { color: currentTheme.textSecondary }]}>{course.credits} credits</Text>
+                  <Text variant="body" weight="600" color={currentTheme.text}>{course.name}</Text>
+                  <Text variant="subhead" tabular color={currentTheme.textSecondary} style={styles.courseCredits}>{course.credits} credits</Text>
                 </View>
                 <View style={styles.courseActions}>
-                  <TouchableOpacity
-                    style={[styles.weightBadge, { backgroundColor: course.weight === 1.0 ? UI_COLORS.info : course.weight === 0.5 ? UI_COLORS.warning : currentTheme.border }]}
+                  <StatBadge
+                    label={course.weight === 1.0 ? 'AP' : course.weight === 0.5 ? 'HON' : 'REG'}
+                    background={course.weight === 1.0 ? UI_COLORS.info : course.weight === 0.5 ? UI_COLORS.warning : currentTheme.border}
+                    color={course.weight > 0 ? UI_COLORS.white : currentTheme.textSecondary}
                     onPress={() => handleToggleWeight(course.id)}
-                    accessibilityRole="button"
+                    style={styles.weightBadge}
                     accessibilityLabel={`${course.name} weight: ${course.weight === 1.0 ? 'AP' : course.weight === 0.5 ? 'Honors' : 'Regular'}`}
                     accessibilityHint="Cycles the course weight"
-                  >
-                    <Text
-                      style={[styles.weightBadgeText, { color: course.weight > 0 ? UI_COLORS.white : currentTheme.textSecondary }]}
-                      maxFontSizeMultiplier={1.4}
-                    >
-                      {course.weight === 1.0 ? 'AP' : course.weight === 0.5 ? 'HON' : 'REG'}
-                    </Text>
-                  </TouchableOpacity>
+                  />
                   <IconButton
                     name={course.excluded ? 'eye-off' : 'eye'}
                     size={20}
@@ -274,23 +264,26 @@ export default function GPACalculatorScreen() {
               </View>
               <View style={styles.gradeRow}>
                 <Text
-                  style={[styles.gradeLabel, { color: currentTheme.primary }]}
+                  variant="body"
+                  weight="600"
+                  tabular
+                  color={currentTheme.primary}
                   accessibilityLabel={`Current grade ${course.grade.toFixed(1)} percent, ${gradeLetter(course.grade)}`}
                 >
                   Current: {course.grade.toFixed(1)}% ({gradeLetter(course.grade)})
                 </Text>
                 {mockGrade !== undefined && (
-                  <Text style={styles.mockLabel}>Mock: {mockGrade}%</Text>
+                  <Text variant="body" weight="600" tabular color={UI_COLORS.info}>Mock: {mockGrade}%</Text>
                 )}
               </View>
               <TouchableOpacity
                 style={styles.mockButton}
-                onPress={() => { setSelectedCourseId(course.id); setShowMock(true); }}
+                onPress={() => { selectionHaptic(); setSelectedCourseId(course.id); setShowMock(true); }}
                 accessibilityRole="button"
                 accessibilityLabel={`Add mock grade for ${course.name}`}
               >
                 <Ionicons name="add-circle" size={16} color={currentTheme.primary} />
-                <Text style={[styles.mockButtonText, { color: currentTheme.primary }]}>Add Mock Grade</Text>
+                <Text variant="subhead" weight="600" color={currentTheme.primary} style={styles.mockButtonText}>Add Mock Grade</Text>
               </TouchableOpacity>
             </Card>
           );
@@ -306,7 +299,7 @@ export default function GPACalculatorScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>Mock Grade</Text>
+              <Text variant="heading" color={currentTheme.text}>Mock Grade</Text>
               <IconButton
                 name="close"
                 color={currentTheme.text}
@@ -316,7 +309,7 @@ export default function GPACalculatorScreen() {
             </View>
             {selectedCourseId && (
               <>
-                <Text style={[styles.modalLabel, { color: currentTheme.text }]}>
+                <Text variant="body" weight="600" color={currentTheme.text} style={styles.modalLabel}>
                   {courses.find((c) => c.id === selectedCourseId)?.name}
                 </Text>
                 <TextInput
@@ -329,14 +322,7 @@ export default function GPACalculatorScreen() {
                   maxLength={3}
                   accessibilityLabel="Predicted grade, 0 to 100"
                 />
-                <TouchableOpacity
-                  style={[styles.modalButton, { backgroundColor: currentTheme.primary }]}
-                  onPress={handleAddMockGrade}
-                  accessibilityRole="button"
-                  accessibilityLabel="Add to scenario"
-                >
-                  <Text style={[styles.modalButtonText, { color: onPrimary(currentTheme.primary) }]}>Add to Scenario</Text>
-                </TouchableOpacity>
+                <Button title="Add to Scenario" onPress={handleAddMockGrade} />
               </>
             )}
           </View>
@@ -352,7 +338,7 @@ export default function GPACalculatorScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: currentTheme.text }]} accessibilityRole="header">How GPA is calculated</Text>
+              <Text variant="heading" color={currentTheme.text} accessibilityRole="header">How GPA is calculated</Text>
               <IconButton
                 name="close"
                 color={currentTheme.text}
@@ -360,19 +346,19 @@ export default function GPACalculatorScreen() {
                 onPress={() => setShowFormula(false)}
               />
             </View>
-            <Text style={[styles.formulaText, { color: currentTheme.textSecondary }]}>
+            <Text variant="body" color={currentTheme.textSecondary} style={styles.formulaText}>
               Each class average maps to grade points on a 4.0 scale (A = 4.0, B = 3.0, C = 2.0, D = 1.0, F = 0.0).
             </Text>
-            <Text style={[styles.formulaText, { color: currentTheme.textSecondary }]}>
+            <Text variant="body" color={currentTheme.textSecondary} style={styles.formulaText}>
               The unweighted GPA is the plain average of those points across your courses.
             </Text>
-            <Text style={[styles.formulaText, { color: currentTheme.textSecondary }]}>
+            <Text variant="body" color={currentTheme.textSecondary} style={styles.formulaText}>
               The weighted GPA adds a bonus per course before averaging by credits — +1.0 for AP and +0.5 for Honors:
             </Text>
-            <Text style={[styles.formulaEquation, { color: currentTheme.text }]}>
+            <Text variant="body" weight="700" color={currentTheme.text} style={styles.formulaEquation}>
               weighted = Σ (points + weight) × credits ÷ Σ credits
             </Text>
-            <Text style={[styles.formulaText, { color: currentTheme.textSecondary }]}>
+            <Text variant="body" color={currentTheme.textSecondary} style={styles.formulaText}>
               Tap a course&apos;s badge to switch it between AP, Honors, and Regular, or the eye icon to exclude it.
             </Text>
           </View>
@@ -386,7 +372,6 @@ export default function GPACalculatorScreen() {
 }
 
 const styles = StyleSheet.create({
-  clearButton: { color: UI_COLORS.danger, fontSize: FONT.sm, fontWeight: '600' },
   clearButtonHit: { justifyContent: 'center', minHeight: TOUCH_TARGET, paddingHorizontal: SPACING.xs },
   courseActions: { alignItems: 'center', flexDirection: 'row', gap: SPACING.md },
   courseCard: {
@@ -394,8 +379,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
   },
-  courseCount: { fontSize: FONT.sm, textAlign: 'center' },
-  courseCredits: { fontSize: FONT.sm, marginTop: SPACING.xs },
+  courseCount: { textAlign: 'center' },
+  courseCredits: { marginTop: SPACING.xs },
   courseHeader: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -403,10 +388,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   courseInfo: { flex: 1 },
-  courseName: { fontSize: FONT.lg, fontWeight: '600' },
   currentGpaHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
-  formulaEquation: { fontSize: FONT.base, fontWeight: '700', marginBottom: SPACING.md },
-  formulaText: { fontSize: FONT.base, lineHeight: 20, marginBottom: SPACING.md },
+  formulaEquation: { marginBottom: SPACING.md },
+  formulaText: { lineHeight: 20, marginBottom: SPACING.md },
   gpaCard: {
     alignItems: 'center',
     borderRadius: RADIUS.md,
@@ -415,20 +399,10 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.lg,
   },
   gpaGrid: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md },
-  gpaLabel: { fontSize: FONT.sm, fontWeight: '600' },
-  gpaValue: { fontSize: FONT.hero, fontWeight: '700', marginTop: SPACING.sm },
-  gradeLabel: { fontSize: FONT.base, fontWeight: '600' },
+  gpaValue: { marginTop: SPACING.sm },
   gradeRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.sm },
   mockButton: { alignItems: 'center', flexDirection: 'row', justifyContent: 'center', minHeight: TOUCH_TARGET },
-  mockButtonText: { fontSize: FONT.sm, fontWeight: '600', marginLeft: SPACING.xs },
-  mockLabel: { color: UI_COLORS.info, fontSize: FONT.base, fontWeight: '600' },
-  modalButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.sm,
-    justifyContent: 'center',
-    minHeight: TOUCH_TARGET,
-  },
-  modalButtonText: { fontSize: FONT.lg, fontWeight: '600' },
+  mockButtonText: { marginLeft: SPACING.xs },
   modalContent: {
     borderTopLeftRadius: RADIUS.lg,
     borderTopRightRadius: RADIUS.lg,
@@ -443,14 +417,13 @@ const styles = StyleSheet.create({
   },
   modalInput: {
     borderRadius: RADIUS.sm,
-    fontSize: FONT.lg,
+    fontSize: TYPE.body.size,
     marginBottom: SPACING.lg,
     minHeight: TOUCH_TARGET,
     paddingHorizontal: SPACING.lg,
   },
-  modalLabel: { fontSize: FONT.base, fontWeight: '600', marginBottom: SPACING.sm },
+  modalLabel: { marginBottom: SPACING.sm },
   modalOverlay: { backgroundColor: 'rgba(0,0,0,0.5)', flex: 1, justifyContent: 'flex-end' },
-  modalTitle: { fontSize: FONT.xl, fontWeight: '700' },
   scenarioCard: {
     alignItems: 'center',
     borderRadius: RADIUS.md,
@@ -459,7 +432,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.lg,
   },
-  scenarioDelta: { fontSize: FONT.sm, fontWeight: '600', marginTop: SPACING.xs },
+  scenarioDelta: { marginTop: SPACING.xs },
   scenarioGrid: { flexDirection: 'row', gap: SPACING.md, marginTop: SPACING.md },
   scenarioHeader: {
     alignItems: 'center',
@@ -467,11 +440,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: SPACING.md,
   },
-  scenarioLabel: { fontSize: FONT.sm, fontWeight: '600' },
-  scenarioValue: { fontSize: FONT.display, fontWeight: '700', marginTop: SPACING.sm },
+  scenarioValue: { marginTop: SPACING.sm },
   section: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.lg },
-  sectionTitle: { fontSize: FONT.xl, fontWeight: '700', marginBottom: SPACING.md },
-  sectionTitleFlush: { fontSize: FONT.xl, fontWeight: '700' },
+  sectionTitle: { marginBottom: SPACING.md },
   targetChip: {
     alignItems: 'center',
     borderRadius: RADIUS.sm,
@@ -480,10 +451,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: TOUCH_TARGET,
   },
-  targetChipText: { fontSize: FONT.lg, fontWeight: '700' },
-  targetResult: { fontSize: FONT.base, lineHeight: 20, marginTop: SPACING.md },
+  targetResult: { lineHeight: 20, marginTop: SPACING.md },
   targetRow: { flexDirection: 'row', gap: SPACING.md },
   trendCard: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.lg },
   weightBadge: { borderRadius: RADIUS.xs, paddingHorizontal: SPACING.sm, paddingVertical: SPACING.xs },
-  weightBadgeText: { fontSize: FONT.xs, fontWeight: '700' },
 });

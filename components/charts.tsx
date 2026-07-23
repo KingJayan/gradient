@@ -1,7 +1,8 @@
 import React from 'react';
-import { StyleSheet, View, Text, StyleProp, ViewStyle } from 'react-native';
+import { StyleSheet, View, StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '../hooks/use-theme';
-import { FONT, RADIUS, SPACING } from '../utils/tokens';
+import { RADIUS, SPACING } from '../utils/tokens';
+import { Text } from './typography';
 
 function Bars({ values, color, height }: { values: number[]; color: string; height: number }) {
   const min = Math.min(...values);
@@ -60,11 +61,11 @@ export function TrendChart({
     <View>
       <Bars values={values} color={color} height={72} />
       <View style={styles.axis}>
-        <Text style={[styles.axisText, { color: currentTheme.textSecondary }]}>{format(first)}</Text>
-        <Text style={[styles.axisText, { color: delta >= 0 ? currentTheme.primary : currentTheme.textSecondary }]}>
+        <Text variant="caption" weight="400" tabular color={currentTheme.textSecondary}>{format(first)}</Text>
+        <Text variant="caption" weight="400" tabular color={delta >= 0 ? currentTheme.primary : currentTheme.textSecondary}>
           {delta >= 0 ? '+' : ''}{format(delta)}
         </Text>
-        <Text style={[styles.axisText, { color: currentTheme.text, fontWeight: '700' }]}>{format(last)}</Text>
+        <Text variant="caption" weight="700" tabular color={currentTheme.text}>{format(last)}</Text>
       </View>
     </View>
   );
@@ -72,7 +73,6 @@ export function TrendChart({
 
 const styles = StyleSheet.create({
   axis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: SPACING.sm },
-  axisText: { fontSize: FONT.sm },
   bar: { borderRadius: RADIUS.xs, flex: 1 },
   bars: { alignItems: 'flex-end', flexDirection: 'row', gap: SPACING.xxs },
 });

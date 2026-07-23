@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { StyleSheet, View, FlatList, Text, RefreshControl } from 'react-native';
+import { StyleSheet, View, FlatList, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useDataCache } from '../context/data-context';
 import { GradeEntry } from '../services/api/grades';
 import { gradeLetter, gradeColor } from '../utils/colors';
-import { FONT, RADIUS, SPACING } from '../utils/tokens';
-import { Screen, ScreenHeader, AsyncContent, Card, EmptyState } from '../components/screen';
+import { RADIUS, SPACING } from '../utils/tokens';
+import { Screen, ScreenHeader, AsyncContent, Card, EmptyState, ProgressBar } from '../components/screen';
+import { Text } from '../components/typography';
 import { Sparkline } from '../components/charts';
 import { classTrend, loadGradeHistory, GradeSnapshot } from '../utils/grade-history';
 import { refreshCompleteHaptic } from '../utils/haptics';
@@ -44,33 +45,27 @@ const GradeCard = React.memo(function GradeCard({
         <View style={styles.gradeInfo}>
           <View style={[styles.classIndicator, { backgroundColor: color }]} />
           <View style={styles.flex1}>
-            <Text style={[styles.gradeName, { color: currentTheme.text }]}>{grade.className}</Text>
-            <Text style={[styles.gradeSubtext, { color: currentTheme.textSecondary }]}>
+            <Text variant="body" weight="700" color={currentTheme.text}>{grade.className}</Text>
+            <Text variant="subhead" color={currentTheme.textSecondary} style={styles.gradeSubtext}>
               {grade.teacher ? `${grade.teacher} · ` : ''}{grade.categories.length} categories
             </Text>
           </View>
         </View>
         <View style={styles.gradeValueContainer}>
-          <Text style={[styles.gradeLetterText, { color }]}>{letter}</Text>
-          <Text style={[styles.gradeValue, { color }]}>{grade.average.toFixed(1)}%</Text>
+          <Text variant="caption" weight="700" color={color}>{letter}</Text>
+          <Text variant="heading" weight="800" tabular color={color}>{grade.average.toFixed(1)}%</Text>
           <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={currentTheme.textSecondary} />
         </View>
       </View>
 
       <View style={styles.trendRow}>
-        <View
-          style={[styles.progressBar, { backgroundColor: currentTheme.border }]}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <View style={[styles.progressFill, { width: `${grade.average}%`, backgroundColor: color }]} />
-        </View>
+        <ProgressBar value={grade.average} color={color} style={styles.progressBar} />
         <Sparkline values={trend} color={color} style={styles.sparkline} />
       </View>
 
       {expanded && grade.categories.length > 0 && (
         <View style={[styles.expandedContent, { borderTopColor: currentTheme.border }]}>
-          <Text style={[styles.assignmentTitle, { color: currentTheme.textSecondary }]}>Category Breakdown</Text>
+          <Text variant="caption" weight="700" color={currentTheme.textSecondary} style={styles.assignmentTitle}>Category Breakdown</Text>
           {grade.categories.map((cat, idx) => {
             const catAvg = parseFloat(cat.grade);
             return (
@@ -78,11 +73,14 @@ const GradeCard = React.memo(function GradeCard({
                 <View style={styles.assignmentDetails}>
                   <View style={styles.assignmentNameRow}>
                     <View style={[styles.assignmentDot, { backgroundColor: gradeColor(catAvg) }]} />
-                    <Text style={[styles.assignmentName, { color: currentTheme.text }]}>{cat.name}</Text>
+                    <Text variant="body" weight="600" color={currentTheme.text}>{cat.name}</Text>
                   </View>
                 </View>
                 <Text
-                  style={[styles.assignmentGrade, { color: gradeColor(catAvg) }]}
+                  variant="body"
+                  weight="700"
+                  tabular
+                  color={gradeColor(catAvg)}
                   accessibilityLabel={`${cat.grade} percent, grade ${gradeLetter(catAvg)}`}
                 >
                   {gradeLetter(catAvg)} · {cat.grade}%
@@ -151,7 +149,7 @@ export default function GradesScreen() {
 
   const legend = (
     <View style={[styles.legend, { backgroundColor: currentTheme.surface, borderTopColor: currentTheme.border, borderBottomColor: currentTheme.border }]}>
-      <Text style={[styles.legendTitle, { color: currentTheme.text }]}>Grade Scale</Text>
+      <Text variant="body" weight="700" color={currentTheme.text} style={styles.legendTitle}>Grade Scale</Text>
       <View style={styles.legendGrid}>
         {[
           { label: 'A (90-100)', color: gradeColor(95) },
@@ -162,7 +160,7 @@ export default function GradesScreen() {
         ].map((item) => (
           <View key={item.label} style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-            <Text style={[styles.legendText, { color: currentTheme.text }]}>{item.label}</Text>
+            <Text variant="subhead" weight="600" color={currentTheme.text}>{item.label}</Text>
           </View>
         ))}
       </View>
@@ -213,18 +211,14 @@ export default function GradesScreen() {
 const styles = StyleSheet.create({
   assignmentDetails: { flex: 1 },
   assignmentDot: { borderRadius: RADIUS.pill, height: 7, marginRight: SPACING.md, width: 7 },
-  assignmentGrade: { fontSize: FONT.lg, fontWeight: '700' },
   assignmentItem: {
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: SPACING.md,
   },
-  assignmentName: { fontSize: FONT.base, fontWeight: '600' },
   assignmentNameRow: { alignItems: 'center', flexDirection: 'row' },
   assignmentTitle: {
-    fontSize: FONT.sm,
-    fontWeight: '700',
     letterSpacing: 0.3,
     marginBottom: SPACING.md,
     textTransform: 'uppercase',
@@ -244,10 +238,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   gradeInfo: { alignItems: 'center', flexDirection: 'row', flex: 1 },
-  gradeLetterText: { fontSize: FONT.md, fontWeight: '700' },
-  gradeName: { fontSize: FONT.lg, fontWeight: '700' },
-  gradeSubtext: { fontSize: FONT.sm, marginTop: SPACING.xs },
-  gradeValue: { fontSize: FONT.xxl, fontWeight: '800' },
+  gradeSubtext: { marginTop: SPACING.xs },
   gradeValueContainer: { alignItems: 'flex-end', gap: SPACING.xxs },
   legend: {
     borderBottomWidth: 1,
@@ -261,11 +252,9 @@ const styles = StyleSheet.create({
   legendDot: { borderRadius: RADIUS.pill, height: 12, marginRight: SPACING.md, width: 12 },
   legendGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.lg },
   legendItem: { alignItems: 'center', flexDirection: 'row', flex: 1, minWidth: '48%' },
-  legendText: { fontSize: FONT.sm, fontWeight: '600' },
-  legendTitle: { fontSize: FONT.base, fontWeight: '700', marginBottom: SPACING.lg },
+  legendTitle: { marginBottom: SPACING.lg },
   list: { flex: 1 },
-  progressBar: { borderRadius: RADIUS.xs, flex: 1, height: 8, overflow: 'hidden' },
-  progressFill: { borderRadius: RADIUS.xs, height: '100%' },
+  progressBar: { flex: 1 },
   section: { paddingHorizontal: SPACING.lg, paddingTop: SPACING.lg },
   spacer: { height: 40 },
   sparkline: { width: 56 },

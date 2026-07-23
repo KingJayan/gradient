@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { FALLBACK, UI_COLORS } from '../utils/colors';
 import { logError } from '../utils/error-logger';
-import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { RADIUS, SPACING, TOUCH_TARGET, TYPE } from '../utils/tokens';
 
 interface Props {
   children: ReactNode;
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: UI_COLORS.white,
-    fontSize: FONT.lg,
+    fontSize: TYPE.body.size,
     fontWeight: '600',
   },
   container: {
@@ -84,14 +84,14 @@ const styles = StyleSheet.create({
   },
   message: {
     color: FALLBACK.textSecondary,
-    fontSize: FONT.base,
+    fontSize: TYPE.body.size,
     marginBottom: SPACING.xxxl,
     paddingHorizontal: SPACING.xxxl,
     textAlign: 'center',
   },
   title: {
     color: FALLBACK.text,
-    fontSize: FONT.xxl,
+    fontSize: TYPE.heading.size,
     fontWeight: '700',
     marginBottom: SPACING.md,
     marginTop: SPACING.xxl,

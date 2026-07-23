@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BRAND, UI_COLORS } from '../utils/colors';
-import { FONT, RADIUS, SPACING } from '../utils/tokens';
+import { RADIUS, SPACING, TYPE } from '../utils/tokens';
 
 export default function LoadingScreen() {
   const spinAnim = useRef(new Animated.Value(0)).current;
@@ -89,11 +89,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: BRAND.textSecondary,
-    fontSize: FONT.base,
+    fontSize: TYPE.body.size,
   },
   title: {
     color: BRAND.primary,
-    fontSize: FONT.hero,
+    fontSize: TYPE.hero.size,
     fontWeight: '700',
     marginBottom: SPACING.sm,
   },

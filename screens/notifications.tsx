@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, FlatList, Text } from 'react-native';
+import { StyleSheet, View, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks/use-theme';
 import { useNotifications } from '../hooks/use-notifications';
 import { AppNotification } from '../services/notifications';
-import { FONT, RADIUS, SPACING } from '../utils/tokens';
+import { RADIUS, SPACING } from '../utils/tokens';
 import { Screen, ScreenHeader, Card, IconButton, EmptyState } from '../components/screen';
+import { Text } from '../components/typography';
 
 function relativeTime(at: number): string {
   const mins = Math.floor((Date.now() - at) / 60000);
@@ -30,8 +31,8 @@ export default function NotificationsScreen() {
         <Ionicons name="trending-up" size={20} color={currentTheme.primary} />
       </View>
       <View style={styles.textWrap}>
-        <Text style={[styles.title, { color: currentTheme.text }]}>{item.body}</Text>
-        <Text style={[styles.time, { color: currentTheme.textSecondary }]}>{relativeTime(item.at)}</Text>
+        <Text variant="body" weight="600" color={currentTheme.text}>{item.body}</Text>
+        <Text variant="subhead" color={currentTheme.textSecondary} style={styles.time}>{relativeTime(item.at)}</Text>
       </View>
     </Card>
   );
@@ -77,6 +78,5 @@ const styles = StyleSheet.create({
   iconWrap: { alignItems: 'center', borderRadius: RADIUS.md, height: 40, justifyContent: 'center', width: 40 },
   list: { padding: SPACING.lg },
   textWrap: { flex: 1 },
-  time: { fontSize: FONT.sm, marginTop: SPACING.xxs },
-  title: { fontSize: FONT.base, fontWeight: '600' },
+  time: { marginTop: SPACING.xxs },
 });

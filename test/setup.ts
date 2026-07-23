@@ -50,6 +50,7 @@ jest.mock('expo-store-review', () => ({
 
 jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(async () => {}),
+  selectionAsync: jest.fn(async () => {}),
   NotificationFeedbackType: { Success: 'success' },
 }));
 

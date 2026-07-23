@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   ScrollView,
-  Text,
   TouchableOpacity,
   Animated,
   Easing,
@@ -15,11 +14,12 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../hooks/use-theme';
 import { useDataCache } from '../context/data-context';
 import { calculateGPA } from '../utils/gpa-calculator';
-import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, AsyncContent, Card, Freshness } from '../components/screen';
+import { RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { Screen, AsyncContent, Card, Freshness, StatBadge } from '../components/screen';
+import { Text } from '../components/typography';
 import { useNotifications } from '../hooks/use-notifications';
-import { UI_COLORS, onPrimary } from '../utils/colors';
-import { refreshCompleteHaptic } from '../utils/haptics';
+import { UI_COLORS } from '../utils/colors';
+import { refreshCompleteHaptic, selectionHaptic } from '../utils/haptics';
 
 const LINK_CARDS: {
   route: string;
@@ -97,29 +97,25 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
       >
         <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
           <View>
-            <Text style={[styles.dateText, { color: currentTheme.textSecondary }]}>{currentDate}</Text>
-            <Text style={[styles.name, { color: currentTheme.text }]} accessibilityRole="header">{state.user?.name || 'Welcome'}</Text>
+            <Text variant="caption" color={currentTheme.textSecondary} style={styles.dateText}>{currentDate}</Text>
+            <Text variant="title" color={currentTheme.text} style={styles.name} accessibilityRole="header">{state.user?.name || 'Welcome'}</Text>
             <Freshness updatedAt={cache.updatedAt} />
           </View>
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={[styles.bellButton, { backgroundColor: currentTheme.primary + '20' }]}
-              onPress={() => navigation.navigate('Notifications')}
+              onPress={() => { selectionHaptic(); navigation.navigate('Notifications'); }}
               accessibilityRole="button"
               accessibilityLabel={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
             >
               <Ionicons name="notifications" size={24} color={currentTheme.primary} />
               {unread > 0 && (
-                <View style={[styles.badge, { backgroundColor: UI_COLORS.danger }]}>
-                  <Text style={[styles.badgeText, { color: onPrimary(UI_COLORS.danger) }]} maxFontSizeMultiplier={1.2}>
-                    {unread > 9 ? '9+' : unread}
-                  </Text>
-                </View>
+                <StatBadge label={unread > 9 ? '9+' : String(unread)} background={UI_COLORS.danger} style={styles.badge} />
               )}
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.profileButton, { backgroundColor: currentTheme.primary + '20' }]}
-              onPress={() => navigation.navigate('Settings')}
+              onPress={() => { selectionHaptic(); navigation.navigate('Settings'); }}
               accessibilityRole="button"
               accessibilityLabel="Open settings"
             >
@@ -135,10 +131,10 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
             accessibilityLabel={`Weighted GPA ${gpaResult ? gpaResult.weighted : 'unavailable'}`}
           >
             <View style={styles.statTop}>
-              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>Weighted GPA</Text>
+              <Text variant="caption" color={currentTheme.textSecondary} style={styles.statLabel}>Weighted GPA</Text>
               <Ionicons name="trending-up" size={18} color={currentTheme.textSecondary} />
             </View>
-            <Text style={[styles.statValue, { color: currentTheme.text }]}>{gpa}</Text>
+            <Text variant="hero" tabular color={currentTheme.text}>{gpa}</Text>
           </Card>
           <Card
             style={styles.statCard}
@@ -146,10 +142,10 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
             accessibilityLabel={`${classes} active classes`}
           >
             <View style={styles.statTop}>
-              <Text style={[styles.statLabel, { color: currentTheme.textSecondary }]}>Active Classes</Text>
+              <Text variant="caption" color={currentTheme.textSecondary} style={styles.statLabel}>Active Classes</Text>
               <Ionicons name="school" size={18} color={currentTheme.textSecondary} />
             </View>
-            <Text style={[styles.statValue, { color: currentTheme.text }]}>{classes}</Text>
+            <Text variant="hero" tabular color={currentTheme.text}>{classes}</Text>
           </Card>
         </View>
 
@@ -159,6 +155,7 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
               key={card.route}
               style={styles.linkCard}
               onPress={() => navigation.navigate(card.route)}
+              haptic
               accessibilityRole="button"
               accessibilityLabel={card.label}
             >
@@ -166,8 +163,8 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
                 <Ionicons name={card.icon} size={24} color={currentTheme.primary} />
               </View>
               <View style={styles.flex1}>
-                <Text style={[styles.linkTitle, { color: currentTheme.text }]}>{card.route}</Text>
-                <Text style={[styles.linkSubtitle, { color: currentTheme.textSecondary }]}>{card.subtitle}</Text>
+                <Text variant="body" weight="600" color={currentTheme.text}>{card.route}</Text>
+                <Text variant="subhead" color={currentTheme.textSecondary} style={styles.linkSubtitle}>{card.subtitle}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={currentTheme.textSecondary} />
             </Card>
@@ -183,16 +180,13 @@ export default function HomeScreen({ navigation }: { navigation: NativeStackNavi
 
 const styles = StyleSheet.create({
   badge: {
-    alignItems: 'center',
     borderRadius: RADIUS.pill,
-    justifyContent: 'center',
     minWidth: 18,
     paddingHorizontal: SPACING.xs,
     position: 'absolute',
     right: 2,
     top: 2,
   },
-  badgeText: { fontSize: FONT.xs, fontWeight: '700' },
   bellButton: {
     alignItems: 'center',
     borderRadius: RADIUS.pill,
@@ -200,7 +194,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: TOUCH_TARGET,
   },
-  dateText: { fontSize: FONT.md, letterSpacing: 0.5, marginBottom: SPACING.xxs, textTransform: 'uppercase' },
+  dateText: { letterSpacing: 0.5, marginBottom: SPACING.xxs, textTransform: 'uppercase' },
   flex1: { flex: 1 },
   header: {
     alignItems: 'flex-start',
@@ -227,9 +221,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: TOUCH_TARGET,
   },
-  linkSubtitle: { fontSize: FONT.sm, marginTop: SPACING.xxs },
-  linkTitle: { fontSize: FONT.lg, fontWeight: '600' },
-  name: { fontSize: FONT.display, fontWeight: '700', marginTop: SPACING.xs },
+  linkSubtitle: { marginTop: SPACING.xxs },
+  name: { marginTop: SPACING.xs },
   profileButton: { borderRadius: RADIUS.pill, padding: SPACING.sm },
   scrollView: { flex: 1 },
   section: { marginBottom: SPACING.lg, paddingHorizontal: SPACING.lg },
@@ -239,8 +232,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.xl,
   },
-  statLabel: { fontSize: FONT.sm, fontWeight: '600', letterSpacing: 0.3 },
+  statLabel: { letterSpacing: 0.3 },
   statTop: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: SPACING.md },
-  statValue: { fontSize: FONT.hero, fontWeight: '800' },
   statsContainer: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.xxl, paddingHorizontal: SPACING.lg },
 });

@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View, Text } from 'react-native';
+import { StyleSheet, ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../hooks/use-theme';
 import { openLink } from '../utils/links';
-import { FONT, SPACING } from '../utils/tokens';
+import { SPACING } from '../utils/tokens';
 import { Screen, ScreenHeader, Card, IconButton } from '../components/screen';
+import { Text } from '../components/typography';
 
 const PROXY_HOST = 'gradient-hac-api.vercel.app';
 
@@ -14,7 +15,7 @@ export default function PrivacyScreen() {
 
   const section = (title: string, body: React.ReactNode) => (
     <View style={styles.section}>
-      <Text style={[styles.heading, { color: currentTheme.text }]} accessibilityRole="header">
+      <Text variant="heading" color={currentTheme.text} accessibilityRole="header">
         {title}
       </Text>
       {body}
@@ -22,7 +23,7 @@ export default function PrivacyScreen() {
   );
 
   const paragraph = (text: string) => (
-    <Text style={[styles.body, { color: currentTheme.textSecondary }]}>{text}</Text>
+    <Text variant="body" color={currentTheme.textSecondary} style={styles.body}>{text}</Text>
   );
 
   return (
@@ -42,7 +43,7 @@ export default function PrivacyScreen() {
       }
     >
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={[styles.intro, { color: currentTheme.text }]}>
+        <Text variant="body" color={currentTheme.text} style={styles.intro}>
           Gradient has no accounts of its own and keeps no database of your grades. Here is exactly
           what happens to your Home Access Center login.
         </Text>
@@ -83,10 +84,11 @@ export default function PrivacyScreen() {
         <Card
           style={styles.linkCard}
           onPress={() => openLink('https://github.com/KingJayan/gradient-hac-api')}
+          haptic
           accessibilityRole="link"
           accessibilityLabel="View the proxy source code on GitHub"
         >
-          <Text style={[styles.linkLabel, { color: currentTheme.primary }]}>View the proxy source</Text>
+          <Text variant="body" weight="600" color={currentTheme.primary}>View the proxy source</Text>
         </Card>
       </ScrollView>
     </Screen>
@@ -94,11 +96,9 @@ export default function PrivacyScreen() {
 }
 
 const styles = StyleSheet.create({
-  body: { fontSize: FONT.md, lineHeight: 22, marginTop: SPACING.sm },
+  body: { marginTop: SPACING.sm },
   content: { padding: SPACING.lg },
-  heading: { fontSize: FONT.lg, fontWeight: '700' },
-  intro: { fontSize: FONT.md, lineHeight: 22, marginBottom: SPACING.xl },
+  intro: { marginBottom: SPACING.xl },
   linkCard: { alignItems: 'center', marginTop: SPACING.md, paddingHorizontal: SPACING.lg, paddingVertical: SPACING.lg },
-  linkLabel: { fontSize: FONT.base, fontWeight: '600' },
   section: { marginBottom: SPACING.xl },
 });

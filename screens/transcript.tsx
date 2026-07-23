@@ -1,13 +1,14 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { StyleSheet, View, FlatList, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, FlatList, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TranscriptEntry, fetchTranscript } from '../services/api/transcript';
 import { useTheme } from '../hooks/use-theme';
 import { Theme } from '../context/theme-context';
 import { useScreenData } from '../hooks/use-screen-data';
-import { Screen, AsyncContent, Card, EmptyState } from '../components/screen';
+import { Screen, AsyncContent, Card, EmptyState, StatBadge } from '../components/screen';
+import { Text } from '../components/typography';
 import { gradeColorFromLetter, onPrimary } from '../utils/colors';
-import { FONT, RADIUS, SPACING } from '../utils/tokens';
+import { RADIUS, SPACING } from '../utils/tokens';
 
 function yearGPA(entries: TranscriptEntry[]): string {
   const credits = entries.reduce((s, e) => s + e.credits, 0);
@@ -40,8 +41,8 @@ const YearSection = React.memo(function YearSection({
         accessibilityState={{ expanded }}
       >
         <View style={styles.yearTitleContainer}>
-          <Text style={[styles.yearTitle, { color: currentTheme.text }]}>{year}</Text>
-          <Text style={[styles.yearGPA, { color: currentTheme.primary }]}>GPA: {gpa}</Text>
+          <Text variant="body" weight="700" color={currentTheme.text}>{year}</Text>
+          <Text variant="subhead" weight="600" tabular color={currentTheme.primary} style={styles.yearGPA}>GPA: {gpa}</Text>
         </View>
         <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={24} color={currentTheme.textSecondary} />
       </TouchableOpacity>
@@ -50,18 +51,15 @@ const YearSection = React.memo(function YearSection({
           {entries.map((entry, i) => (
             <View key={i} style={[styles.courseRow, { borderBottomColor: currentTheme.border }]}>
               <View style={styles.courseContent}>
-                <Text style={[styles.courseName, { color: currentTheme.text }]}>{entry.course}</Text>
-                <Text style={[styles.courseSemester, { color: currentTheme.textSecondary }]}>{entry.semester} · {entry.credits} credits</Text>
+                <Text variant="body" weight="600" color={currentTheme.text}>{entry.course}</Text>
+                <Text variant="subhead" tabular color={currentTheme.textSecondary} style={styles.courseSemester}>{entry.semester} · {entry.credits} credits</Text>
               </View>
-              <View style={[styles.gradeBadge, { backgroundColor: gradeColorFromLetter(entry.grade) }]}>
-                <Text
-                  style={[styles.gradeBadgeText, { color: onPrimary(gradeColorFromLetter(entry.grade)) }]}
-                  accessibilityLabel={`Grade ${entry.grade}`}
-                  maxFontSizeMultiplier={1.4}
-                >
-                  {entry.grade}
-                </Text>
-              </View>
+              <StatBadge
+                label={entry.grade}
+                background={gradeColorFromLetter(entry.grade)}
+                style={styles.gradeBadge}
+                accessibilityLabel={`Grade ${entry.grade}`}
+              />
             </View>
           ))}
         </View>
@@ -101,9 +99,9 @@ export default function TranscriptScreen() {
   const listHeader = (
     <View style={[styles.header, { backgroundColor: currentTheme.surface, borderBottomColor: currentTheme.border }]}>
       <View style={[styles.gpaCard, { backgroundColor: currentTheme.primary }]}>
-        <Text style={[styles.gpaLabel, { color: onPrimary(currentTheme.primary) }]}>Cumulative GPA</Text>
-        <Text style={[styles.gpaValue, { color: onPrimary(currentTheme.primary) }]}>{cumulativeGPA}</Text>
-        <Text style={[styles.totalCredits, { color: onPrimary(currentTheme.primary) }]}>{totalCredits} total credits</Text>
+        <Text variant="subhead" weight="600" color={onPrimary(currentTheme.primary)}>Cumulative GPA</Text>
+        <Text variant="hero" weight="700" tabular color={onPrimary(currentTheme.primary)} style={styles.gpaValue}>{cumulativeGPA}</Text>
+        <Text variant="subhead" tabular color={onPrimary(currentTheme.primary)} style={styles.totalCredits}>{totalCredits} total credits</Text>
       </View>
     </View>
   );
@@ -144,7 +142,6 @@ export default function TranscriptScreen() {
 
 const styles = StyleSheet.create({
   courseContent: { flex: 1 },
-  courseName: { fontSize: FONT.base, fontWeight: '600' },
   courseRow: {
     alignItems: 'center',
     borderBottomWidth: 1,
@@ -153,7 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.md,
   },
-  courseSemester: { fontSize: FONT.sm, marginTop: SPACING.xxs },
+  courseSemester: { marginTop: SPACING.xxs },
   coursesContainer: { paddingVertical: SPACING.sm },
   gpaCard: {
     alignItems: 'center',
@@ -161,23 +158,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.lg,
   },
-  gpaLabel: { fontSize: FONT.sm, fontWeight: '600' },
-  gpaValue: { fontSize: FONT.hero, fontWeight: '700', marginTop: SPACING.sm },
+  gpaValue: { marginTop: SPACING.sm },
   gradeBadge: {
     borderRadius: RADIUS.xs,
     marginLeft: SPACING.md,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
   },
-  gradeBadgeText: { fontSize: FONT.base, fontWeight: '700' },
   header: {
     borderBottomWidth: 1,
     marginBottom: SPACING.md,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.lg,
   },
-  totalCredits: { fontSize: FONT.sm, marginTop: SPACING.xs, opacity: 0.9 },
-  yearGPA: { fontSize: FONT.sm, fontWeight: '600', marginTop: SPACING.xs },
+  totalCredits: { marginTop: SPACING.xs, opacity: 0.9 },
+  yearGPA: { marginTop: SPACING.xs },
   yearHeader: {
     alignItems: 'center',
     borderBottomWidth: 1,
@@ -187,7 +182,6 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
   },
   yearSection: { marginBottom: SPACING.sm },
-  yearTitle: { fontSize: FONT.lg, fontWeight: '700' },
   yearTitleContainer: { flex: 1 },
   yearsContainer: { paddingBottom: SPACING.md, paddingHorizontal: SPACING.lg },
 });

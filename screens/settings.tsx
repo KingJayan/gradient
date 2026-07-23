@@ -3,7 +3,6 @@ import {
   StyleSheet,
   View,
   ScrollView,
-  Text,
   TouchableOpacity,
   Switch,
   Alert,
@@ -21,8 +20,10 @@ import { UI_COLORS, onPrimary } from '../utils/colors';
 import { districtName } from '../utils/district';
 import { APP_VERSION, BUILD_NUMBER, SUPPORT_URL, openLink } from '../utils/links';
 import { logWarning } from '../utils/error-logger';
-import { FONT, RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
-import { Screen, ScreenHeader, Card } from '../components/screen';
+import { RADIUS, SPACING, TOUCH_TARGET } from '../utils/tokens';
+import { Screen, ScreenHeader, Card, ListRow, Button } from '../components/screen';
+import { Text } from '../components/typography';
+import { selectionHaptic } from '../utils/haptics';
 import { DEFAULT_PREFS, NotifPrefs, loadPrefs, savePrefs } from '../services/notifications';
 
 const THRESHOLDS = [1, 3, 5];
@@ -120,7 +121,7 @@ export default function SettingsScreen() {
     <Screen header={<ScreenHeader title="Settings" />}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
+          <Text variant="caption" weight="700" color={currentTheme.textSecondary} style={styles.sectionTitle} accessibilityRole="header">
             Appearance
           </Text>
           <View style={styles.appearanceRow} accessibilityRole="radiogroup">
@@ -138,13 +139,13 @@ export default function SettingsScreen() {
                       borderWidth: selected ? 2 : 1,
                     },
                   ]}
-                  onPress={() => setAppearance(option)}
+                  onPress={() => { selectionHaptic(); setAppearance(option); }}
                   accessibilityRole="radio"
                   accessibilityLabel={`${option.charAt(0).toUpperCase() + option.slice(1)} appearance`}
                   accessibilityState={{ checked: selected }}
                 >
                   <View style={[styles.appearanceSwatch, { backgroundColor: preview.primary }]} />
-                  <Text style={[styles.appearanceChipText, { color: preview.text }]} maxFontSizeMultiplier={1.6}>
+                  <Text variant="caption" weight="600" color={preview.text}>
                     {option.charAt(0).toUpperCase() + option.slice(1)}
                   </Text>
                 </TouchableOpacity>
@@ -170,7 +171,7 @@ export default function SettingsScreen() {
                   accessibilityLabel={`${theme.charAt(0).toUpperCase() + theme.slice(1)} theme`}
                   accessibilityState={{ selected: themeName === theme }}
                 >
-                  <Text style={[styles.themeOptionText, { color: onPrimary(themeColor) }]} maxFontSizeMultiplier={1.6}>
+                  <Text variant="caption" weight="600" color={onPrimary(themeColor)}>
                     {theme.charAt(0).toUpperCase() + theme.slice(1)}
                   </Text>
                 </TouchableOpacity>
@@ -180,7 +181,7 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
+          <Text variant="caption" weight="700" color={currentTheme.textSecondary} style={styles.sectionTitle} accessibilityRole="header">
             Account
           </Text>
           <Card style={styles.accountCard}>
@@ -188,13 +189,13 @@ export default function SettingsScreen() {
               <Ionicons name="person" size={32} color={onPrimary(currentTheme.primary)} />
             </View>
             <View style={styles.accountInfo}>
-              <Text style={[styles.accountName, { color: currentTheme.text }]}>
+              <Text variant="body" weight="600" color={currentTheme.text}>
                 {state.user?.name || 'Student'}
               </Text>
-              <Text style={[styles.accountEmail, { color: currentTheme.textSecondary }]}>
+              <Text variant="subhead" color={currentTheme.textSecondary} style={styles.accountEmail}>
                 {state.user?.username}
               </Text>
-              <Text style={[styles.accountDistrict, { color: currentTheme.primary }]}>
+              <Text variant="subhead" weight="500" color={currentTheme.primary} style={styles.accountDistrict}>
                 {districtName(state.user?.hacUrl)}
               </Text>
             </View>
@@ -202,60 +203,52 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
+          <Text variant="caption" weight="700" color={currentTheme.textSecondary} style={styles.sectionTitle} accessibilityRole="header">
             Security
           </Text>
-          <Card style={styles.lockRow}>
-            <View style={styles.lockInfo}>
-              <Ionicons name="finger-print" size={22} color={currentTheme.primary} />
-              <View style={styles.lockText}>
-                <Text style={[styles.lockTitle, { color: currentTheme.text }]}>App Lock</Text>
-                <Text style={[styles.lockSubtitle, { color: currentTheme.textSecondary }]}>
-                  Require Face ID to open Gradient
-                </Text>
-              </View>
-            </View>
-            <Switch
-              value={appLockEnabled}
-              onValueChange={handleAppLockToggle}
-              trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
-              accessibilityLabel="Require Face ID to open the app"
-            />
-          </Card>
+          <ListRow
+            leadingIcon="finger-print"
+            title="App Lock"
+            subtitle="Require Face ID to open Gradient"
+            trailing={
+              <Switch
+                value={appLockEnabled}
+                onValueChange={handleAppLockToggle}
+                trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
+                accessibilityLabel="Require Face ID to open the app"
+              />
+            }
+          />
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
+          <Text variant="caption" weight="700" color={currentTheme.textSecondary} style={styles.sectionTitle} accessibilityRole="header">
             Notifications
           </Text>
-          <Card style={styles.lockRow}>
-            <View style={styles.lockText}>
-              <Text style={[styles.lockTitle, { color: currentTheme.text }]}>Grade increases</Text>
-              <Text style={[styles.lockSubtitle, { color: currentTheme.textSecondary }]}>
-                Alert me when an average goes up
-              </Text>
-            </View>
-            <Switch
-              value={notifPrefs.increases}
-              onValueChange={(v) => updateNotifPrefs({ increases: v })}
-              trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
-              accessibilityLabel="Notify on grade increases"
-            />
-          </Card>
-          <Card style={styles.lockRow}>
-            <View style={styles.lockText}>
-              <Text style={[styles.lockTitle, { color: currentTheme.text }]}>Grade drops</Text>
-              <Text style={[styles.lockSubtitle, { color: currentTheme.textSecondary }]}>
-                Alert me when an average goes down
-              </Text>
-            </View>
-            <Switch
-              value={notifPrefs.drops}
-              onValueChange={(v) => updateNotifPrefs({ drops: v })}
-              trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
-              accessibilityLabel="Notify on grade drops"
-            />
-          </Card>
+          <ListRow
+            title="Grade increases"
+            subtitle="Alert me when an average goes up"
+            trailing={
+              <Switch
+                value={notifPrefs.increases}
+                onValueChange={(v) => updateNotifPrefs({ increases: v })}
+                trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
+                accessibilityLabel="Notify on grade increases"
+              />
+            }
+          />
+          <ListRow
+            title="Grade drops"
+            subtitle="Alert me when an average goes down"
+            trailing={
+              <Switch
+                value={notifPrefs.drops}
+                onValueChange={(v) => updateNotifPrefs({ drops: v })}
+                trackColor={{ false: currentTheme.border, true: currentTheme.primary }}
+                accessibilityLabel="Notify on grade drops"
+              />
+            }
+          />
           <View style={styles.thresholdRow} accessibilityRole="radiogroup">
             {THRESHOLDS.map((pts) => {
               const selected = notifPrefs.threshold === pts;
@@ -269,122 +262,100 @@ export default function SettingsScreen() {
                       borderColor: selected ? currentTheme.primary : currentTheme.border,
                     },
                   ]}
-                  onPress={() => updateNotifPrefs({ threshold: pts })}
+                  onPress={() => { selectionHaptic(); updateNotifPrefs({ threshold: pts }); }}
                   accessibilityRole="radio"
                   accessibilityLabel={`Notify on changes of at least ${pts} point${pts === 1 ? '' : 's'}`}
                   accessibilityState={{ checked: selected }}
                 >
-                  <Text
-                    style={[styles.thresholdText, { color: selected ? onPrimary(currentTheme.primary) : currentTheme.text }]}
-                  >
+                  <Text variant="body" weight="600" color={selected ? onPrimary(currentTheme.primary) : currentTheme.text}>
                     ≥ {pts} pt{pts === 1 ? '' : 's'}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-          <Card
-            style={styles.infoItem}
+          <ListRow
+            title="System Settings"
+            trailing={<Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />}
             onPress={() => openLink('app-settings:')}
             accessibilityRole="link"
             accessibilityLabel="Open system notification settings"
-          >
-            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>System Settings</Text>
-            <Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />
-          </Card>
-          <Text style={[styles.notifNote, { color: currentTheme.textSecondary }]}>
+          />
+          <Text variant="subhead" color={currentTheme.textSecondary} style={styles.notifNote}>
             Turn notifications on or off and choose how they&apos;re delivered in iOS Settings.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
+          <Text variant="caption" weight="700" color={currentTheme.textSecondary} style={styles.sectionTitle} accessibilityRole="header">
             Support
           </Text>
-          <Card
-            style={styles.infoItem}
+          <ListRow
+            title="Get Help"
+            trailing={<Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />}
             onPress={() => openLink(SUPPORT_URL)}
             accessibilityRole="link"
             accessibilityLabel="Get help and report a problem"
-          >
-            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Get Help</Text>
-            <Ionicons name="open-outline" size={18} color={currentTheme.textSecondary} />
-          </Card>
-          <Card
-            style={styles.infoItem}
+          />
+          <ListRow
+            title="Rate Gradient"
+            trailing={<Ionicons name="star-outline" size={18} color={currentTheme.textSecondary} />}
             onPress={handleRate}
-            accessibilityRole="button"
             accessibilityLabel="Rate Gradient on the App Store"
-          >
-            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Rate Gradient</Text>
-            <Ionicons name="star-outline" size={18} color={currentTheme.textSecondary} />
-          </Card>
-          <Card
-            style={styles.infoItem}
+          />
+          <ListRow
+            title="Privacy Policy"
+            trailing={<Ionicons name="chevron-forward" size={18} color={currentTheme.textSecondary} />}
             onPress={() => navigation.navigate('Privacy' as never)}
-            accessibilityRole="button"
             accessibilityLabel="Read the privacy policy"
-          >
-            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Privacy Policy</Text>
-            <Ionicons name="chevron-forward" size={18} color={currentTheme.textSecondary} />
-          </Card>
-          <Card
-            style={styles.infoItem}
+          />
+          <ListRow
+            title="Check for Updates"
+            trailing={<Ionicons name="refresh" size={18} color={currentTheme.textSecondary} />}
             onPress={handleCheckForUpdates}
-            accessibilityRole="button"
             accessibilityLabel="Check for updates"
-          >
-            <Text style={[styles.infoLabel, { color: currentTheme.text }]}>Check for Updates</Text>
-            <Ionicons name="refresh" size={18} color={currentTheme.textSecondary} />
-          </Card>
+          />
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: currentTheme.textSecondary }]} accessibilityRole="header">
+          <Text variant="caption" weight="700" color={currentTheme.textSecondary} style={styles.sectionTitle} accessibilityRole="header">
             About
           </Text>
-          <Card style={styles.infoItem}>
-            <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Version</Text>
-            <Text style={[styles.infoValue, { color: currentTheme.text }]}>
-              {APP_VERSION} ({BUILD_NUMBER})
-            </Text>
-          </Card>
+          <ListRow
+            title="Version"
+            titleColor={currentTheme.textSecondary}
+            trailing={<Text variant="body" weight="600" color={currentTheme.text}>{APP_VERSION} ({BUILD_NUMBER})</Text>}
+          />
           {OTA_ENABLED && (
-            <Card style={styles.infoItem}>
-              <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Update</Text>
-              <Text style={[styles.infoValue, { color: currentTheme.text }]}>{currentUpdateLabel()}</Text>
-            </Card>
+            <ListRow
+              title="Update"
+              titleColor={currentTheme.textSecondary}
+              trailing={<Text variant="body" weight="600" color={currentTheme.text}>{currentUpdateLabel()}</Text>}
+            />
           )}
-          <Card style={styles.infoItem}>
-            <Text style={[styles.infoLabel, { color: currentTheme.textSecondary }]}>Powered by</Text>
-            <Text style={[styles.infoValue, { color: currentTheme.text }]}>HAC API</Text>
-          </Card>
+          <ListRow
+            title="Powered by"
+            titleColor={currentTheme.textSecondary}
+            trailing={<Text variant="body" weight="600" color={currentTheme.text}>HAC API</Text>}
+          />
         </View>
 
         <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.logoutButton, { backgroundColor: UI_COLORS.danger }]}
-            onPress={handleLogout}
-            accessibilityRole="button"
-            accessibilityLabel="Sign out"
-          >
-            <Ionicons name="log-out" size={20} color={UI_COLORS.white} />
-            <Text style={styles.logoutText}>Sign Out</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.deleteButton, { borderColor: UI_COLORS.danger }]}
+          <Button title="Sign Out" variant="danger" icon="log-out" onPress={handleLogout} accessibilityLabel="Sign out" />
+          <Button
+            title="Delete Account"
+            variant="outline"
+            color={UI_COLORS.danger}
+            icon="trash"
             onPress={handleDeleteAccount}
-            accessibilityRole="button"
+            style={styles.deleteButton}
             accessibilityLabel="Delete account and erase all data on this device"
-          >
-            <Ionicons name="trash" size={18} color={UI_COLORS.danger} />
-            <Text style={styles.deleteText}>Delete Account</Text>
-          </TouchableOpacity>
+          />
         </View>
 
         <View style={styles.footer}>
-          <Text style={[styles.footerText, { color: currentTheme.primary }]}>Gradient</Text>
-          <Text style={[styles.footerSubtext, { color: currentTheme.textSecondary }]}>
+          <Text variant="heading" color={currentTheme.primary}>Gradient</Text>
+          <Text variant="subhead" color={currentTheme.textSecondary} style={styles.footerSubtext}>
             Your grades, visualized
           </Text>
         </View>
@@ -409,20 +380,13 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.lg,
   },
   accountDistrict: {
-    fontSize: FONT.sm,
-    fontWeight: '500',
     marginTop: SPACING.xs,
   },
   accountEmail: {
-    fontSize: FONT.md,
     marginTop: SPACING.xs,
   },
   accountInfo: {
     flex: 1,
-  },
-  accountName: {
-    fontSize: FONT.lg,
-    fontWeight: '600',
   },
   appearanceChip: {
     alignItems: 'center',
@@ -432,23 +396,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: TOUCH_TARGET * 1.4,
   },
-  appearanceChipText: { fontSize: FONT.xs, fontWeight: '600' },
   appearanceRow: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.md },
   appearanceSwatch: { borderRadius: RADIUS.pill, height: SPACING.lg, width: SPACING.xxxl },
   deleteButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    justifyContent: 'center',
     marginTop: SPACING.md,
-    minHeight: TOUCH_TARGET,
-  },
-  deleteText: {
-    color: UI_COLORS.danger,
-    fontSize: FONT.base,
-    fontWeight: '600',
   },
   footer: {
     alignItems: 'center',
@@ -456,62 +407,15 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xxxl,
   },
   footerSubtext: {
-    fontSize: FONT.sm,
     marginTop: SPACING.xs,
   },
-  footerText: {
-    fontSize: FONT.xl,
-    fontWeight: '700',
-  },
-  infoItem: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.md,
-  },
-  infoLabel: {
-    fontSize: FONT.base,
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: FONT.base,
-    fontWeight: '600',
-  },
-  lockInfo: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: SPACING.md },
-  lockRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    paddingVertical: SPACING.lg,
-  },
-  lockSubtitle: { fontSize: FONT.sm, marginTop: SPACING.xxs },
-  lockText: { flex: 1 },
-  lockTitle: { fontSize: FONT.lg, fontWeight: '600' },
-  logoutButton: {
-    alignItems: 'center',
-    borderRadius: RADIUS.md,
-    flexDirection: 'row',
-    gap: SPACING.sm,
-    justifyContent: 'center',
-    minHeight: TOUCH_TARGET,
-  },
-  logoutText: {
-    color: UI_COLORS.white,
-    fontSize: FONT.lg,
-    fontWeight: '600',
-  },
-  notifNote: { fontSize: FONT.sm, lineHeight: 18, marginTop: SPACING.sm },
+  notifNote: { lineHeight: 18, marginTop: SPACING.sm },
   section: {
     borderBottomWidth: 8,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.lg,
   },
   sectionTitle: {
-    fontSize: FONT.base,
-    fontWeight: '700',
     letterSpacing: 0.5,
     marginBottom: SPACING.md,
     textTransform: 'uppercase',
@@ -529,10 +433,6 @@ const styles = StyleSheet.create({
     minHeight: TOUCH_TARGET,
     minWidth: '30%',
   },
-  themeOptionText: {
-    fontSize: FONT.xs,
-    fontWeight: '600',
-  },
   thresholdChip: {
     alignItems: 'center',
     borderRadius: RADIUS.sm,
@@ -542,5 +442,4 @@ const styles = StyleSheet.create({
     minHeight: TOUCH_TARGET,
   },
   thresholdRow: { flexDirection: 'row', gap: SPACING.md, marginBottom: SPACING.sm, marginTop: SPACING.md },
-  thresholdText: { fontSize: FONT.base, fontWeight: '600' },
 });
