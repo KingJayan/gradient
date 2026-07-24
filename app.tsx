@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Animated } from 'react-native';
 import { Text } from './components/typography';
-import { NavigationContainer, useIsFocused } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme, DefaultTheme, useIsFocused } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -206,7 +206,7 @@ function statusMessage(status: ServiceStatus, hacUrl?: string): string {
 
 function AppShell({ isLoggedOut, hacUrl }: { isLoggedOut: boolean; hacUrl?: string }) {
   const { locked } = useAppLock();
-  const { scheme } = useTheme();
+  const { scheme, currentTheme } = useTheme();
   const status = useServiceStatus();
   const banner =
     status === 'ok'
@@ -219,7 +219,17 @@ function AppShell({ isLoggedOut, hacUrl }: { isLoggedOut: boolean; hacUrl?: stri
       {locked ? (
         <LockScreen />
       ) : (
-        <NavigationContainer>
+        <NavigationContainer theme={{
+          ...(scheme === 'dark' ? DarkTheme : DefaultTheme),
+          colors: {
+            ...(scheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+            background: currentTheme.background,
+            card: currentTheme.surface,
+            text: currentTheme.text,
+            border: currentTheme.border,
+            primary: currentTheme.primary,
+          },
+        }}>
           {isLoggedOut ? <AuthStack /> : <AppStack />}
         </NavigationContainer>
       )}
