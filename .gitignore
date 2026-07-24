@@ -36,6 +36,7 @@ dist
 .turbo
 
 ios
+android
 todo.txt
 
 .pnpm-store/
