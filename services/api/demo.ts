@@ -65,6 +65,8 @@ const CLASSES = Object.keys(AVERAGES);
 
 function payload(endpoint: string): unknown {
   switch (endpoint) {
+    case 'profiles':
+      return [{ id: 'demo', name: DEMO_STUDENT_NAME }];
     case 'averages':
       return AVERAGES;
     case 'assignments':

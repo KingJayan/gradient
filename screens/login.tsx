@@ -20,8 +20,15 @@ import { Button } from '../components/screen';
 import { Text } from '../components/typography';
 import { selectionHaptic } from '../utils/haptics';
 import { DISTRICTS, isValidHacUrl, normalizeHacUrl, searchDistricts } from '../utils/district';
+import { fetchProfiles, HACProfile } from '../hooks/use-auth';
 
 const MAX_RESULTS = 8;
+
+interface PendingCreds {
+  username: string;
+  password: string;
+  hacUrl: string;
+}
 
 export default function LoginScreen() {
   const authContext = useContext(AuthContext);
@@ -33,12 +40,14 @@ export default function LoginScreen() {
   const [manual, setManual] = useState(false);
   const [customUrl, setCustomUrl] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pendingProfiles, setPendingProfiles] = useState<HACProfile[] | null>(null);
+  const [pendingCreds, setPendingCreds] = useState<PendingCreds | null>(null);
 
   const results = useMemo(() => searchDistricts(query).slice(0, MAX_RESULTS), [query]);
   const selectedDistrict = DISTRICTS.find((d) => d.id === selectedDistrictId);
   const customValid = isValidHacUrl(customUrl);
   const hacUrl = manual ? normalizeHacUrl(customUrl) : selectedDistrict?.url ?? '';
-  // useRef keeps the same Animated.Value across renders
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -49,10 +58,9 @@ export default function LoginScreen() {
     }).start();
   }, [fadeAnim]);
 
-  const signIn = async (user: string, pass: string, url: string) => {
-    setLoading(true);
+  const completeSignIn = async (user: string, pass: string, url: string, profileId?: string, profileName?: string) => {
     try {
-      await authContext!.login(user, pass, url);
+      await authContext!.login(user, pass, url, profileId, profileName);
     } catch (error) {
       Alert.alert(
         "Couldn't Sign In",
@@ -60,7 +68,35 @@ export default function LoginScreen() {
       );
     } finally {
       setLoading(false);
+      setPendingProfiles(null);
+      setPendingCreds(null);
     }
+  };
+
+  const signIn = async (user: string, pass: string, url: string) => {
+    setLoading(true);
+    try {
+      const profiles = await fetchProfiles(user, pass, url);
+      if (profiles.length > 1) {
+        setPendingCreds({ username: user, password: pass, hacUrl: url });
+        setPendingProfiles(profiles);
+        setLoading(false);
+        return;
+      }
+      // Pass the name from the single profile so we skip the /name round-trip.
+      await completeSignIn(user, pass, url, profiles[0]?.id, profiles[0]?.name);
+    } catch {
+      setLoading(false);
+      Alert.alert("Couldn't Sign In", 'Something went wrong. Please try again.');
+    }
+  };
+
+  const selectProfile = (profileId: string) => {
+    if (!pendingCreds || !pendingProfiles) return;
+    const profile = pendingProfiles.find((p) => p.id === profileId);
+    selectionHaptic();
+    setLoading(true);
+    completeSignIn(pendingCreds.username, pendingCreds.password, pendingCreds.hacUrl, profileId, profile?.name);
   };
 
   const handleLogin = () => {
@@ -251,6 +287,45 @@ export default function LoginScreen() {
           </Text>
         </Animated.View>
       </ScrollView>
+
+      {pendingProfiles && (
+        <View style={styles.pickerOverlay} accessibilityViewIsModal>
+          <View style={[styles.pickerSheet, { backgroundColor: currentTheme.surface }]}>
+            <Text variant="heading" weight="600" color={currentTheme.text} style={styles.pickerTitle}>
+              Select Student
+            </Text>
+            <Text variant="body" color={currentTheme.textSecondary} style={styles.pickerSubtitle}>
+              This account has multiple students. Choose who to view.
+            </Text>
+            <View accessibilityRole="radiogroup">
+              {pendingProfiles.map((profile) => (
+                <TouchableOpacity
+                  key={profile.id}
+                  style={[styles.profileButton, { borderColor: currentTheme.border, backgroundColor: currentTheme.background }]}
+                  onPress={() => selectProfile(profile.id)}
+                  disabled={loading}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Select ${profile.name}`}
+                >
+                  <Ionicons name="person-circle-outline" size={24} color={currentTheme.primary} />
+                  <Text variant="body" weight="500" color={currentTheme.text} style={styles.profileName}>
+                    {profile.name}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={18} color={currentTheme.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={styles.pickerCancel}
+              onPress={() => { setPendingProfiles(null); setPendingCreds(null); }}
+              accessibilityRole="button"
+              accessibilityLabel="Cancel"
+            >
+              <Text variant="body" weight="600" color={currentTheme.textSecondary}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -332,5 +407,45 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: SPACING.xs,
+  },
+  pickerOverlay: {
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    bottom: 0,
+    justifyContent: 'flex-end',
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  pickerSheet: {
+    borderTopLeftRadius: RADIUS.lg,
+    borderTopRightRadius: RADIUS.lg,
+    padding: SPACING.xl,
+    paddingBottom: SPACING.huge,
+  },
+  pickerTitle: {
+    marginBottom: SPACING.sm,
+  },
+  pickerSubtitle: {
+    marginBottom: SPACING.xl,
+  },
+  profileButton: {
+    alignItems: 'center',
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: SPACING.md,
+    marginBottom: SPACING.sm,
+    minHeight: TOUCH_TARGET,
+    paddingHorizontal: SPACING.lg,
+  },
+  profileName: {
+    flex: 1,
+  },
+  pickerCancel: {
+    alignItems: 'center',
+    marginTop: SPACING.lg,
+    minHeight: TOUCH_TARGET,
+    justifyContent: 'center',
   },
 });

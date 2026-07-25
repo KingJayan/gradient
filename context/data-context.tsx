@@ -38,12 +38,13 @@ export const DASHBOARD_QUERY_KEY = DASHBOARD_KEY;
 
 export async function fetchDashboard(creds: Creds, signal?: AbortSignal): Promise<Dashboard> {
   mark('dashboard:start');
+  const { hacUrl, username, password, profileId } = creds;
   const [grades, assignments, schedule] = await Promise.all([
-    fetchGrades(creds.hacUrl, creds.username, creds.password, signal),
-    fetchAssignments(creds.hacUrl, creds.username, creds.password, signal),
-    fetchSchedule(creds.hacUrl, creds.username, creds.password, signal),
+    fetchGrades(hacUrl, username, password, signal, profileId),
+    fetchAssignments(hacUrl, username, password, signal, profileId),
+    fetchSchedule(hacUrl, username, password, signal, profileId),
   ]);
-  const courses = await fetchCourses(creds.hacUrl, creds.username, creds.password, grades, signal);
+  const courses = await fetchCourses(hacUrl, username, password, grades, signal, profileId);
   measure('dashboard', 'dashboard:start');
   return { grades, courses, assignments, schedule };
 }

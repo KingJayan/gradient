@@ -18,9 +18,9 @@ interface ReportCardClass {
 }
 
 async function fetchRawClasses(
-  hacUrl: string, username: string, password: string, signal?: AbortSignal
+  hacUrl: string, username: string, password: string, signal?: AbortSignal, profileId?: string
 ): Promise<ReportCardClass[]> {
-  const table = await apiFetch('reportcard', hacUrl, username, password, tableResponse, signal);
+  const table = await apiFetch('reportcard', hacUrl, username, password, tableResponse, signal, profileId);
   const headers = table.headers.map((h) => safeString(h));
   const nameIdx = colIndex(headers, 'Description', 1);
   const periodIdx = colIndex(headers, 'Period', 2);
@@ -38,9 +38,9 @@ async function fetchRawClasses(
 }
 
 export async function fetchSchedule(
-  hacUrl: string, username: string, password: string, signal?: AbortSignal
+  hacUrl: string, username: string, password: string, signal?: AbortSignal, profileId?: string
 ): Promise<ClassPeriod[]> {
-  const classes = await fetchRawClasses(hacUrl, username, password, signal);
+  const classes = await fetchRawClasses(hacUrl, username, password, signal, profileId);
   return classes.map((cls, i) => {
     const periodNum = parseInt(cls.period, 10) || i + 1;
     return {

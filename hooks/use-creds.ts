@@ -8,6 +8,7 @@ export interface Creds {
   hacUrl: string;
   username: string;
   password: string;
+  profileId?: string;
 }
 
 export function useCreds(): Creds | null {
@@ -31,7 +32,7 @@ export function useCreds(): Creds | null {
   }, [u]);
 
   return useMemo(
-    () => (!u || !password ? null : { hacUrl: u.hacUrl, username: u.username, password }),
+    () => (!u || !password ? null : { hacUrl: u.hacUrl, username: u.username, password, profileId: u.profileId }),
     [u, password]
   );
 }

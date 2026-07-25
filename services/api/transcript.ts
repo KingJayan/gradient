@@ -12,9 +12,9 @@ export interface TranscriptEntry {
 }
 
 export async function fetchTranscript(
-  hacUrl: string, username: string, password: string
+  hacUrl: string, username: string, password: string, profileId?: string
 ): Promise<TranscriptEntry[]> {
-  const raw = await apiFetch('transcript', hacUrl, username, password, recordResponse);
+  const raw = await apiFetch('transcript', hacUrl, username, password, recordResponse, undefined, profileId);
   const entries: TranscriptEntry[] = [];
 
   Object.values(raw)

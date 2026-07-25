@@ -71,7 +71,7 @@ const YearSection = React.memo(function YearSection({
 export default function TranscriptScreen() {
   const { currentTheme } = useTheme();
   const { data, loading, error, refetch } = useScreenData<TranscriptEntry[]>('transcript', (creds) =>
-    fetchTranscript(creds.hacUrl, creds.username, creds.password)
+    fetchTranscript(creds.hacUrl, creds.username, creds.password, creds.profileId)
   );
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
 

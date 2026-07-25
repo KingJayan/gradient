@@ -32,8 +32,6 @@ export async function applyUpdate(): Promise<void> {
   }
 }
 
-// downloads in the background and swaps the bundle in on the next foreground,
-// so a parser fix ships without waiting on App Store review
 export function useAutoUpdate() {
   const pending = useRef(false);
 

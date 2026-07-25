@@ -18,8 +18,6 @@ async function reachable(url: string): Promise<boolean> {
   }
 }
 
-// separates "the phone is offline" from "our proxy is down" from
-// "this district's HAC is down" so the banner can say which
 export async function checkServiceStatus(hacUrl?: string): Promise<ServiceStatus> {
   if (await reachable(API_BASE_URL)) {
     if (hacUrl && !(await reachable(hacUrl))) return 'district-down';

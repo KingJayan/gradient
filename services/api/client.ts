@@ -78,7 +78,8 @@ export async function apiFetch<T>(
   username: string,
   password: string,
   parse: (data: unknown, endpoint: string) => T,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  profileId?: string
 ): Promise<T> {
   const demo = demoPayload(endpoint, username);
   if (demo !== undefined) return parse(demo, endpoint);
@@ -89,7 +90,7 @@ export async function apiFetch<T>(
       const res = await fetch(`${API_URL}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
+        body: JSON.stringify({ link: hacUrl, user: username, pass: password, ...(profileId && { profile: profileId }) }),
         signal,
       });
       if (!res.ok) {

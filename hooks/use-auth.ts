@@ -3,9 +3,34 @@ import * as SecureStore from 'expo-secure-store';
 import { AuthState, Student } from '../context/auth-context';
 import { logError } from '../utils/error-logger';
 import { API_URL } from '../services/api/config';
-import { DEMO_CREDENTIALS, DEMO_STUDENT_NAME, isDemoUser } from '../services/api/demo';
+import { DEMO_CREDENTIALS, DEMO_STUDENT_NAME, isDemoUser, demoPayload } from '../services/api/demo';
 import { districtName } from '../utils/district';
 import { SECURE_KEYS, wipeLocalData } from '../utils/storage';
+
+export interface HACProfile {
+  id: string;
+  name: string;
+}
+
+export async function fetchProfiles(
+  username: string,
+  password: string,
+  hacUrl: string
+): Promise<HACProfile[]> {
+  const demo = demoPayload('profiles', username);
+  if (demo !== undefined) return demo as HACProfile[];
+  try {
+    const res = await fetch(`${API_URL}/profiles`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
 
 const CREDENTIAL_PRESENCE_MARKER = 'authenticated';
 
@@ -64,18 +89,20 @@ export function useAuth() {
   }, []);
 
   const login = useCallback(
-    async (username: string, password: string, hacUrl: string) => {
+    async (username: string, password: string, hacUrl: string, profileId?: string, preknownName?: string) => {
       let name: string | undefined;
       if (isDemoUser(username)) {
         if (password !== DEMO_CREDENTIALS.password) {
           throw new Error(`The demo account password is "${DEMO_CREDENTIALS.password}".`);
         }
         name = DEMO_STUDENT_NAME;
+      } else if (preknownName) {
+        name = preknownName;
       } else {
         const response = await fetch(`${API_URL}/name`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ link: hacUrl, user: username, pass: password }),
+          body: JSON.stringify({ link: hacUrl, user: username, pass: password, ...(profileId && { profile: profileId }) }),
         }).catch(() => {
           throw new Error('Could not reach Gradient. Check your connection and try again.');
         });
@@ -90,7 +117,7 @@ export function useAuth() {
       }
 
       const token = CREDENTIAL_PRESENCE_MARKER;
-      const user: Student = { id: username, username, hacUrl, name };
+      const user: Student = { id: username, username, hacUrl, name, profileId };
 
       await SecureStore.setItemAsync(SECURE_KEYS.token, token);
       await SecureStore.setItemAsync(SECURE_KEYS.user, JSON.stringify(user));
@@ -113,9 +140,7 @@ export function useAuth() {
       logError(e as Error, { action: 'logout' });
     }
   }, []);
-
-  // Gradient stores nothing server-side, so deletion is a full local wipe;
-  // the HAC account itself is owned by the district.
+  
   const deleteAccount = useCallback(async () => {
     try {
       await wipeLocalData();

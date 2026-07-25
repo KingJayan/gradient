@@ -18,8 +18,8 @@ TaskManager.defineTask(BACKGROUND_REFRESH_TASK, async () => {
     ]);
     if (!userRaw || !password) return BackgroundTask.BackgroundTaskResult.Success;
 
-    const user = JSON.parse(userRaw) as { hacUrl: string; username: string };
-    const data = await fetchDashboard({ hacUrl: user.hacUrl, username: user.username, password });
+    const user = JSON.parse(userRaw) as { hacUrl: string; username: string; profileId?: string };
+    const data = await fetchDashboard({ hacUrl: user.hacUrl, username: user.username, password, profileId: user.profileId });
 
     const raw = await AsyncStorage.getItem(LOCAL_KEYS.queryCache);
     const cache = raw ? JSON.parse(raw) : {};
